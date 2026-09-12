@@ -1,0 +1,59 @@
+# The charter
+
+At most 50 lines, at `<team root>/charter.md`. It is the team's own law, and the
+only contract file a retro may edit. Every member re-reads it on every context
+load, so a line that does not change what someone does is a line that costs the
+team forever.
+
+    # <the goal, in one sentence>
+
+    Team root: /absolute/path/to/.teamwork
+    Team name: <name used by --team-name>
+    Isolation: <one shared tree | one worktree per lane>
+
+    ## Lanes
+    - <lane> — <what it covers, in a phrase>
+    - <lane> — <what it covers, in a phrase>
+
+    ## Shared paths
+    - <path no single lane can own> — owned by <lane>
+
+    ## Working rules
+    - <a rule this team needs, and what goes wrong without it>
+
+    ## Human gates
+    - <an action that stops and asks, every time>
+
+    ## Done
+    - <the condition that disbands the team>
+
+    ## Pointers
+    - protocol.md and conflicts.md — copied from the plugin, never edited.
+    - tracker.md — where work items live. transport.md — how members address each other.
+
+## The required lines
+
+`Team root:` must be absolute and must be the directory itself; `[T9]` fails
+otherwise, which is what catches a member editing its own stale worktree copy.
+
+`## Lanes` entries must start with the lane name, because `[T4]` matches them
+against the files in `roles/`. A lane named here with no role file, or a role file
+named in no lane, is a team where somebody has no rules or nobody has that lane.
+
+## Working rules
+
+Only rules this team needs. Anything true of every team is already in
+`protocol.md`, and repeating it there is how a 50-line charter becomes a 200-line
+one. Three to six rules is normal. Each names its failure mode.
+
+## Human gates
+
+The actions that stop and ask, every time: publishing, deleting, touching
+production, spending money, changing scope. Be specific enough that a member can
+tell whether it is at one. "Use judgement" is not a gate.
+
+## Done
+
+What finishing looks like, checkable by someone who was not here. A team with no
+stop condition keeps working, and the cost of a team that will not stop is paid
+in tokens for as long as nobody notices.

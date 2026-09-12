@@ -1,0 +1,10 @@
+# Claude Code local state, per-machine and never shared.
+.claude/settings.local.json
+
+# Python bytecode from the validator and its tests.
+__pycache__/
+*.pyc
+
+# Editor and OS noise.
+.DS_Store
+*.swp

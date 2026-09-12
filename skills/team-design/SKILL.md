@@ -1,0 +1,91 @@
+---
+name: team-design
+description: >
+  How to design, form, audit and continuously improve a team of Claude Code
+  sessions working one goal. Use when deciding whether a goal needs a team at
+  all, how many members it needs, what each may and may not touch, where work
+  items and bugs will be recorded, how members address each other, and how the
+  rules get better as the work exposes their gaps. Also use to adopt sessions
+  that are already collaborating without contracts, to run a retro, and to audit
+  a team root that has grown. The rule it exists to enforce is that every lane,
+  boundary and rule traces to something in the work, and that a contract never
+  becomes a log or a task board. NOT for working inside a lane once the team
+  exists, which is team-member's job.
+---
+
+# Designing a team
+
+**Derive the team from the work. A lane, a rule or a boundary that does not trace
+to something in the breakdown is decoration.**
+
+When a case below is not covered, decide it from that sentence. Decoration is not
+harmless here: every line is re-read by every member on every context load, so an
+unearned rule is a tax charged forever.
+
+## Forming a team
+
+1. **Get the breakdown first.** Prefer an existing `IMPLEMENTATION_PLAN.md`. With
+   none, derive a minimal stream list — do not write a full plan, that is
+   `backlog-refiner`'s job and duplicating it creates a second source of truth.
+2. **Size the team from the breakdown**, never from the goal's ambition. Follow
+   `references/sizing.md` exactly. It can return "one session", and when it does,
+   say so and stop.
+3. **Resolve the team root** — one absolute path every member can reach. Follow
+   `references/team-root.md`. Ask the user rather than guessing; a wrong guess
+   scatters team state where nobody looks for it.
+4. **Pick the tracker**, following `references/trackers.md`. One backend, written
+   into `tracker.md` with its create, claim and close commands.
+5. **Write the contracts** from `references/charter-template.md` and
+   `references/role-template.md`. Copy `protocol.md` and `conflicts.md` from
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-member/references/` byte for byte.
+6. **Run the validator** before telling anyone the team exists:
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
+7. **Print the launch commands** for the user, one per lane, each carrying the
+   team name, the agent name, and `--add-dir <team root>` when the lane's working
+   directory is not inside it.
+
+## What belongs in a contract
+
+1. **A rule earns its line by naming its failure mode.** Say what goes wrong
+   without it. A rule that cannot name one is advice, and advice is not followed.
+2. **No record of anything that happened.** No dates, no checkboxes, no statuses,
+   no issue ids, no "what we tried". Those belong in the tracker. This is what
+   `[T3]` enforces, and it is the difference between a charter that gets read and
+   one that gets skimmed.
+3. **No task assignments.** The charter says which lane owns which paths. Which
+   item a lane is working right now is the tracker's business and changes hourly.
+4. **Every lane's `Never` is filled in.** A role with no prohibition has no
+   boundary, and a boundary nobody wrote down is one nobody will respect.
+5. **Name an owner for every shared path** — lockfiles, schemas, CI config, build
+   output. An unowned shared path is where two lanes collide first.
+6. **Budgets are hard.** To add a line at a retro you must remove one. Without
+   that rule, "keep improving the rules" becomes accretion, and an accreted
+   charter destroys the context budget that justified the team.
+
+## Improving the rules while the work runs
+
+The loop is in `references/retro.md`. Two parts of it are load-bearing and get
+skipped: a cause appearing **once** is noise and must not produce a rule, and a
+rule whose target cause **recurred** has failed and must be reverted rather than
+supplemented. Without those two, the team accumulates rules instead of better
+ones.
+
+## Adopting a team already running
+
+When sessions are already collaborating without contracts, the lanes exist
+implicitly and must be read from what each session has actually touched, not
+invented. Follow `references/adoption.md`. Its ratification step is a gate, not a
+notification: boundaries imposed on work in flight invalidate that work.
+
+## Further detail
+
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` — how many members, and when the answer is none.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` — where the shared files live, and when to ask.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md` — choosing one work-item backend.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/charter-template.md` — the charter, with its required lines.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/role-template.md` — the four headings and what fills them.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/retro.md` — the optimization loop.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/adoption.md` — putting contracts around a running team.
+
+Each path is written in full because the working directory at runtime is the
+user's project, not this plugin.
