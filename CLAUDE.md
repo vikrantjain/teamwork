@@ -21,9 +21,15 @@ improvement loop are this plugin's.
   auditor to re-report what a check already proved.
 - **Nothing this plugin authors goes in the user's home folder.** Team roots live
   in the project, at a shared location, or at a path the user gave.
-- **`version` and `description` live only in `.claude-plugin/plugin.json`.** Do
-  not re-inline them. Never bump `version` without explicit approval: say what
-  bump the change warrants and wait.
+- **`version` lives only in `.claude-plugin/plugin.json`.** Never bump it without
+  explicit approval: say what bump the change warrants and wait.
+- **`plugin.json` owns the description; the two marketplace manifests copy it.**
+  It appears verbatim in this repo's `.claude-plugin/marketplace.json` and in the
+  `my-claude-plugins` catalog. Change all three together, and treat `plugin.json`
+  as the copy that is right when they disagree.
+- **The repo is its own marketplace as well as a catalog entry.** Both install
+  routes must keep working, so a change to the plugin's name or layout means
+  checking `.claude-plugin/marketplace.json` here and the catalog entry there.
 
 ## Decisions already taken, with their reasons
 

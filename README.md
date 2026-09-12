@@ -89,8 +89,23 @@ starts.
 
 ## Install
 
+This repo **is its own plugin marketplace**, so it installs with nothing set up
+on your side:
+
 ```
-/plugin marketplace add vikrantjain/my-claude-plugins
+/plugin marketplace add vikrantjain/teamwork
+/plugin install teamwork@teamwork
+```
+
+`teamwork@teamwork` is `<plugin>@<marketplace>`: you add the **repo**, and it
+registers under the marketplace name `teamwork`, which contains the plugin of the
+same name.
+
+If you already have the `my-claude-plugins` marketplace added, install from there
+instead and skip the extra marketplace entry:
+
+```
+/plugin marketplace update my-claude-plugins
 /plugin install teamwork@my-claude-plugins
 ```
 
