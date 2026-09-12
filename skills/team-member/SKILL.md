@@ -27,8 +27,8 @@ sees it happen.
 1. **Find the team root and read it by absolute path.** The charter names it on
    its `Team root:` line. Never read a relative `.teamwork/`: in a worktree that
    is your own stale copy, and you would run last week's rules without noticing.
-2. **Load exactly four files**: `protocol.md`, `charter.md`, `transport.md`,
-   `tracker.md`, plus `roles/<your lane>.md`. Your lane is your agent name.
+2. **Load exactly five files**: `protocol.md`, `charter.md`, `transport.md`,
+   `tracker.md`, and `roles/<your lane>.md`. Your lane is your agent name.
 3. **Do not read another lane's role file.** You cannot act on it, and it is pure
    cost in the one budget the team exists to protect.
 4. **Announce yourself to the lead** with your lane and the paths you own, then

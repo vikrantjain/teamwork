@@ -23,6 +23,9 @@ Gather, in this order:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>` and
    report its warnings and failures verbatim.
 
+The rest of the lead's duties, and the ones it is tempted into and should not do,
+are in `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md`.
+
 **Read the tracker, never the work.** Do not open diffs, do not summarize what
 lanes have built, and do not verify anyone's `Done means`. A lead that reviews
 the work becomes the context bottleneck the team was formed to remove, and this

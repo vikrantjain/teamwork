@@ -5,8 +5,8 @@
   "author": {
     "name": "Vikrant Jain"
   },
-  "homepage": "https://github.com/vikrantjain/my-claude-plugins",
-  "repository": "https://github.com/vikrantjain/my-claude-plugins",
+  "homepage": "https://github.com/vikrantjain/teamwork",
+  "repository": "https://github.com/vikrantjain/teamwork",
   "license": "MIT",
   "keywords": ["teamwork", "multi-agent", "orchestration", "cross-session", "teammates", "context-management", "coordination"]
 }

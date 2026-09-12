@@ -26,6 +26,32 @@ location the projects genuinely share, or at a path the user gives.
 
 Record the answer in the charter so it is asked once and never re-derived.
 
+## What the team root holds
+
+Committed, because a contract that is not versioned with the code cannot be
+reviewed in a pull request and does not travel with the project:
+
+    protocol.md      copied from the plugin, never edited
+    conflicts.md     copied from the plugin, never edited
+    charter.md       this team's own law
+    roles/<lane>.md  one per lane, named for the lane
+    tracker.md       the one work-item backend and its commands
+    transport.md     the one substrate and how to address a lane
+    decisions.md     settled choices with their reasons
+
+Gitignored, because it is this run's state rather than the team's law:
+
+    friction.md      what the rules cost, appended by the lead only
+    roster.md        which lane is up, where, and whether it has acked
+
+Add both to the project's `.gitignore` when you create the team root. Committing
+them puts a churning file in every member's next pull, and `roster.md` is wrong
+for everyone the moment one member restarts.
+
+`roster.md` has no template and no budget: it is a scratch list the lead writes
+from the acks, one line per lane giving the lane, its working directory, and
+whether it acked. Nobody but the lead and `/teamwork:status` reads it.
+
 ## Why worktrees are the case that bites
 
 `claude --worktree` gives each member its own checkout, so each gets its own

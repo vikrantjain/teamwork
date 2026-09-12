@@ -50,11 +50,11 @@ This plugin is the method. One sentence decides everything in it:
 | `commands/join.md` | `/teamwork:join` — this session takes a lane |
 | `commands/status.md` | `/teamwork:status` — one screen of live state |
 | `commands/retro.md` | `/teamwork:retro` — improve the rules from friction |
-| `skills/team-design/` | Lead side: sizing, team root, trackers, templates, retro, adoption |
+| `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, retro, adoption |
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
 | `agents/member.md` | One generic lane; finds its role by its own agent name |
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
-| `scripts/validate_team.py` | Nine structural checks over a team root |
+| `scripts/validate_team.py` | Ten structural checks over a team root |
 
 ## What a team looks like on disk
 
@@ -68,10 +68,15 @@ reach, inside the project or at a location you name. Never in your home folder.
   charter.md      this team's own law: lanes, shared paths, human gates, done.
   roles/<lane>.md Owns / Never / Hands off to / Done means.
   tracker.md      the one backend, with its create, claim and close commands.
-  transport.md    how members address each other.
+  transport.md    the one substrate, and how to address a lane.
   decisions.md    settled choices, with the reasons, so retros stop reopening them.
   friction.md     what the rules cost. At its cap, a retro is due.
+  roster.md       which lane is up, where, and whether it has acked.
 ```
+
+Everything down to `decisions.md` is committed, because a contract that is not
+versioned with the code cannot be reviewed in a pull request. The last two are
+gitignored: they are this run's state, not the team's law.
 
 A member loads the protocol, the charter, its own role, the transport and the
 tracker: about 160 lines. Every line budget exists to keep it there.

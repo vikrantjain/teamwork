@@ -29,6 +29,11 @@ cost more than they earn.
    not worth its place and the cause goes back on the list for next time.
 6. **Record the decision and its reason in `decisions.md`** — the reason, not just
    the conclusion, so the next retro does not reopen it without new evidence.
+   **Prune it in the same pass.** A decision whose rule you just reverted goes
+   with that rule, and one whose subject no longer exists constrains nobody. This
+   is the only contract file that gains a line at every retro, so it is the only
+   one that needs pruning on a schedule rather than when it hurts. Left alone it
+   reaches its budget and then `[T1]` blocks the retro that would have fixed it.
 7. **Run the validator.** `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py
    <team root>` must pass before anything is announced.
 8. **Spawn `teamwork:contract-auditor`** with fresh context to answer the one

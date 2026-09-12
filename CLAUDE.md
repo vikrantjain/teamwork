@@ -56,6 +56,16 @@ recorded rather than the conclusion alone.
 - **One `member` agent serves every lane**, because the lane is the agent's name
   and the role file is looked up from it. Generating an agent per lane would put
   a copy of the role in a second place.
+- **`[T5]` compares globs by matching, never by truncating them at the first
+  wildcard.** Truncation is simpler and was tried: it collapsed every
+  leading-wildcard glob to the empty prefix, so two lanes owning `**/*.sql` and
+  `**/*.css` failed a valid team while a real overlap against a literal path went
+  unseen. Each glob is now turned into a regex and tested against a concrete path
+  drawn from the other.
+- **`decisions.md` is the one contract file pruned on a schedule.** Every other
+  file is bounded by the remove-a-line-to-add-one rule, but this one gains a line
+  at every retro. Left alone it reaches its budget and `[T1]` then blocks the
+  retro that would have fixed it.
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, a session
   on another machine, or a person.

@@ -218,6 +218,21 @@ class TestT3NoLog(TeamRootCase):
         code, out = self.run_validator()
         self.assertEqual(code, 0, out)
 
+    def test_a_backtick_cannot_launder_the_rest_of_the_line(self):
+        """One backticked word used to exempt the whole line from every tell."""
+        append(self.root, "charter.md",
+               "\nThe api lane `shipped` the endpoint on 2026-09-01.\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T3]", out)
+        self.assertIn("a date", out)
+
+    def test_a_status_field_outside_backticks_is_still_a_tell(self):
+        append(self.root, "charter.md", "\nStatus: ui is `blocked` on api.\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("a status field", out)
+
 
 class TestT4RosterClosure(TeamRootCase):
     def test_lane_without_role_file_fails(self):
@@ -257,6 +272,61 @@ class TestT5LaneDisjoint(TeamRootCase):
         code, out = self.run_validator()
         self.assertEqual(code, 0, out)
 
+    def test_globs_with_no_literal_prefix_do_not_collide(self):
+        """Two lanes owning `**/*.sql` and `**/*.css` are disjoint.
+
+        Truncating each glob at its first wildcard made both of them the empty
+        prefix, which failed a valid team and named no path to fix.
+        """
+        write(self.root, "roles/api.md", ROLE_API.replace("- migrations/**", "- **/*.sql"))
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src/ui/**\n- **/*.css"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+    def test_a_leading_wildcard_glob_still_catches_a_real_overlap(self):
+        write(self.root, "roles/api.md", ROLE_API.replace("- migrations/**", "- **/*.sql"))
+        write(self.root, "roles/ui.md",
+              ROLE_UI.replace("- src/ui/**", "- src/ui/**\n- migrations/schema.sql"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T5]", out)
+        self.assertIn("migrations/schema.sql", out)
+
+    def test_a_negated_class_is_read_as_a_negation(self):
+        """`[!a]` excludes `a` in a glob; passing it to regex unchanged included it."""
+        write(self.root, "roles/api.md", ROLE_API.replace("- migrations/**", "- log[!s]/**"))
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src/ui/**\n- logs/**"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+    def test_a_bare_directory_contains_a_glob_beneath_it(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("contains", out)
+
+
+class TestT2HeadingOrder(TeamRootCase):
+    def test_headings_out_of_order_fails(self):
+        write(self.root, "roles/ui.md", """# ui
+
+## Done means
+- The console renders against a running service.
+
+## Owns
+- src/ui/**
+
+## Never
+- Edit src/api. The api lane owns its own shape.
+
+## Hands off to
+- api, when the console needs a field that does not exist.
+""")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T2]", out)
+        self.assertIn("out of order", out)
+
 
 class TestT6TrackerNamed(TeamRootCase):
     def test_missing_tracker_fails(self):
@@ -271,6 +341,15 @@ class TestT6TrackerNamed(TeamRootCase):
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("Claim:", out)
+
+    def test_label_without_a_command_fails(self):
+        write(self.root, "tracker.md",
+              "Backend: GitHub issues\nCreate:\nClaim: gh issue edit <n>\n"
+              "Close: gh issue close <n>\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("Create:", out)
+        self.assertIn("carrying a command", out)
 
     def test_two_backends_fail(self):
         append(self.root, "tracker.md", "Backend: a file board\n")
@@ -312,6 +391,27 @@ class TestT7Verbatim(TeamRootCase):
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("conflicts.md", out)
+
+
+class TestT10TransportNamed(TeamRootCase):
+    def test_missing_transport_fails(self):
+        os.remove(os.path.join(self.root, "transport.md"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T10]", out)
+
+    def test_missing_send_line_fails(self):
+        write(self.root, "transport.md",
+              TRANSPORT.replace("Send: SendMessage to the lane name\n", ""))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("Send:", out)
+
+    def test_two_substrates_fail(self):
+        append(self.root, "transport.md", "Substrate: claude-chat\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("unreachable", out)
 
 
 class TestT8FrictionCap(TeamRootCase):

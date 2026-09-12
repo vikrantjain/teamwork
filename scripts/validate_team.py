@@ -24,6 +24,7 @@ Checks:
     [T7] verbatim         protocol.md and conflicts.md still match the plugin
     [T8] friction-cap     warn that a retro is due
     [T9] team-root        the charter names this directory as an absolute path
+    [T10] transport-named transport.md names one substrate and how to address it
 
 [T3] and [T5] are the load-bearing ones. [T3] is what stops a charter becoming a
 log, and [T5] is what stops two members editing one file.
@@ -71,6 +72,10 @@ LOG_TELLS = [
     (re.compile(r"\b(completed|finished|shipped)\b", re.I), "a past-tense progress word"),
 ]
 ISSUE_TELL = (re.compile(r"(?:^|\s)#\d+|\b[A-Z]{2,10}-\d+\b"), "an issue id")
+
+# Backticked text is an illustration of a command, not a record of one. Only the
+# span is exempt: skipping the whole line let one backtick launder a log entry.
+CODE_SPAN = re.compile(r"`[^`]*`")
 
 
 class Report:
@@ -155,6 +160,11 @@ def check_role_shape(root, rep):
         for heading in ROLE_HEADINGS:
             if found.count(heading) > 1:
                 rep.fail("T2", rel, 0, f"duplicate heading {heading!r}")
+        if sorted(found) == sorted(ROLE_HEADINGS) and found != ROLE_HEADINGS:
+            rep.fail("T2", rel, 0,
+                     "headings are out of order. The order is "
+                     + ", ".join(ROLE_HEADINGS)
+                     + ". A role that varies in shape cannot be read quickly.")
         if "## Never" in found and not [l for l in section(lines, "## Never") if l.strip()]:
             rep.fail("T2", rel, 0,
                      "'## Never' is empty. A role with no prohibition has no boundary.")
@@ -174,10 +184,11 @@ def check_no_log(root, rep):
         if rel != "decisions.md":
             tells.append(ISSUE_TELL)
         for i, line in enumerate(read_lines(path), 1):
-            if line.lstrip().startswith(("|", ">")) or "`" in line:
-                continue  # tables and quoted examples are illustration, not record
+            if line.lstrip().startswith(("|", ">")):
+                continue  # tables and quotations are illustration, not record
+            scanned = CODE_SPAN.sub(" ", line)
             for pattern, what in tells:
-                if pattern.search(line):
+                if pattern.search(scanned):
                     rep.fail("T3", rel, i,
                              f"{what} in a contract. Contracts are read before acting; "
                              "records of what happened belong in the tracker.")
@@ -207,14 +218,100 @@ def check_roster_closure(root, rep):
                  f"role {lane!r} is not listed under '## Lanes' in charter.md")
 
 
-def literal_prefix(pattern):
-    """The part of a glob before its first wildcard: what it actually reaches."""
-    cut = len(pattern)
-    for ch in "*?[":
-        i = pattern.find(ch)
-        if i != -1:
-            cut = min(cut, i)
-    return pattern[:cut].rstrip("/")
+def has_wildcard(pattern):
+    return any(ch in pattern for ch in "*?[")
+
+
+def glob_regex(pattern):
+    """A regex matching the paths a glob reaches.
+
+    A pattern with no wildcard names a directory, so it reaches its whole subtree:
+    that is what makes `src` and `src/api/**` an overlap rather than two lanes.
+    """
+    out, i = [], 0
+    while i < len(pattern):
+        if pattern.startswith("**/", i):
+            out.append("(?:.*/)?")   # `**/` also matches no directory at all
+            i += 3
+        elif pattern.startswith("**", i):
+            out.append(".*")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("[^/]*")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("[^/]")
+            i += 1
+        elif pattern[i] == "[":
+            close = pattern.find("]", i)
+            if close == -1:
+                out.append(re.escape(pattern[i]))
+                i += 1
+            else:
+                # glob negates a class with `!`; regex negates it with `^`.
+                body = pattern[i + 1:close]
+                if body.startswith("!"):
+                    body = "^" + body[1:]
+                out.append("[" + body + "]")
+                i = close + 1
+        else:
+            out.append(re.escape(pattern[i]))
+            i += 1
+    body = "".join(out)
+    if not has_wildcard(pattern):
+        body = body.rstrip("/") + "(?:/.*)?"
+    return re.compile("^" + body + "$")
+
+
+def probe_path(pattern):
+    """One concrete path the glob matches, for testing another glob against it."""
+    out, i = [], 0
+    while i < len(pattern):
+        if pattern.startswith("**/", i):
+            out.append("__any__/")
+            i += 3
+        elif pattern.startswith("**", i):
+            out.append("__any__")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("__any__")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("x")
+            i += 1
+        elif pattern[i] == "[":
+            close = pattern.find("]", i)
+            if close == -1:
+                out.append(pattern[i])
+                i += 1
+            else:
+                inner = pattern[i + 1:close]
+                if inner.startswith(("!", "^")):
+                    excluded = inner[1:]
+                    out.append("x" if "x" not in excluded else "y")
+                else:
+                    out.append(inner[0] if inner else "x")
+                i = close + 1
+        else:
+            out.append(pattern[i])
+            i += 1
+    probe = "".join(out)
+    return probe.rstrip("/") if not has_wildcard(pattern) else probe
+
+
+def overlap(a, b):
+    """'equal', 'a' when a contains b, 'b' when b contains a, or None."""
+    if a == b:
+        return "equal"
+    a_covers_b = bool(glob_regex(a).match(probe_path(b)))
+    b_covers_a = bool(glob_regex(b).match(probe_path(a)))
+    if a_covers_b and b_covers_a:
+        return "equal"
+    if a_covers_b:
+        return "a"
+    if b_covers_a:
+        return "b"
+    return None
 
 
 def owned_paths(path):
@@ -226,29 +323,32 @@ def owned_paths(path):
     return out
 
 
+LOST_WORK = "Two members editing one path lose work silently."
+
+
 def check_lane_disjoint(root, rep):
-    owners = {}
+    owned = []
     for path in role_files(root):
         lane = os.path.basename(path)[:-3]
         for pattern in owned_paths(path):
-            owners.setdefault(literal_prefix(pattern), []).append((lane, pattern))
-    prefixes = sorted(owners)
-    for i, a in enumerate(prefixes):
-        for b in prefixes[i:]:
-            if a == b:
-                lanes = {lane for lane, _ in owners[a]}
-                if len(lanes) > 1:
-                    rep.fail("T5", "roles/", 0,
-                             f"{sorted(lanes)} both own {a!r}. "
-                             "Two members editing one path lose work silently.")
+            owned.append((lane, pattern))
+    for i, (lane_a, pat_a) in enumerate(owned):
+        for lane_b, pat_b in owned[i + 1:]:
+            if lane_a == lane_b:
                 continue
-            if b.startswith(a + "/"):
-                la = {lane for lane, _ in owners[a]}
-                lb = {lane for lane, _ in owners[b]}
-                if la != lb and not la & lb:
-                    rep.fail("T5", "roles/", 0,
-                             f"{sorted(la)} owns {a!r}, which contains "
-                             f"{b!r} owned by {sorted(lb)}.")
+            verdict = overlap(pat_a, pat_b)
+            if verdict is None:
+                continue
+            if verdict == "equal":
+                rep.fail("T5", "roles/", 0,
+                         f"{sorted([lane_a, lane_b])} both own {pat_a!r}. {LOST_WORK}")
+            else:
+                outer, inner = ((pat_a, lane_a), (pat_b, lane_b))
+                if verdict == "b":
+                    outer, inner = inner, outer
+                rep.fail("T5", "roles/", 0,
+                         f"{outer[0]!r} ({outer[1]}) contains {inner[0]!r} "
+                         f"({inner[1]}). {LOST_WORK}")
 
 
 def check_tracker_named(root, rep):
@@ -258,13 +358,33 @@ def check_tracker_named(root, rep):
         return
     text = "\n".join(read_lines(path))
     for field in ("Backend:", "Create:", "Claim:", "Close:"):
-        if not re.search(rf"^\s*{re.escape(field)}", text, re.M):
+        if not re.search(rf"^[ \t]*{re.escape(field)}[ \t]*\S", text, re.M):
             rep.fail("T6", "tracker.md", 0,
-                     f"no {field!r} line. A member that cannot file a bug will drop it.")
-    backends = re.findall(r"^\s*Backend:", text, re.M)
+                     f"no {field!r} line carrying a command. A member that cannot "
+                     "file a bug in one step will drop it.")
+    backends = re.findall(r"^[ \t]*Backend:", text, re.M)
     if len(backends) > 1:
         rep.fail("T6", "tracker.md", 0,
                  "more than one 'Backend:'. One store, or there are two places to look.")
+
+
+def check_transport_named(root, rep):
+    path = os.path.join(root, "transport.md")
+    if not os.path.exists(path):
+        rep.fail("T10", "transport.md", 0,
+                 "missing. Every member loads it at startup to learn how to reach "
+                 "the others, so without it the team is a list of strangers.")
+        return
+    text = "\n".join(read_lines(path))
+    for field in ("Substrate:", "Discover:", "Send:"):
+        if not re.search(rf"^[ \t]*{re.escape(field)}[ \t]*\S", text, re.M):
+            rep.fail("T10", "transport.md", 0,
+                     f"no {field!r} line carrying a value. A member that cannot "
+                     "address the others will write prose instead of a message.")
+    if len(re.findall(r"^[ \t]*Substrate:", text, re.M)) > 1:
+        rep.fail("T10", "transport.md", 0,
+                 "more than one 'Substrate:'. One substrate, or the members that "
+                 "chose the other one are unreachable.")
 
 
 def check_verbatim(root, rep, refs_dir):
@@ -347,6 +467,7 @@ def main(argv=None):
     check_roster_closure(root, rep)
     check_lane_disjoint(root, rep)
     check_tracker_named(root, rep)
+    check_transport_named(root, rep)
     check_verbatim(root, rep, refs_dir)
     check_friction_cap(root, rep)
     check_team_root(root, rep)

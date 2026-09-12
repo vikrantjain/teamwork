@@ -16,10 +16,10 @@ you are reading them the way a new member does.
 
 ## What you are not checking
 
-`validate_team.py` already proved shape: line budgets, the four role headings,
-dates and checkboxes, lane disjointness, the tracker's four lines, that the
-verbatim files match, and that the team root is absolute. Do not re-report any of
-it. Your job is the judgement those checks cannot make.
+`validate_team.py` already proved shape: line budgets, the four role headings in
+order, dates and checkboxes, lane disjointness, the tracker's four lines and the
+transport's three, that the verbatim files match, and that the team root is
+absolute. Do not re-report any of it. Your job is the judgement those checks cannot make.
 
 ## What you are checking
 

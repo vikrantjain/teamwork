@@ -6,8 +6,8 @@ description: >
   all, how many members it needs, what each may and may not touch, where work
   items and bugs will be recorded, how members address each other, and how the
   rules get better as the work exposes their gaps. Also use to adopt sessions
-  that are already collaborating without contracts, to run a retro, and to audit
-  a team root that has grown. The rule it exists to enforce is that every lane,
+  that are already collaborating without contracts, to lead one while it runs, to
+  run a retro, and to audit a team root that has grown. The rule it exists to enforce is that every lane,
   boundary and rule traces to something in the work, and that a contract never
   becomes a log or a task board. NOT for working inside a lane once the team
   exists, which is team-member's job.
@@ -35,12 +35,15 @@ unearned rule is a tax charged forever.
    scatters team state where nobody looks for it.
 4. **Pick the tracker**, following `references/trackers.md`. One backend, written
    into `tracker.md` with its create, claim and close commands.
-5. **Write the contracts** from `references/charter-template.md` and
+5. **Pick the substrate**, following `references/transport.md`. One substrate,
+   written into `transport.md` with how to discover a lane and how to send to it.
+   Every member loads this file, so a team without it is a list of strangers.
+6. **Write the contracts** from `references/charter-template.md` and
    `references/role-template.md`. Copy `protocol.md` and `conflicts.md` from
    `${CLAUDE_PLUGIN_ROOT}/skills/team-member/references/` byte for byte.
-6. **Run the validator** before telling anyone the team exists:
+7. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
-7. **Print the launch commands** for the user, one per lane, each carrying the
+8. **Print the launch commands** for the user, one per lane, each carrying the
    team name, the agent name, and `--add-dir <team root>` when the lane's working
    directory is not inside it.
 
@@ -62,6 +65,15 @@ unearned rule is a tax charged forever.
    that rule, "keep improving the rules" becomes accretion, and an accreted
    charter destroys the context budget that justified the team.
 
+## Leading it once it runs
+
+Forming is a burst; leading is the rest, and it is mostly restraint. The duties
+that belong to nobody else — appending friction, writing the roster, assigning
+the contested item, owning the unowned shared path, broadcasting `RELOAD` — are
+in `references/leading.md`, with the ones a lead is tempted into and should not
+do. **Hold the map, not the work**, or the lead becomes the bottleneck the team
+was formed to remove.
+
 ## Improving the rules while the work runs
 
 The loop is in `references/retro.md`. Two parts of it are load-bearing and get
@@ -82,8 +94,10 @@ notification: boundaries imposed on work in flight invalidate that work.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` — how many members, and when the answer is none.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` — where the shared files live, and when to ask.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md` — choosing one work-item backend.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` — choosing one substrate, and how lanes are addressed.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/charter-template.md` — the charter, with its required lines.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/role-template.md` — the four headings and what fills them.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md` — the lead's duties while the work runs.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/retro.md` — the optimization loop.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/adoption.md` — putting contracts around a running team.
 
