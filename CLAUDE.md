@@ -81,6 +81,13 @@ recorded rather than the conclusion alone.
   team, and break the plugin the first time lane resolution missed. An
   unidentified lane is an unprotected lane, and that is the price of never being
   the reason someone's unrelated session cannot write a file.
+- **There is no `SessionEnd` branch in the hook.** Naming a lane's uncommitted
+  work as the session exits is the obvious way to catch the third park condition,
+  and it was shipped and then removed. The platform writes a `SessionEnd` hook's
+  output only when the hook reports failure, so an exit-zero warning goes
+  nowhere, and the only way to be seen was to exit non-zero and pose as a crash.
+  A hook that fails open must not do that. The condition stays in the park
+  procedure, where a member can act on it.
 - **There is no `TeammateIdle` hook, because it could not be verified.** The
   event exists and carries `teammate_name` and `team_name`, which is exactly what
   a roster needs. `Agent({name: ...})` was not available in a headless session,
