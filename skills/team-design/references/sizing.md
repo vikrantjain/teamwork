@@ -44,3 +44,9 @@ retro will otherwise re-litigate it.
 Worktrees remove write collisions and cost a merge at the end. A shared tree
 costs nothing and removes nothing, so it is right only when the lanes are
 genuinely disjoint on disk.
+
+Worktrees also buy enforcement. The boundary hook identifies a lane from
+`TEAMWORK_LANE`, and failing that from the working directory's own name, which
+only tells lanes apart when each has its own. A shared tree with in-process
+teammates gives the hook nothing to go on, so it allows every write and the
+boundary is back to being a rule a member remembers.

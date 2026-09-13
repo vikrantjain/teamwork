@@ -37,8 +37,11 @@ team was in the middle of, and they are the one thing a park is supposed to have
 preserved.
 
 **4. Print the launch commands for the human**, one per lane, each carrying the
-team name, the agent name and `--add-dir <team root>` when the lane's working
-directory is not inside it. Each member then runs `/teamwork:join <lane>`.
+team name, the agent name, `--add-dir <team root>` when the lane's working
+directory is not inside it, and `TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root>`
+in front. Each member then runs `/teamwork:join <lane>`. A relaunch that drops
+those two variables starts a lane the boundary hook cannot identify, so it runs
+unenforced and nothing says so at the time.
 
 **Read the tracker, never the work.** Resuming is not catching up on diffs. The
 lanes read their own items; you hold the map.

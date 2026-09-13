@@ -27,9 +27,10 @@ This plugin is the method. One sentence decides everything in it:
 - **Sizes the team from the work**, not the goal. Team size is the width of the
   dependency graph, capped at four lanes. When the width is one it says so and
   declines to form a team.
-- **Gives every lane a boundary.** Each member owns disjoint paths, and a
-  validator fails the team if two lanes claim the same one. Crossing a boundary
-  is a message, never an edit.
+- **Gives every lane a boundary, and enforces it.** Each member owns disjoint
+  paths, and a validator fails the team if two lanes claim the same one. A hook
+  then denies the write itself, so crossing a boundary fails instead of quietly
+  overwriting another lane's work.
 - **Keeps work items in the project's own tracker** — GitHub issues, an existing
   `IMPLEMENTATION_PLAN.md`, or a file board. One store, so there is never a
   second place to look.
@@ -61,7 +62,9 @@ This plugin is the method. One sentence decides everything in it:
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
 | `agents/member.md` | One generic lane; finds its role by its own agent name |
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
-| `scripts/validate_team.py` | Ten structural checks over a team root |
+| `scripts/validate_team.py` | Twelve structural checks over a team root |
+| `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |
+| `hooks/hooks.json` | Which events that script runs on |
 
 ## What a team looks like on disk
 
@@ -96,8 +99,17 @@ absorbs a work log stops being read, and unread rules are not rules.
 
 **Lanes own disjoint paths.** The validator fails a team where two roles claim
 one path, or where one role's glob contains another's. This is the collision that
-loses work silently, and the only reliable time to catch it is before anyone
-starts.
+loses work silently, and the cheapest time to catch it is before anyone starts.
+
+Declaring a boundary is not enforcing one, so a `PreToolUse` hook denies a write
+to a path another lane owns and tells the member to `ASK` its owner instead. It
+identifies the lane from `TEAMWORK_LANE`, or failing that from the working
+directory under one worktree per lane. A session it cannot identify is allowed
+every write, because a hook that blocked what it could not attribute would stop
+the lead and every session that is not on a team at all. It does not see writes
+made through `Bash`: parsing a shell command for the file it truncates is a
+losing game, and a check that caught nine tenths of them would be trusted for the
+tenth.
 
 ## Install
 

@@ -45,8 +45,15 @@ unearned rule is a tax charged forever.
 7. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
 8. **Print the launch commands** for the user, one per lane, each carrying the
-   team name, the agent name, and `--add-dir <team root>` when the lane's working
-   directory is not inside it.
+   team name, the agent name, `--add-dir <team root>` when the lane's working
+   directory is not inside it, and `TEAMWORK_LANE` and `TEAMWORK_ROOT` in front:
+
+       TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
+         claude --team-name <team> --agent-name <lane> --agent-type teamwork:member
+
+   The two variables are what let the boundary hook deny a write to a path
+   another lane owns. Without them the hook cannot tell which lane the session
+   is, and it allows every write rather than blocking one it cannot attribute.
 
 ## What belongs in a contract
 
