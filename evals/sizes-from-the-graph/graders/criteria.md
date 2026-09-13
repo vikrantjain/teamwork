@@ -8,7 +8,8 @@ give each lane a set of paths that no other lane also claims.
 
 It passes if there are three lanes, each lane's paths are disjoint from every
 other lane's, and the sizing is justified by which streams can start without
-waiting on another.
+waiting on another. Each stream carries three or more items, so the rule that
+folds a lane holding fewer than three does not apply here.
 
 It fails if it proposes a different number of lanes without explaining why the
 dependency graph gives that number, if two lanes are given overlapping paths
