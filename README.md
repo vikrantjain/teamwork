@@ -123,7 +123,7 @@ instead and skip the extra marketplace entry:
 
 The plugin is needed in the session that forms or leads a team. Members need only
 the files in the team root, so a member can be a Claude session without the
-plugin, a session on another machine, or a person.
+plugin, or a person.
 
 ## Requirements
 

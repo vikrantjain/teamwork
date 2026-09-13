@@ -65,9 +65,10 @@ That is why `protocol.md` rule 4 says to address the team root by absolute path,
 why every `RELOAD` repeats that path, and why `[T9]` fails when the charter's
 `Team root:` is not the directory being validated.
 
-## Separate machines
+## One filesystem
 
-There is no shared filesystem, so no path is shared. The team root is committed
-and git is the sync: `RELOAD` means pull, then re-read. When the members are
-separate repos on separate machines, rung 4 applies and the user names which repo
-carries the contract.
+Every member resolves the same path on the same machine. That is what lets
+`[T9]` prove the charter you are reading is the team root rather than a copy of
+it, and a stale copy read as law is the failure this whole file exists to
+prevent. A team whose members cannot share a path is not a team this plugin
+forms.

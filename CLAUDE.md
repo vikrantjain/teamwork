@@ -71,9 +71,16 @@ recorded rather than the conclusion alone.
   moment either changes, and is exactly the work log `[T3]` keeps out. The park
   procedure's job is to leave the tracker true, so resuming is an ordinary start.
 - **Launch commands are re-derived at resume, never persisted.** Persisting them
-  would pin a team to the machine that formed it. The charter already carries the
-  team name, the lanes and the isolation, and `git worktree list` carries the rest,
-  so a clone that never saw the original terminal can still bring the team back.
+  would pin a team to the terminals that formed it. The charter already carries
+  the team name, the lanes and the isolation, and `git worktree list` carries the
+  rest, so a run whose every terminal is gone can still be brought back.
 - **The plugin is required only in the lead session.** Members are bound by the
-  files, which is what lets a member be a session without the plugin, a session
-  on another machine, or a person.
+  files, which is what lets a member be a session without the plugin, or a person.
+- **A team lives on one filesystem; members never span machines.** Cross-machine
+  coordination was offered and is removed. It cannot hold `protocol.md` rule 4,
+  because no absolute path is shared, so `[T9]` failed for every member that was
+  not on the machine that formed the team and the remedy was documented nowhere.
+  Its transport was a second plugin, which broke the property that a member is
+  bound by the files alone, and its sync was git, so a `RELOAD` meant "everyone
+  pull" with nothing to make that happen. Resuming from a fresh clone is a
+  different feature and it stays.

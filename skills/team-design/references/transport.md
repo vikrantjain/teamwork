@@ -9,16 +9,13 @@ reach each other, and neither half can tell that the other is still working.
 
 ## The ladder, first match wins
 
-1. **Built-in teammates** — the lead spawns each lane on its own machine with
+1. **Built-in teammates** — the lead spawns each lane itself with
    `Agent({name: "<lane>", agent_type: "teamwork:member"})`. The platform carries
    the messages, so nothing has to be set up.
 2. **Separate terminal sessions, one machine** — a member starts its own session
    and joins by name, which is right when a lane needs its own terminal, its own
    permissions, or a human watching it. Same discovery, same sending.
-3. **Separate machines** — there is no shared mailbox, so use the `claude-chat`
-   plugin from the same marketplace. Say so in `transport.md` rather than assuming
-   a member will work it out.
-4. **A human member** — there is no transport. The lead relays, and the charter
+3. **A human member** — there is no transport. The lead relays, and the charter
    names that lane as relayed so nobody waits on a mailbox nobody reads.
 
 ## What `transport.md` must contain

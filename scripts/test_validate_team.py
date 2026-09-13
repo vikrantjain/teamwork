@@ -462,7 +462,7 @@ class TestT10TransportNamed(TeamRootCase):
         self.assertIn("Send:", out)
 
     def test_two_substrates_fail(self):
-        append(self.root, "transport.md", "Substrate: claude-chat\n")
+        append(self.root, "transport.md", "Substrate: separate terminals\n")
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("unreachable", out)
