@@ -76,6 +76,18 @@ recorded rather than the conclusion alone.
   rest, so a run whose every terminal is gone can still be brought back.
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, or a person.
+- **The boundary hook fails open, never closed.** A hook that denied a write it
+  could not attribute would stop the lead, stop every session that is not on a
+  team, and break the plugin the first time lane resolution missed. An
+  unidentified lane is an unprotected lane, and that is the price of never being
+  the reason someone's unrelated session cannot write a file.
+- **There is no `TeammateIdle` hook, because it could not be verified.** The
+  event exists and carries `teammate_name` and `team_name`, which is exactly what
+  a roster needs. `Agent({name: ...})` was not available in a headless session,
+  so which session the event fires in was never observed. Shipping a write path
+  into the team root on an assumption would break single-writer discipline
+  silently, and the roster is the one file that is wrong for everyone the moment
+  it is wrong at all.
 - **A team lives on one filesystem; members never span machines.** Cross-machine
   coordination was offered and is removed. It cannot hold `protocol.md` rule 4,
   because no absolute path is shared, so `[T9]` failed for every member that was

@@ -26,6 +26,12 @@ the lead, stop a session that is not on a team at all, and make the plugin
 unusable the first time the ladder missed. The cost is that a lane it cannot
 identify is a lane it cannot protect, which is why rung 1 is worth setting.
 
+The lead must never set $TEAMWORK_LANE. A teammate spawned in the lead's own
+process inherits its environment, so a lead carrying a lane name hands that name
+to every teammate it spawns. They would then be denied their own paths and
+allowed the lead's, which is worse than no enforcement because it is wrong in
+both directions.
+
 What it cannot see: a write made through Bash. Parsing a shell command to find
 the file it truncates is a losing game, and a hook that catches nine tenths of
 them would be trusted for the tenth.

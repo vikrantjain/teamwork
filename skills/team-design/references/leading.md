@@ -35,6 +35,9 @@ the slowest member.
   Asking four lanes for a status costs four turns and tells you less.
 - **Never settle a rule dispute in messages.** Precedence is fixed in
   `conflicts.md`, and anything it does not settle waits for the retro.
+- **Never set `TEAMWORK_LANE` in your own session.** A teammate you spawn
+  inherits your environment, so your lane name becomes its lane name. The
+  boundary hook would then deny each teammate its own paths and allow it yours.
 
 ## When a member goes quiet
 
