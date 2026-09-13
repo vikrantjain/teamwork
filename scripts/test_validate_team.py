@@ -94,6 +94,7 @@ def build(root):
     write(root, "transport.md", TRANSPORT)
     write(root, "roles/api.md", ROLE_API)
     write(root, "roles/ui.md", ROLE_UI)
+    write(root, "friction.md", "# Friction\n")
     refs = os.path.join(root, "_plugin_refs")
     os.makedirs(refs)
     with open(os.path.join(refs, "protocol.md"), "w", encoding="utf-8") as fh:
@@ -194,11 +195,34 @@ class TestT3NoLog(TeamRootCase):
         self.assertEqual(code, 1)
         self.assertIn("an issue id", out)
 
-    def test_past_tense_progress_fails(self):
-        append(self.root, "charter.md", "\nThe ui lane completed the console shell.\n")
+    def test_a_standard_is_not_an_issue_id(self):
+        """UTF-8 and SHA-256 are shaped like tickets and are not records."""
+        for text in ("Encode everything as UTF-8, or the parser fails.",
+                     "Hashes are SHA-256; MD5 is rejected.",
+                     "Dates are ISO-8601 everywhere.",
+                     "See RFC-7231 for the status codes.",
+                     "The accent colour is #336699."):
+            with self.subTest(text=text):
+                write(self.root, "charter.md", CHARTER.format(root=self.root))
+                append(self.root, "charter.md", f"\n- {text}\n")
+                code, out = self.run_validator()
+                self.assertEqual(code, 0, out)
+
+    def test_a_real_ticket_is_still_an_issue_id(self):
+        for text in ("Fixed under PROJ-456.", "Superseded by #123."):
+            with self.subTest(text=text):
+                write(self.root, "charter.md", CHARTER.format(root=self.root))
+                append(self.root, "charter.md", f"\n- {text}\n")
+                code, out = self.run_validator()
+                self.assertEqual(code, 1, out)
+                self.assertIn("an issue id", out)
+
+    def test_a_rule_may_say_a_lane_is_not_finished(self):
+        """A future condition is a rule. It was read as a record."""
+        append(self.root, "charter.md",
+               "\n- A lane is not finished until its own tests pass.\n")
         code, out = self.run_validator()
-        self.assertEqual(code, 1)
-        self.assertIn("past-tense", out)
+        self.assertEqual(code, 0, out)
 
     def test_decisions_may_cite_a_ticket(self):
         write(self.root, "decisions.md",
@@ -367,11 +391,41 @@ class TestT7Verbatim(TeamRootCase):
 
     def test_missing_reference_warns_but_passes(self):
         buf = io.StringIO()
+        missing = os.path.join(self.root, "_absent")
         with redirect_stderr(buf):
-            code = validate_team.main([self.root, "--quiet"])
+            code = validate_team.main([self.root, "--refs", missing, "--quiet"])
         out = buf.getvalue()
         self.assertEqual(code, 0, out)
         self.assertIn("warning [T7]", out)
+
+    def test_the_plugin_copy_is_found_without_being_named(self):
+        """[T7] was a warning in every documented invocation before this.
+
+        CLAUDE_PLUGIN_ROOT is substituted into command text, never exported to the
+        shell, so no invocation passed a reference and nothing was ever compared.
+        """
+        for name in ("protocol.md", "conflicts.md"):
+            shutil.copyfile(os.path.join(validate_team.PLUGIN_REFS, name),
+                            os.path.join(self.root, name))
+        buf = io.StringIO()
+        env = os.environ.pop("CLAUDE_PLUGIN_ROOT", None)
+        try:
+            with redirect_stderr(buf):
+                code = validate_team.main([self.root, "--quiet"])
+        finally:
+            if env is not None:
+                os.environ["CLAUDE_PLUGIN_ROOT"] = env
+        out = buf.getvalue()
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("[T7]", out)
+
+    def test_a_paraphrase_is_caught_without_being_told_where_to_look(self):
+        append(self.root, "protocol.md", "\nAlso, be nice.\n")
+        buf = io.StringIO()
+        with redirect_stderr(buf):
+            code = validate_team.main([self.root, "--quiet"])
+        self.assertEqual(code, 1)
+        self.assertIn("[T7]", buf.getvalue())
 
     def test_missing_protocol_fails(self):
         os.remove(os.path.join(self.root, "protocol.md"))
@@ -460,6 +514,98 @@ class TestT9TeamRoot(TeamRootCase):
 
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+class TestT2Owns(TeamRootCase):
+    def test_empty_owns_fails(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**\n", ""))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("'## Owns' is empty", out)
+
+    def test_absolute_owns_fails(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- /srv/app/ui/**"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("is absolute", out)
+
+
+class TestT5Spelling(TeamRootCase):
+    """One tree, two spellings, passed [T5] and lost work anyway."""
+
+    def test_leading_dot_slash_does_not_hide_an_overlap(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- ./src/api/**"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[T5]", out)
+
+    def test_trailing_slash_does_not_hide_an_overlap(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- migrations/"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[T5]", out)
+
+    def test_genuinely_disjoint_lanes_still_pass(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- ./src/ui/**"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+
+class TestT8Missing(TeamRootCase):
+    def test_absent_friction_file_warns(self):
+        os.remove(os.path.join(self.root, "friction.md"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+        self.assertIn("warning [T8]", out)
+
+
+SHARED = "\n## Shared paths\n- {line}\n"
+
+
+class TestT11SharedPaths(TeamRootCase):
+    def test_owner_that_is_not_a_lane_fails(self):
+        append(self.root, "charter.md", SHARED.format(line="package-lock.json - owned by infra"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("which is not a", out)
+
+    def test_shared_path_another_lane_already_owns_fails(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src/ui/**\n- **/*.json"))
+        append(self.root, "charter.md", SHARED.format(line="package-lock.json - owned by api"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[T11]", out)
+
+    def test_unowned_shared_path_fails(self):
+        append(self.root, "charter.md", SHARED.format(line="package-lock.json is tricky"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("names no owner", out)
+
+    def test_well_formed_shared_path_passes(self):
+        append(self.root, "charter.md", SHARED.format(line="package-lock.json - owned by api"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+
+class TestT12LaneNames(TeamRootCase):
+    def test_reserved_lane_name_fails(self):
+        os.rename(os.path.join(self.root, "roles/ui.md"),
+                  os.path.join(self.root, "roles/team-lead.md"))
+        write(self.root, "charter.md",
+              CHARTER.format(root=self.root).replace("- ui \u2014", "- team-lead \u2014"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("reserved by the platform", out)
+
+    def test_unaddressable_lane_name_fails(self):
+        os.rename(os.path.join(self.root, "roles/ui.md"),
+                  os.path.join(self.root, "roles/UI_Lane.md"))
+        write(self.root, "charter.md",
+              CHARTER.format(root=self.root).replace("- ui \u2014", "- UI_Lane \u2014"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("not usable as an address", out)
 
 
 class TestPluginPaths(unittest.TestCase):

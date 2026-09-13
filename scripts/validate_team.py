@@ -16,7 +16,8 @@ Exit codes:
 
 Checks:
     [T1] budgets          every contract file is within its line budget
-    [T2] role-shape       each role file has exactly the four required headings
+    [T2] role-shape       each role file has the four headings, a non-empty Owns
+                          and Never, and repo-relative Owns globs
     [T3] no-log           no date, checkbox, issue id or status marker in a contract
     [T4] roster-closure   lanes named in the charter and role files on disk agree
     [T5] lane-disjoint    no path is owned by two roles
@@ -25,6 +26,9 @@ Checks:
     [T8] friction-cap     warn that a retro is due
     [T9] team-root        the charter names this directory as an absolute path
     [T10] transport-named transport.md names one substrate and how to address it
+    [T11] shared-paths    every charter shared path names a lane, and no other
+                          lane's role claims it
+    [T12] lane-names      every lane name is usable as an address
 
 [T3] and [T5] are the load-bearing ones. [T3] is what stops a charter becoming a
 log, and [T5] is what stops two members editing one file.
@@ -69,9 +73,21 @@ LOG_TELLS = [
     (re.compile(r"^\s*[-*]\s*\[[ xX]\]"), "a checkbox"),
     (re.compile(r"^\s*Status\s*:"), "a status field"),
     (re.compile(r"[✅✔✓❌]"), "a status marker"),
-    (re.compile(r"\b(completed|finished|shipped)\b", re.I), "a past-tense progress word"),
 ]
-ISSUE_TELL = (re.compile(r"(?:^|\s)#\d+|\b[A-Z]{2,10}-\d+\b"), "an issue id")
+# Standards are written like tickets. Without this list, "UTF-8", "SHA-256",
+# "ISO-8601" and "AES-256" all read as issue ids and fail a contract that was
+# only naming an encoding. The list is short on purpose: contract-auditor is
+# the backstop for an id this cannot tell from a standard.
+NOT_A_TICKET = ("UTF", "SHA", "ISO", "RFC", "AES", "RSA", "PKCS", "IEEE",
+                "ANSI", "NIST", "CVE", "JPEG", "MPEG", "ECMA", "ETSI",
+                "ASCII", "HTTP", "HTTPS", "TLS", "SSL", "CRC", "MD", "EN")
+# A six-digit "#336699" is a colour, not an issue. A three-digit "#123" is
+# ambiguous and is read as an issue, because a charter naming a colour is
+# rarer than one citing a ticket.
+ISSUE_TELL = (re.compile(
+    r"(?<![\w#])#\d{1,5}(?![\da-fA-F])"
+    r"|\b(?!(?:" + "|".join(NOT_A_TICKET) + r")-)[A-Z][A-Z0-9]{1,9}-\d+\b"
+), "an issue id")
 
 # Backticked text is an illustration of a command, not a record of one. Only the
 # span is exempt: skipping the whole line let one backtick launder a log entry.
@@ -99,6 +115,15 @@ class Report:
         if not self.errors and not self.quiet:
             print("ok      all checks passed")
         return 1 if self.errors else 0
+
+
+# The validator ships inside the plugin, so it finds the files it compares
+# against without being told where they are. CLAUDE_PLUGIN_ROOT is substituted
+# into command text and never exported to the shell, so depending on it made
+# [T7] a warning in every documented invocation instead of a check.
+PLUGIN_REFS = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.pardir, "skills", "team-member", "references"))
 
 
 def read_lines(path):
@@ -168,6 +193,19 @@ def check_role_shape(root, rep):
         if "## Never" in found and not [l for l in section(lines, "## Never") if l.strip()]:
             rep.fail("T2", rel, 0,
                      "'## Never' is empty. A role with no prohibition has no boundary.")
+        entries = owns_entries(lines)
+        if "## Owns" in found and not entries:
+            rep.fail("T2", rel, 0,
+                     "'## Owns' is empty. A lane claiming no path is a lane [T5] can "
+                     "prove nothing about, so nothing stops it writing where another "
+                     "lane works.")
+        for entry in entries:
+            if entry.startswith("/"):
+                rep.fail("T2", rel, 0,
+                         f"'## Owns' entry {entry!r} is absolute. Owns are "
+                         "repo-relative globs; an absolute path and a relative one "
+                         "naming the same file look unequal to [T5], which then "
+                         "passes a real collision.")
 
 
 def check_no_log(root, rep):
@@ -314,13 +352,30 @@ def overlap(a, b):
     return None
 
 
-def owned_paths(path):
+def normalise(pattern):
+    """One spelling per path.
+
+    `./src/**` and `src/**` reach the same files and compared as unequal, so two
+    lanes owning one tree passed [T5] whenever they spelled it differently.
+    """
+    p = re.sub(r"/{2,}", "/", pattern.strip().strip("`"))
+    while p.startswith("./"):
+        p = p[2:]
+    return p.rstrip("/") or p
+
+
+def owns_entries(lines):
+    """The raw text of each bullet under `## Owns`, before normalisation."""
     out = []
-    for line in section(read_lines(path), "## Owns"):
+    for line in section(lines, "## Owns"):
         m = re.match(r"^\s*[-*]\s+(\S+)", line)
         if m:
             out.append(m.group(1).strip("`"))
     return out
+
+
+def owned_paths(path):
+    return [normalise(e) for e in owns_entries(read_lines(path))]
 
 
 LOST_WORK = "Two members editing one path lose work silently."
@@ -349,6 +404,69 @@ def check_lane_disjoint(root, rep):
                 rep.fail("T5", "roles/", 0,
                          f"{outer[0]!r} ({outer[1]}) contains {inner[0]!r} "
                          f"({inner[1]}). {LOST_WORK}")
+
+
+SHARED_OWNER = re.compile(
+    r"^\s*[-*]\s+(\S+).*?\bowned by\s+([A-Za-z0-9][A-Za-z0-9_-]*)", re.I)
+
+
+def check_shared_paths(root, rep):
+    """A shared path is owned by exactly one lane, and [T5] never sees it.
+
+    [T5] compares role against role. The charter can hand a lockfile to `api`
+    while `web`'s role owns `**/*.json`, and both files pass on their own.
+    """
+    charter = os.path.join(root, "charter.md")
+    if not os.path.exists(charter):
+        return
+    lanes = set(charter_lanes(root))
+    by_lane = {os.path.basename(p)[:-3]: owned_paths(p) for p in role_files(root)}
+    for line in section(read_lines(charter), "## Shared paths"):
+        if not re.match(r"^\s*[-*]\s+\S", line):
+            continue
+        m = SHARED_OWNER.match(line)
+        if not m:
+            rep.fail("T11", "charter.md", 0,
+                     f"shared path line {line.strip()!r} names no owner. Write it as "
+                     "'- <path> - owned by <lane>'. An unowned shared path is where "
+                     "two lanes collide first.")
+            continue
+        pattern, owner = normalise(m.group(1)), m.group(2)
+        if owner not in lanes:
+            rep.fail("T11", "charter.md", 0,
+                     f"shared path {pattern!r} is owned by {owner!r}, which is not a "
+                     "lane under '## Lanes'. Nobody owns it.")
+        for lane in sorted(by_lane):
+            if lane == owner:
+                continue
+            for claimed in by_lane[lane]:
+                if overlap(claimed, pattern):
+                    rep.fail("T11", "charter.md", 0,
+                             f"shared path {pattern!r} is owned by {owner!r}, but "
+                             f"roles/{lane}.md owns {claimed!r}, which reaches it. "
+                             + LOST_WORK)
+
+
+# Verified against the platform: it refuses these two as teammate names, and it
+# does so at spawn time, hours after the team was declared valid.
+RESERVED_LANES = {"main", "team-lead"}
+LANE_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
+
+def check_lane_names(root, rep):
+    lanes = set(charter_lanes(root)) | {
+        os.path.basename(p)[:-3] for p in role_files(root)}
+    for lane in sorted(lanes):
+        if lane in RESERVED_LANES:
+            rep.fail("T12", "charter.md", 0,
+                     f"lane {lane!r} is reserved by the platform and cannot be a "
+                     "teammate name. The spawn fails, and the member cannot diagnose "
+                     "it from the contracts.")
+        elif not LANE_NAME.match(lane):
+            rep.fail("T12", "charter.md", 0,
+                     f"lane {lane!r} is not usable as an address. Lane names are "
+                     "lowercase letters, digits and hyphens: case and underscores "
+                     "survive in some places and not others.")
 
 
 def check_tracker_named(root, rep):
@@ -402,12 +520,16 @@ def check_verbatim(root, rep, refs_dir):
         if read_lines(local) != read_lines(ref):
             rep.fail("T7", name, 0,
                      "differs from the plugin's copy. These files are copied, never "
-                     "edited: a paraphrase is how a shared rule stops being shared.")
+                     "edited: a paraphrase is how a shared rule stops being shared. "
+                     f"Re-copy it from {ref}, then say so in the RELOAD you send.")
 
 
 def check_friction_cap(root, rep):
     path = os.path.join(root, "friction.md")
     if not os.path.exists(path):
+        rep.warn("T8", "friction.md",
+                 "missing. A team with no friction file and a team whose lead never "
+                 "opened one look identical, and the retro trigger is the second one.")
         return
     lines = [l for l in read_lines(path) if l.strip() and not l.startswith("#")]
     if len(lines) >= FRICTION_CAP:
@@ -456,9 +578,8 @@ def main(argv=None):
     refs_dir = args.refs
     if not refs_dir:
         plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
-        if plugin_root:
-            refs_dir = os.path.join(
-                plugin_root, "skills", "team-member", "references")
+        refs_dir = (os.path.join(plugin_root, "skills", "team-member", "references")
+                    if plugin_root else PLUGIN_REFS)
 
     rep = Report(args.quiet)
     check_budgets(root, rep)
@@ -471,6 +592,8 @@ def main(argv=None):
     check_verbatim(root, rep, refs_dir)
     check_friction_cap(root, rep)
     check_team_root(root, rep)
+    check_shared_paths(root, rep)
+    check_lane_names(root, rep)
     return rep.emit()
 
 
