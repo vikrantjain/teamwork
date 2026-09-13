@@ -14,7 +14,10 @@ reads.
 Gather, in this order:
 
 1. **Who is up** — `ListAgents`, matched against the charter's `## Lanes`. Name
-   every lane that is not up; a missing lane is the most useful line here.
+   every lane that is not up; a missing lane is the most useful line here. Then
+   `roster.md` for where each lane is running and whether it has acked or parked.
+   `ListAgents` says a session exists; only the roster says which tree it is in,
+   and a lane running in the wrong tree edits the wrong files.
 2. **What each lane holds** — from the tracker named in `tracker.md`, using its
    own commands. One line per lane: the item it owns and nothing more.
 3. **Open cross-lane edges** — every `BLOCKED` that has not been answered with a
@@ -38,5 +41,7 @@ tells you what the tracker already says.
 With no argument, use the team root named in this session's charter. If this
 session has no charter, say so rather than searching the filesystem for one.
 
-Close with what you could not see: lanes that did not appear in `ListAgents`, and
-tracker fields the backend does not expose.
+Close with what you could not see: lanes that did not appear in `ListAgents`,
+tracker fields the backend does not expose, and lanes the roster does not name.
+`roster.md` is gitignored, so a fresh clone has none and every working directory
+in this report is then a lane's own claim rather than a record.
