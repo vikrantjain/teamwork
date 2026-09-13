@@ -33,7 +33,9 @@ Choose rung 2 when the boundary has to hold, or when the run will be parked.
 
 ## What `transport.md` must contain
 
-Three lines, each something a member can act on without asking:
+Three lines, each something a member can act on without asking. `[T1]` budgets
+the whole file at 15 lines, so the reasoning for the choice goes in
+`decisions.md` instead:
 
     Substrate: <the one substrate>
     Discover: <how to see who is up>

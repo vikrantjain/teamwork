@@ -26,7 +26,8 @@ outlive the run, so they go where the project keeps its work.
 
 ## What `tracker.md` must contain
 
-Four lines, each a real command a member can run without asking:
+Four lines, each a real command a member can run without asking. `[T1]` budgets
+the whole file at 20 lines, so what a member cannot act on does not go in it:
 
     Backend: <the one store>
     Create: <command that files a new item>
