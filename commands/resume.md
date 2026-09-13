@@ -18,7 +18,8 @@ Do four things, in this order.
 warnings and failures verbatim. A `[T7]` failure on `protocol.md` or
 `conflicts.md` means the team root predates the current plugin. Re-copy both from
 `${CLAUDE_PLUGIN_ROOT}/skills/team-member/references/` byte for byte, then say so
-in the `RELOAD` you send, because a member that is not told keeps the old rules.
+in your report. Do not send a `RELOAD`: no member is running yet, and the lanes
+you are about to launch read the re-copied files for the first time.
 
 **2. Re-derive each lane's launch command**, by the ladder in:
 

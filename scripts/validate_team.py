@@ -537,7 +537,9 @@ def check_verbatim(root, rep, refs_dir):
             rep.fail("T7", name, 0,
                      "differs from the plugin's copy. These files are copied, never "
                      "edited: a paraphrase is how a shared rule stops being shared. "
-                     f"Re-copy it from {ref}, then say so in the RELOAD you send.")
+                     f"Re-copy it from {ref}. A member that already loaded the old "
+                     "copy needs a RELOAD to pick this one up; a member not yet "
+                     "launched reads it for the first time and needs nothing.")
 
 
 def check_friction_cap(root, rep):
