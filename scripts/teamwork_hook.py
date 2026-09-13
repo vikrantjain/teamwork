@@ -10,7 +10,6 @@ Events:
     PreToolUse    deny a write to a path another lane owns, or to the team root
     SessionStart  tell a joining session where its team root and role are
     PostCompact   say it again, because compaction is where that is lost
-    SessionEnd    name uncommitted work, which is one of the four park conditions
 
 It shares `validate_team`'s glob code on purpose. If the hook and the checker
 disagreed about what a glob reaches, a team would be enforced under rules it was
@@ -32,6 +31,12 @@ to every teammate it spawns. They would then be denied their own paths and
 allowed the lead's, which is worse than no enforcement because it is wrong in
 both directions.
 
+There is no SessionEnd branch. Naming a lane's uncommitted work as it exits was
+the obvious place to catch the third park condition, and the platform prints a
+SessionEnd hook's output only when the hook reports failure. A warning had to
+pose as a crash to be seen at all, which a hook that fails open must not do. The
+condition stays where a member can act on it, in the park procedure.
+
 What it cannot see: a write made through Bash. Parsing a shell command to find
 the file it truncates is a losing game, and a hook that catches nine tenths of
 them would be trusted for the tenth.
@@ -39,7 +44,6 @@ them would be trusted for the tenth.
 
 import json
 import os
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -200,31 +204,6 @@ def startup(payload, event):
     context(event, " ".join(lines))
 
 
-def session_end(payload):
-    """Condition 3 of a park: the tree is clean, or the item says where the work is."""
-    cwd = payload.get("cwd")
-    root = find_team_root(cwd)
-    if not root:
-        allow()
-    lane, _ = resolve_lane(root, cwd)
-    if not lane:
-        allow()
-    try:
-        dirty = subprocess.run(
-            ["git", "status", "--porcelain"], cwd=cwd, capture_output=True,
-            text=True, timeout=10).stdout.strip()
-    except (OSError, subprocess.SubprocessError):
-        allow()
-    if not dirty:
-        allow()
-    files = [l[3:] for l in dirty.splitlines()][:10]
-    print(f"teamwork: lane {lane} is ending with uncommitted work in {len(dirty.splitlines())} "
-          f"file(s): {', '.join(files)}. A park needs the tree clean, or the item naming "
-          "the branch, worktree or stash that holds this. Nobody else can find it by "
-          "looking.", file=sys.stderr)
-    sys.exit(0)
-
-
 def main():
     try:
         payload = json.load(sys.stdin)
@@ -236,8 +215,6 @@ def main():
             pre_tool_use(payload)
         elif event in ("SessionStart", "PostCompact"):
             startup(payload, event)
-        elif event == "SessionEnd":
-            session_end(payload)
     except SystemExit:
         raise
     except Exception:

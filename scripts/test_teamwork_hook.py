@@ -233,22 +233,5 @@ class TestStartup(HookCase):
             shutil.rmtree(plain, ignore_errors=True)
 
 
-class TestSessionEnd(HookCase):
-    def test_uncommitted_work_is_named(self):
-        self.write("services/billing/charge.py", "x = 1\n")
-        _, err = run({"hook_event_name": "SessionEnd", "cwd": self.repo},
-                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root})
-        self.assertIn("uncommitted work", err)
-        self.assertIn("api", err)
-
-    def test_a_clean_tree_says_nothing(self):
-        subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)
-        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
-                        "commit", "-qm", "x"], cwd=self.repo, check=True)
-        _, err = run({"hook_event_name": "SessionEnd", "cwd": self.repo},
-                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root})
-        self.assertEqual(err.strip(), "")
-
-
 if __name__ == "__main__":
     unittest.main(verbosity=2)
