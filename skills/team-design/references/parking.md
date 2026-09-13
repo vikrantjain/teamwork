@@ -52,9 +52,9 @@ from a fresh clone that never saw the original terminal.
 
 1. **`roster.md`, when it is still on disk.** It names each lane's working
    directory already.
-2. **`git worktree list --porcelain`**, when the charter's `Isolation:` is one
-   worktree per lane. Match a lane by its branch or its directory name; a lane
-   matching neither is rung 4, not a guess.
+2. **`git worktree list --porcelain`**, matched against the branch convention on
+   the charter's `Isolation:` line, when that line is one worktree per lane. A
+   lane matching no worktree is rung 4, not a guess.
 3. **The charter alone**, when the isolation is one shared tree. Every lane's
    working directory is the repo root, so there is nothing to look up.
 4. **Ask the user.** A guessed working directory starts a lane in the wrong tree,

@@ -43,6 +43,10 @@ This plugin is the method. One sentence decides everything in it:
   exists, every blocked edge recorded, every tree clean or accounted for. A fresh
   set of sessions then resumes from the charter and the tracker alone, on this
   machine or on a clone that never saw the original run.
+- **Lands the work when it is done.** Finishing checks the charter's stop
+  condition, parks every lane, then tests each merge with `git merge-tree` and
+  hands the merges and worktree removals to you. It never merges and never
+  removes a worktree, because both destroy something the next turn cannot undo.
 - **Adopts a team already running.** Sessions collaborating without contracts get
   their lanes read from what they have actually touched, overlaps reported, and a
   charter they ratify before it binds them.
@@ -58,6 +62,7 @@ This plugin is the method. One sentence decides everything in it:
 | `commands/retro.md` | `/teamwork:retro` — improve the rules from friction |
 | `commands/park.md` | `/teamwork:park` — stop where a fresh session can resume |
 | `commands/resume.md` | `/teamwork:resume` — bring a parked team back |
+| `commands/finish.md` | `/teamwork:finish` — land the work and disband |
 | `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, parking, retro, adoption |
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
 | `agents/member.md` | One generic lane; finds its role by its own agent name |

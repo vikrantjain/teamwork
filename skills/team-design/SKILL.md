@@ -93,6 +93,13 @@ A park writes no new file into the team root. Its work is making the tracker
 true, because a snapshot of where everyone got to drifts from the tracker and is
 the log `[T3]` exists to keep out.
 
+**A run that reaches `## Done` is finished, not parked.** `references/finishing.md`
+checks the stop condition, parks every lane, tests each merge with
+`git merge-tree` and hands the merges and the worktree removals to the human. It
+never merges and never removes a worktree, because both are human gates by the
+charter's own definition and a park is the only thing that was protecting the
+uncommitted work inside them.
+
 ## Improving the rules while the work runs
 
 The loop is in `references/retro.md`. Two parts of it are load-bearing and get
@@ -118,6 +125,7 @@ notification: boundaries imposed on work in flight invalidate that work.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/role-template.md` — the four headings and what fills them.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md` — the lead's duties while the work runs.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md` — stopping where a fresh session can resume.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/finishing.md` — landing the work and disbanding.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/retro.md` — the optimization loop.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/adoption.md` — putting contracts around a running team.
 
