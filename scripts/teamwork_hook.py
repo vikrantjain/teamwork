@@ -158,8 +158,9 @@ def pre_tool_use(payload):
     if inside(real, root):
         deny("PreToolUse",
              f"{os.path.relpath(real, root)} is in the team root. protocol.md rule 5: "
-             "write only the paths your role owns, and never the team root. Contracts "
-             "change at a retro and nowhere else. Send FRICTION and keep working.")
+             "write only the paths your role owns, and only the lead writes the team "
+             "root. Contracts change at a retro and nowhere else. Send FRICTION and "
+             "keep working.")
 
     repo = repo_root(cwd, root)
     if not inside(real, repo):
