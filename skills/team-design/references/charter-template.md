@@ -40,6 +40,11 @@ otherwise, which is what catches a member editing its own stale worktree copy.
 against the files in `roles/`. A lane named here with no role file, or a role file
 named in no lane, is a team where somebody has no rules or nobody has that lane.
 
+`## Shared paths` entries name an owner, and that lane's role must claim the path
+under its own `## Owns`; `[T11]` fails otherwise. The boundary hook reads role
+files and nothing else, so a path the charter hands to a lane that never claims
+it is a path the hook attributes to nobody and lets every lane write.
+
 `Isolation:` names the branch convention when lanes get worktrees. A resume and a
 finish both have to find a lane's branch again, and without the convention
 written down they match on a directory name and call a guess a lookup.

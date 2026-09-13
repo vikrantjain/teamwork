@@ -570,11 +570,19 @@ class TestT11SharedPaths(TeamRootCase):
         self.assertIn("which is not a", out)
 
     def test_shared_path_another_lane_already_owns_fails(self):
+        write(self.root, "roles/api.md", ROLE_API.replace(
+            "- migrations/**", "- migrations/**\n- package-lock.json"))
         write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src/ui/**\n- **/*.json"))
         append(self.root, "charter.md", SHARED.format(line="package-lock.json - owned by api"))
         code, out = self.run_validator()
         self.assertEqual(code, 1, out)
-        self.assertIn("[T11]", out)
+        self.assertIn("which reaches it", out)
+
+    def test_shared_path_the_owner_does_not_claim_fails(self):
+        append(self.root, "charter.md", SHARED.format(line=".github/ci.yml - owned by api"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("does not claim it", out)
 
     def test_unowned_shared_path_fails(self):
         append(self.root, "charter.md", SHARED.format(line="package-lock.json is tricky"))
@@ -583,6 +591,8 @@ class TestT11SharedPaths(TeamRootCase):
         self.assertIn("names no owner", out)
 
     def test_well_formed_shared_path_passes(self):
+        write(self.root, "roles/api.md", ROLE_API.replace(
+            "- migrations/**", "- migrations/**\n- package-lock.json"))
         append(self.root, "charter.md", SHARED.format(line="package-lock.json - owned by api"))
         code, out = self.run_validator()
         self.assertEqual(code, 0, out)

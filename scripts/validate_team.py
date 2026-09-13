@@ -26,8 +26,8 @@ Checks:
     [T8] friction-cap     warn that a retro is due
     [T9] team-root        the charter names this directory as an absolute path
     [T10] transport-named transport.md names one substrate and how to address it
-    [T11] shared-paths    every charter shared path names a lane, and no other
-                          lane's role claims it
+    [T11] shared-paths    every charter shared path names a lane, that lane's role
+                          claims it, and no other lane's role reaches it
     [T12] lane-names      every lane name is usable as an address
 
 [T3] and [T5] are the load-bearing ones. [T3] is what stops a charter becoming a
@@ -337,12 +337,17 @@ def probe_path(pattern):
     return probe.rstrip("/") if not has_wildcard(pattern) else probe
 
 
+def covers(pattern, other):
+    """True when `pattern` reaches the paths `other` names."""
+    return bool(glob_regex(pattern).match(probe_path(other)))
+
+
 def overlap(a, b):
     """'equal', 'a' when a contains b, 'b' when b contains a, or None."""
     if a == b:
         return "equal"
-    a_covers_b = bool(glob_regex(a).match(probe_path(b)))
-    b_covers_a = bool(glob_regex(b).match(probe_path(a)))
+    a_covers_b = covers(a, b)
+    b_covers_a = covers(b, a)
     if a_covers_b and b_covers_a:
         return "equal"
     if a_covers_b:
@@ -415,6 +420,10 @@ def check_shared_paths(root, rep):
 
     [T5] compares role against role. The charter can hand a lockfile to `api`
     while `web`'s role owns `**/*.json`, and both files pass on their own.
+
+    The owner's role must claim the path too. The boundary hook reads role files
+    and nothing else, so a shared path named only in the charter is a path the
+    hook attributes to no lane and therefore lets every lane write.
     """
     charter = os.path.join(root, "charter.md")
     if not os.path.exists(charter):
@@ -436,6 +445,13 @@ def check_shared_paths(root, rep):
             rep.fail("T11", "charter.md", 0,
                      f"shared path {pattern!r} is owned by {owner!r}, which is not a "
                      "lane under '## Lanes'. Nobody owns it.")
+        elif not any(covers(claimed, pattern) for claimed in by_lane.get(owner, [])):
+            rep.fail("T11", "charter.md", 0,
+                     f"shared path {pattern!r} is owned by {owner!r}, but "
+                     f"roles/{owner}.md does not claim it under '## Owns'. The "
+                     "boundary hook reads role files only, so it attributes this "
+                     "path to no lane and allows every lane to write it. Declaring "
+                     "an owner is not giving one.")
         for lane in sorted(by_lane):
             if lane == owner:
                 continue

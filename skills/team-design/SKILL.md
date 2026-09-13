@@ -67,8 +67,10 @@ unearned rule is a tax charged forever.
    item a lane is working right now is the tracker's business and changes hourly.
 4. **Every lane's `Never` is filled in.** A role with no prohibition has no
    boundary, and a boundary nobody wrote down is one nobody will respect.
-5. **Name an owner for every shared path** — lockfiles, schemas, CI config, build
-   output. An unowned shared path is where two lanes collide first.
+5. **Name an owner for every shared path, and put the path in that lane's
+   `Owns`** — lockfiles, schemas, CI config, build output. An unowned shared path
+   is where two lanes collide first, and the boundary hook reads role files only,
+   so a path named in the charter alone is one every lane may still write.
 6. **Budgets are hard.** To add a line at a retro you must remove one. Without
    that rule, "keep improving the rules" becomes accretion, and an accreted
    charter destroys the context budget that justified the team.
