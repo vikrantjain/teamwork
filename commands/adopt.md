@@ -31,8 +31,9 @@ Lead your report with **overlapping paths**. Two sessions writing one path is th
 failure this plugin exists to prevent, and this is the moment it becomes visible.
 Do not pick a winner; the user may know which edit matters.
 
-With no argument, discover the sessions with `claude agents --json` and
-`ListAgents`, and name the ones you could not reach. An unreachable session is
+With no argument, discover the sessions with `ListAgents`, which reaches the
+other Claude sessions on this machine, then `claude agents --json` for the
+background ones. Name the ones you could not reach. An unreachable session is
 still editing files.
 
 Close with what adoption could not settle: paths whose owner is still a guess,

@@ -85,11 +85,12 @@ reach, inside the project or at a location you name. Never in your home folder.
   tracker.md      the one backend, with its create, claim and close commands.
   transport.md    the one substrate, and how to address a lane.
   decisions.md    settled choices, with the reasons, so retros stop reopening them.
+  backlog.md      the file board, and only when the project has no tracker.
   friction.md     what the rules cost. At its cap, a retro is due.
   roster.md       which lane is up, where, and whether it has acked.
 ```
 
-Everything down to `decisions.md` is committed, because a contract that is not
+Everything down to `backlog.md` is committed, because a contract that is not
 versioned with the code cannot be reviewed in a pull request. The last two are
 gitignored: they are this run's state, not the team's law.
 

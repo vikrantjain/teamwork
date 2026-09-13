@@ -21,9 +21,10 @@ is not met, name the part that is not and stop. Do not check any lane's `Done
 means`: that is what made it a lane's, and a lead that reads the work becomes the
 bottleneck the team was formed to remove.
 
-**Park every lane first**, by the drain in `references/parking.md`. A lane that
-has not parked still holds a claim, and integrating around it merges a branch
-whose owner believes it is still working.
+**Park every lane first**, by the drain in
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md`. A lane that has
+not parked still holds a claim, and integrating around it merges a branch whose
+owner believes it is still working.
 
 **Test the merges without performing them.** `git merge-tree --write-tree <base>
 <lane branch>` reports conflicts and writes nothing. Run it for every lane before

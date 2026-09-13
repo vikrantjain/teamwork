@@ -28,8 +28,8 @@ throughput.
 
 **Resolve the team root explicitly, and ask rather than guess.** Members in
 different folders cannot read a relative `.teamwork/`. Follow
-`references/team-root.md`; when the ladder reaches its last rung, ask the user
-for a path instead of picking one.
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`; when the
+ladder reaches its last rung, ask the user for a path instead of picking one.
 
 With no argument, ask what the goal is. Do not infer it from the repository —
 a team formed around a guessed goal partitions the wrong work.

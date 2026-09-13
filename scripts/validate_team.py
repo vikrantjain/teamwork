@@ -437,7 +437,7 @@ def check_shared_paths(root, rep):
         if not m:
             rep.fail("T11", "charter.md", 0,
                      f"shared path line {line.strip()!r} names no owner. Write it as "
-                     "'- <path> - owned by <lane>'. An unowned shared path is where "
+                     "'- <path> \u2014 owned by <lane>'. An unowned shared path is where "
                      "two lanes collide first.")
             continue
         pattern, owner = normalise(m.group(1)), m.group(2)

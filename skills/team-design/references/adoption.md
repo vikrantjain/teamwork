@@ -11,8 +11,9 @@ then `/reload-plugins` without restarting.
 
 ## The procedure
 
-1. **Discover.** `claude agents --json` and `ListAgents` give the running
-   sessions with their names, working directories and state. Name the ones you
+1. **Discover.** `ListAgents` gives the other Claude sessions on this machine,
+   and `claude agents --json` gives the background ones. Adoption's usual case is
+   separate terminals, so the first is the one that finds them. Name the ones you
    could not reach rather than leaving them out; an unreachable session is still
    editing files.
 2. **Observe the division that exists.** In order of weight: `git status`, recent
