@@ -18,6 +18,19 @@ reach each other, and neither half can tell that the other is still working.
 3. **A human member** — there is no transport. The lead relays, and the charter
    names that lane as relayed so nobody waits on a mailbox nobody reads.
 
+## What rung 1 costs
+
+Rung 1 turns the boundary hook off. It identifies a lane from `TEAMWORK_LANE`,
+and failing that from the working directory's own name. A teammate spawned in
+the lead's process inherits the lead's environment, which must not carry a lane
+name, and it starts in the lead's working directory, so neither rung resolves.
+Every write is then allowed and the boundary is back to a rule a member
+remembers. Rung 1 also gives a lane no worktree and no branch of its own, which
+is what a park re-derives a launch command from and what a finish merges.
+
+Choose rung 1 when the lanes are genuinely disjoint on disk and the run is short.
+Choose rung 2 when the boundary has to hold, or when the run will be parked.
+
 ## What `transport.md` must contain
 
 Three lines, each something a member can act on without asking:

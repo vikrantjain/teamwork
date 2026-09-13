@@ -47,7 +47,10 @@ it is a path the hook attributes to nobody and lets every lane write.
 
 `Isolation:` names the branch convention when lanes get worktrees. A resume and a
 finish both have to find a lane's branch again, and without the convention
-written down they match on a directory name and call a guess a lookup.
+written down they match on a directory name and call a guess a lookup. Name each
+worktree directory for its lane as well. The boundary hook's second rung matches
+that directory's own name against the lane names, so a worktree named anything
+else leaves the lane unidentified and every write allowed.
 
 ## Working rules
 
