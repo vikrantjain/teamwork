@@ -42,9 +42,14 @@ unearned rule is a tax charged forever.
 6. **Write the contracts** from `references/charter-template.md` and
    `references/role-template.md`. Copy `protocol.md` and `conflicts.md` from
    `${CLAUDE_PLUGIN_ROOT}/skills/team-member/references/` byte for byte.
-7. **Run the validator** before telling anyone the team exists:
+7. **Create the rest of the team root**, or the validator reports a team that is
+   half-built. `decisions.md` holding the isolation choice and its reason, an
+   empty `friction.md`, an empty `roster.md`, and `friction.md` and `roster.md`
+   added to the project's `.gitignore`. `references/team-root.md` says why those
+   last two are not committed.
+8. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
-8. **Print the launch commands** for the user, one per lane, each carrying the
+9. **Print the launch commands** for the user, one per lane, each carrying the
    team name, the agent name, `--add-dir <team root>` when the lane's working
    directory is not inside it, and `TEAMWORK_LANE` and `TEAMWORK_ROOT` in front:
 
