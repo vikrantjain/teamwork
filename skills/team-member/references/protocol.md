@@ -16,6 +16,7 @@ sees only that line until they expand it.
 - ASK <lane> — one question, answerable in one message.
 - FRICTION — what cost you time, in one line. Then keep working.
 - RELOAD — lead only, after a retro, carrying the team root's absolute path.
+- PARK — lead: drain and stop. Member: I have; the tracker holds my lane.
 
 A message fitting none of these belongs in a file or in the tracker.
 
@@ -24,9 +25,8 @@ A message fitting none of these belongs in a file or in the tracker.
 1. Pointers, not payloads. Ten lines at most. Longer content goes in a file and
    the message carries its path. Pasted content lands in every reader's context,
    which is the cost the team exists to avoid.
-2. Never poll. No "are you done?", no loop over ListAgents. Subscribe with
-   notify_when_idle instead. Polling spends a turn on both sides and learns
-   nothing you would not have been told anyway.
+2. Never poll. Subscribe with notify_when_idle instead. Polling spends a turn on
+   both sides and learns nothing you would not have been told anyway.
 3. Record before you announce. The tracker holds state; messages do not survive a
    restart, so anything living only in a message dies with the member.
 4. Read the team root by its absolute path, never a relative one. A per-worktree

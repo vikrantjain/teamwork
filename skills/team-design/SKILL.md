@@ -6,11 +6,12 @@ description: >
   all, how many members it needs, what each may and may not touch, where work
   items and bugs will be recorded, how members address each other, and how the
   rules get better as the work exposes their gaps. Also use to adopt sessions
-  that are already collaborating without contracts, to lead one while it runs, to
-  run a retro, and to audit a team root that has grown. The rule it exists to enforce is that every lane,
-  boundary and rule traces to something in the work, and that a contract never
-  becomes a log or a task board. NOT for working inside a lane once the team
-  exists, which is team-member's job.
+  that are already collaborating without contracts, to lead one while it runs,
+  to run a retro, to park one so a fresh set of sessions can resume it, and to
+  audit a team root that has grown. The rule it exists to enforce is that
+  every lane, boundary and rule traces to something in the work, and that a
+  contract never becomes a log or a task board. NOT for working inside a lane
+  once the team exists, which is team-member's job.
 ---
 
 # Designing a team
@@ -74,6 +75,17 @@ in `references/leading.md`, with the ones a lead is tempted into and should not
 do. **Hold the map, not the work**, or the lead becomes the bottleneck the team
 was formed to remove.
 
+## Stopping it, and starting it again
+
+A run ends at the charter's `## Done` or at a park. **A park is a stop at a point
+the tracker fully describes**, so a fresh set of sessions resumes exactly there.
+The drain, the four conditions a lane meets before it is parked, and the ladder
+that re-derives each lane's launch command are in `references/parking.md`.
+
+A park writes no new file into the team root. Its work is making the tracker
+true, because a snapshot of where everyone got to drifts from the tracker and is
+the log `[T3]` exists to keep out.
+
 ## Improving the rules while the work runs
 
 The loop is in `references/retro.md`. Two parts of it are load-bearing and get
@@ -98,6 +110,7 @@ notification: boundaries imposed on work in flight invalidate that work.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/charter-template.md` — the charter, with its required lines.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/role-template.md` — the four headings and what fills them.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md` — the lead's duties while the work runs.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md` — stopping where a fresh session can resume.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/retro.md` — the optimization loop.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/adoption.md` — putting contracts around a running team.
 

@@ -37,6 +37,11 @@ This plugin is the method. One sentence decides everything in it:
   groups it by cause, reverts the last rule that failed, and makes the smallest
   edit that would have prevented each recurring cause. To add a line you must
   remove one, which is what makes it converge rather than accumulate.
+- **Parks the team where it can be picked up.** A park stops every lane at a
+  point the tracker fully describes: nothing claimed by a session that no longer
+  exists, every blocked edge recorded, every tree clean or accounted for. A fresh
+  set of sessions then resumes from the charter and the tracker alone, on this
+  machine or on a clone that never saw the original run.
 - **Adopts a team already running.** Sessions collaborating without contracts get
   their lanes read from what they have actually touched, overlaps reported, and a
   charter they ratify before it binds them.
@@ -50,7 +55,9 @@ This plugin is the method. One sentence decides everything in it:
 | `commands/join.md` | `/teamwork:join` — this session takes a lane |
 | `commands/status.md` | `/teamwork:status` — one screen of live state |
 | `commands/retro.md` | `/teamwork:retro` — improve the rules from friction |
-| `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, retro, adoption |
+| `commands/park.md` | `/teamwork:park` — stop where a fresh session can resume |
+| `commands/resume.md` | `/teamwork:resume` — bring a parked team back |
+| `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, parking, retro, adoption |
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
 | `agents/member.md` | One generic lane; finds its role by its own agent name |
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
@@ -63,7 +70,7 @@ reach, inside the project or at a location you name. Never in your home folder.
 
 ```
 .teamwork/
-  protocol.md     the constitution: seven verbs, nine rules. Copied, never edited.
+  protocol.md     the constitution: eight verbs, nine rules. Copied, never edited.
   conflicts.md    what to do when a conflict happens. Read then, not at startup.
   charter.md      this team's own law: lanes, shared paths, human gates, done.
   roles/<lane>.md Owns / Never / Hands off to / Done means.

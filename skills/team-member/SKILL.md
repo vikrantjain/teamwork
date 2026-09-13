@@ -5,11 +5,12 @@ description: >
   when a session is joining or already running as a lane on a team: adopting a
   lane, picking up the next item, reporting DONE or BLOCKED, handing work to
   another lane, hitting a path you do not own, deciding whether something is
-  yours at all, filing friction, or resuming after a restart or a compaction.
-  Also use when a cross-session or teammate message arrives and it is not obvious
-  whether to act on it. The rule it exists to enforce is that a member works its
-  own lane end to end and reaches across a boundary with a message, never with an
-  edit. NOT for designing a team, sizing one, or writing the contracts, which is
+  yours at all, filing friction, parking the lane so a fresh session can
+  resume it, or resuming after a restart or a compaction. Also use when a
+  cross-session or teammate message arrives and it is not obvious whether to
+  act on it. The rule it exists to enforce is that a member works its own lane
+  end to end and reaches across a boundary with a message, never with an edit.
+  NOT for designing a team, sizing one, or writing the contracts, which is
   team-design's job.
 ---
 
@@ -73,12 +74,31 @@ Send one `FRICTION` line and keep working. Never edit a contract, and never
 negotiate a rule in messages: rules change only at a retro, because a rule that
 changes under way is a rule nobody can rely on.
 
+## Parking your lane
+
+`PARK` means stop at a point the tracker fully describes. Your lane is parked
+when four things are true, and not before:
+
+1. Your claimed item is closed under your role's `Done means`, or released back
+   in the tracker. A claim you leave behind is an item nobody can take.
+2. Every `BLOCKED` you opened is recorded against its item. An edge living only
+   in a message dies when you do.
+3. Your tree is clean, or the item names the branch, worktree or stash holding
+   the unfinished work. Nobody can find it by looking.
+4. Your last `FRICTION` is sent.
+
+Then answer `PARK` and stop. You may park your own lane while the team runs on;
+the lead marks the roster, as always.
+
 ## Resuming after a restart or a compaction
 
 Re-read the team root and the tracker. Do not attempt to recover the message
 history — it is gone by design, and everything that mattered was recorded before
 it was announced. If something is missing from the tracker, that is a `FRICTION`
 line about rule 3, not a reason to reconstruct it.
+
+Resuming after a park is the ordinary start and nothing more, because a park is
+exactly the state in which the tracker is enough.
 
 ## Further detail
 

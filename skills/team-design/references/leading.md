@@ -21,6 +21,9 @@ the slowest member.
   member that is not told keeps running the old rules.
 - **Call the retro** when `friction.md` reaches its cap. The cap is the team
   telling you its rules cost more than they earn.
+- **Call the park** when the run has to stop before `## Done`. Sessions killed
+  where they happen to be leave claims nobody can take, and `references/parking.md`
+  is what turns a stop into a point the team can be resumed from.
 
 ## What you never do
 

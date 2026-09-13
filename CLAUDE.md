@@ -66,6 +66,14 @@ recorded rather than the conclusion alone.
   file is bounded by the remove-a-line-to-add-one rule, but this one gains a line
   at every retro. Left alone it reaches its budget and `[T1]` then blocks the
   retro that would have fixed it.
+- **A park writes no new file into the team root.** A "where we are" snapshot was
+  the obvious design and is refused: it duplicates the tracker, drifts from it the
+  moment either changes, and is exactly the work log `[T3]` keeps out. The park
+  procedure's job is to leave the tracker true, so resuming is an ordinary start.
+- **Launch commands are re-derived at resume, never persisted.** Persisting them
+  would pin a team to the machine that formed it. The charter already carries the
+  team name, the lanes and the isolation, and `git worktree list` carries the rest,
+  so a clone that never saw the original terminal can still bring the team back.
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, a session
   on another machine, or a person.

@@ -50,7 +50,9 @@ for everyone the moment one member restarts.
 
 `roster.md` has no template and no budget: it is a scratch list the lead writes
 from the acks, one line per lane giving the lane, its working directory, and
-whether it acked. Nobody but the lead and `/teamwork:status` reads it.
+whether it has acked or parked. Nobody but the lead, `/teamwork:status` and
+`/teamwork:resume` reads it. Losing it costs nothing: a resume re-derives each
+lane's working directory from the charter and from `git worktree list`.
 
 ## Why worktrees are the case that bites
 
