@@ -26,6 +26,11 @@ location the projects genuinely share, or at a path the user gives.
 
 Record the answer in the charter so it is asked once and never re-derived.
 
+Rungs 3 and 4 can land outside any repository. Say so when they do: nothing there
+is committed, so the contracts are not reviewable in a pull request and do not
+travel with the project, which were the two reasons for writing them down. A park
+then has nothing to commit either.
+
 ## What the team root holds
 
 Committed, because a contract that is not versioned with the code cannot be
@@ -38,6 +43,7 @@ reviewed in a pull request and does not travel with the project:
     tracker.md       the one work-item backend and its commands
     transport.md     the one substrate and how to address a lane
     decisions.md     settled choices with their reasons
+    backlog.md       only when tracker.md's rung 3 put the board here
 
 Gitignored, because it is this run's state rather than the team's law:
 

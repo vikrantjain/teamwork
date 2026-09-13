@@ -144,15 +144,31 @@ plugin, or a person.
 
 ## Requirements
 
-Python 3 for the validator, standard library only, no build step. `git` for
-worktree isolation and for the team root in a multi-repo layout. `gh` only if you
-want GitHub issues as the tracker.
+Python 3 for the validator and the hook, standard library only, no build step.
+`git` for worktree isolation and for the team root in a multi-repo layout. `gh`
+only if you want GitHub issues as the tracker.
+
+Two sibling plugins are used when they are installed and skipped when they are
+not: `backlog-refiner`, whose `IMPLEMENTATION_PLAN.md` is the second tracker
+rung, and `github-automation`, whose issue lifecycle the first rung reuses rather
+than inventing labels of its own.
 
 Run the checks by hand at any time:
 
 ```
 python3 scripts/validate_team.py <team root>
 python3 scripts/test_validate_team.py
+python3 scripts/test_teamwork_hook.py
+```
+
+The behaviour that is prose rather than code has its own suite. These four cases
+are read-only, and they cover the claims no unit test can reach: that a serial
+goal is refused, that lanes come from the dependency graph, that a member routes
+a cross-lane fix instead of making it, and that a cause appearing once produces
+no rule.
+
+```
+claude plugin eval .
 ```
 
 ## License

@@ -8,3 +8,6 @@ __pycache__/
 # Editor and OS noise.
 .DS_Store
 *.swp
+
+# Eval runs write their scores here.
+evals/results/

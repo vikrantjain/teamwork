@@ -5,7 +5,7 @@ argument-hint: <lane name> [team root path, if this session is outside it]
 
 # /teamwork:join — take a lane
 
-Lane: **$ARGUMENTS**
+Lane, and team root if given: **$ARGUMENTS**
 
 Run the `team-member` skill's procedure. Read it if it is not already loaded,
 because a session that joins without it works the repo instead of the lane:
