@@ -39,6 +39,23 @@ thinks delegation needs permission either asks before every fan-out or stops
 fanning out, and the second one spends the context budget the team was formed to
 protect.
 
+## When a lane never appears in `ListAgents`
+
+`--team-name`, `--agent-name` and `--agent-type` are real flags, and none of them
+appears in `claude --help`. They are what the platform passes when it spawns a
+teammate of its own, and it passes `--agent-id` and `--parent-session-id`
+alongside them. So a lane started by hand may not bind into the team's messaging,
+and the only sign of it is a lane that is running and never shows up.
+
+That is a degraded team rather than a broken one, and knowing which saves a run.
+`protocol.md` rule 3 already puts state in the tracker before it is announced, so
+a lane nobody can message still claims its items, still closes them, and is still
+read by the lead exactly as before. What is lost is the `ASK` and the `READY`,
+so route those through the human until it is fixed.
+
+Append a friction line when it happens. A lead that quietly works around missing
+messaging leaves the next team to discover it the same slow way.
+
 ## What `transport.md` must contain
 
 Three lines, each something a member can act on without asking. `[T1]` budgets

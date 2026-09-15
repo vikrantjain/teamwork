@@ -62,6 +62,10 @@ unearned rule is a tax charged forever.
    them the hook cannot tell which lane the session is, and it allows every write
    rather than blocking one it cannot attribute.
 
+   Check `ListAgents` once the lanes are up. A lane that is running and never
+   appears did not bind into the team's messaging, and
+   `references/transport.md` says what still works and what to do about it.
+
 ## What belongs in a contract
 
 1. **A rule earns its line by naming its failure mode.** Say what goes wrong
