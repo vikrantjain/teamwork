@@ -74,6 +74,20 @@ recorded rather than the conclusion alone.
   would pin a team to the terminals that formed it. The charter already carries
   the team name, the lanes and the isolation, and `git worktree list` carries the
   rest, so a run whose every terminal is gone can still be brought back.
+- **A lane is a terminal session a human starts, and there is no other kind.**
+  Spawning lanes as in-process teammates was the easiest substrate and is
+  removed. Such a lane inherits the lead's environment, which must never carry a
+  lane name, and the lead's working directory, so the boundary hook can identify
+  neither and allows every write. It also has no worktree and no branch, which is
+  what a park re-derives a launch command from and what a finish merges. One kind
+  of member is what makes enforcement, parking, resuming and finishing hold
+  without a caveat about which substrate was chosen.
+- **What a lane does inside itself is not the team's business.** A member may fan
+  out to subagents, spawn teammates, or run a workflow. The hook reads the
+  environment and the working directory, and a member passes both to everything
+  it spawns, so its own agents are held to its own lane at no cost. Governing
+  that too would buy nothing and would cost the fan-out the context budget
+  depends on.
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, or a person.
 - **The boundary hook fails open, never closed.** A hook that denied a write it
