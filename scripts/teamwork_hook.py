@@ -25,6 +25,11 @@ the lead, stop a session that is not on a team at all, and make the plugin
 unusable the first time the ladder missed. The cost is that a lane it cannot
 identify is a lane it cannot protect, which is why rung 1 is worth setting.
 
+A member's own agents inherit its lane. Resolution reads the environment and the
+working directory, and a session passes both to everything it spawns, so a lane
+can fan out as widely as its work needs and each agent is held to that lane's
+paths. That is why nothing here governs what happens inside a lane.
+
 The lead must never set $TEAMWORK_LANE. A teammate spawned in the lead's own
 process inherits its environment, so a lead carrying a lane name hands that name
 to every teammate it spawns. They would then be denied their own paths and

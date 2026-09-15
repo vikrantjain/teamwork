@@ -45,8 +45,12 @@ Worktrees remove write collisions and cost a merge at the end. A shared tree
 costs nothing and removes nothing, so it is right only when the lanes are
 genuinely disjoint on disk.
 
-Worktrees also buy enforcement. The boundary hook identifies a lane from
-`TEAMWORK_LANE`, and failing that from the working directory's own name, which
-only tells lanes apart when each has its own and each is named for its lane. A shared tree with in-process
-teammates gives the hook nothing to go on, so it allows every write and the
-boundary is back to being a rule a member remembers.
+Enforcement does not depend on this choice. Every lane is a session the human
+starts from the printed launch command, which sets `TEAMWORK_LANE`, so the
+boundary hook identifies the lane under either isolation. The hook's second rung,
+the working directory's own name, is a backstop for a lane someone started
+without that variable, and it only works when each lane has its own worktree
+named for it.
+
+So choose worktrees for the reasons above and for the branch each lane needs at
+the end, not to buy a boundary you already have.

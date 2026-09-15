@@ -30,7 +30,8 @@ This plugin is the method. One sentence decides everything in it:
 - **Gives every lane a boundary, and enforces it.** Each member owns disjoint
   paths, and a validator fails the team if two lanes claim the same one. A hook
   then denies the write itself, so crossing a boundary fails instead of quietly
-  overwriting another lane's work.
+  overwriting another lane's work. A lane is a session you start, which is what
+  makes the boundary identifiable.
 - **Keeps work items in the project's own tracker** — GitHub issues, an existing
   `IMPLEMENTATION_PLAN.md`, or a file board. One store, so there is never a
   second place to look.
@@ -109,13 +110,20 @@ loses work silently, and the cheapest time to catch it is before anyone starts.
 
 Declaring a boundary is not enforcing one, so a `PreToolUse` hook denies a write
 to a path another lane owns and tells the member to `ASK` its owner instead. It
-identifies the lane from `TEAMWORK_LANE`, or failing that from the working
-directory under one worktree per lane. A session it cannot identify is allowed
-every write, because a hook that blocked what it could not attribute would stop
-the lead and every session that is not on a team at all. It does not see writes
-made through `Bash`: parsing a shell command for the file it truncates is a
-losing game, and a check that caught nine tenths of them would be trusted for the
-tenth.
+identifies the lane from `TEAMWORK_LANE`, which every lane's launch command sets,
+and failing that from the working directory under one worktree per lane. A
+session it cannot identify is allowed every write, because a hook that blocked
+what it could not attribute would stop the lead and every session that is not on
+a team at all.
+
+A lane inherits its own enforcement. The hook reads the environment and the
+working directory, and a member passes both to every agent it spawns, so a lane
+can fan out to subagents as widely as its work needs and each of them is held to
+that lane's paths. What a lane does inside itself is its own business.
+
+The hook does not see writes made through `Bash`: parsing a shell command for the
+file it truncates is a losing game, and a check that caught nine tenths of them
+would be trusted for the tenth.
 
 ## Install
 

@@ -1,35 +1,43 @@
 # How members reach each other
 
 Members address each other by **lane name**: the lane is the agent name, which is
-why one agent definition serves every lane. Resolve **one** substrate, write it
-into `<team root>/transport.md`, and every member loads it at startup.
+why one agent definition serves every lane. Write the substrate into
+`<team root>/transport.md`, and every member loads it at startup.
 
-One substrate, not two. A team split across two of them has members that cannot
-reach each other, and neither half can tell that the other is still working.
+## A lane is a session a human starts
 
-## The ladder, first match wins
+There is one kind of member. A lane is a terminal session, started by a human
+from the launch command the lead prints, running on the same machine as every
+other lane.
 
-1. **Built-in teammates** — the lead spawns each lane itself with
-   `Agent({name: "<lane>", agent_type: "teamwork:member"})`. The platform carries
-   the messages, so nothing has to be set up.
-2. **Separate terminal sessions, one machine** — a member starts its own session
-   and joins by name, which is right when a lane needs its own terminal, its own
-   permissions, or a human watching it. Same discovery, same sending.
-3. **A human member** — there is no transport. The lead relays, and the charter
-   names that lane as relayed so nobody waits on a mailbox nobody reads.
+That is not a preference. The boundary hook identifies a lane from
+`TEAMWORK_LANE`, which the launch command sets, and failing that from the working
+directory's own name. A lane spawned inside the lead's process has neither: it
+inherits the lead's environment, which must never carry a lane name, and it
+starts in the lead's working directory. Such a lane cannot be identified, so
+every write it makes is allowed and the boundary is back to a rule a member
+remembers. A lane spawned that way also has no worktree and no branch of its own,
+which is what a park re-derives a launch command from and what a finish merges.
 
-## What rung 1 costs
+The one case that is not a session is **a human member**. There is no transport
+at all. The lead relays, and the charter names that lane as relayed so nobody
+waits on a mailbox nobody reads.
 
-Rung 1 turns the boundary hook off. It identifies a lane from `TEAMWORK_LANE`,
-and failing that from the working directory's own name. A teammate spawned in
-the lead's process inherits the lead's environment, which must not carry a lane
-name, and it starts in the lead's working directory, so neither rung resolves.
-Every write is then allowed and the boundary is back to a rule a member
-remembers. Rung 1 also gives a lane no worktree and no branch of its own, which
-is what a park re-derives a launch command from and what a finish merges.
+## What a lane does inside itself
 
-Choose rung 1 when the lanes are genuinely disjoint on disk and the run is short.
-Choose rung 2 when the boundary has to hold, or when the run will be parked.
+Anything it needs. A member may fan out to subagents, spawn teammates of its own,
+or run a workflow, and none of that is the team's business. The team governs the
+boundary between lanes and says nothing about what happens within one.
+
+This is safe because of how the hook resolves a lane. It reads the environment
+and the working directory, and a member session passes both to everything it
+spawns, so a lane's own agents resolve to that same lane and are denied the same
+out-of-lane writes. The boundary extends to them at no cost.
+
+Say this plainly in the charter when a lane is likely to want it. A member that
+thinks delegation needs permission either asks before every fan-out or stops
+fanning out, and the second one spends the context budget the team was formed to
+protect.
 
 ## What `transport.md` must contain
 

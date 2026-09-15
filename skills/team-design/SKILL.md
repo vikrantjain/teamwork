@@ -36,9 +36,10 @@ unearned rule is a tax charged forever.
    scatters team state where nobody looks for it.
 4. **Pick the tracker**, following `references/trackers.md`. One backend, written
    into `tracker.md` with its create, claim and close commands.
-5. **Pick the substrate**, following `references/transport.md`. One substrate,
-   written into `transport.md` with how to discover a lane and how to send to it.
-   Every member loads this file, so a team without it is a list of strangers.
+5. **Record the substrate**, following `references/transport.md`. A lane is a
+   terminal session a human starts, so this is rarely a choice; write it into
+   `transport.md` with how to discover a lane and how to send to it. Every member
+   loads this file, so a team without it is a list of strangers.
 6. **Write the contracts** from `references/charter-template.md` and
    `references/role-template.md`. Copy `protocol.md` and `conflicts.md` from
    `${CLAUDE_PLUGIN_ROOT}/skills/team-member/references/` byte for byte.
@@ -56,9 +57,10 @@ unearned rule is a tax charged forever.
        TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
          claude --team-name <team> --agent-name <lane> --agent-type teamwork:member
 
-   The two variables are what let the boundary hook deny a write to a path
-   another lane owns. Without them the hook cannot tell which lane the session
-   is, and it allows every write rather than blocking one it cannot attribute.
+   The human starts every lane from these commands, and the two variables are
+   what let the boundary hook deny a write to a path another lane owns. Without
+   them the hook cannot tell which lane the session is, and it allows every write
+   rather than blocking one it cannot attribute.
 
 ## What belongs in a contract
 
@@ -127,7 +129,7 @@ notification: boundaries imposed on work in flight invalidate that work.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` — how many members, and when the answer is none.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` — where the shared files live, and when to ask.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md` — choosing one work-item backend.
-- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` — choosing one substrate, and how lanes are addressed.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` — the one kind of member, and how lanes are addressed.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/charter-template.md` — the charter, with its required lines.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/role-template.md` — the four headings and what fills them.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md` — the lead's duties while the work runs.
