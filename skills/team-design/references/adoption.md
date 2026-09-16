@@ -24,8 +24,9 @@ then `/reload-plugins` without restarting.
    this plugin exists to prevent, and adoption is the moment it becomes visible.
    Lead with it. Do not quietly pick a winner — the user may know which edit
    matters.
-4. **Resolve the team root** by `references/team-root.md`. Sessions in different
-   folders is the normal case here, not the exception.
+4. **Resolve the team root** by
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`. Sessions in
+   different folders is the normal case here, not the exception.
 5. **Draft the team root at minimum size** — `protocol.md` and `conflicts.md`
    copied verbatim, a charter, one role per session, `tracker.md`, `transport.md`.
 6. **Record open work only.** Do not back-fill what is already finished.

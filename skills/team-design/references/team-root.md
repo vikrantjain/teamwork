@@ -53,7 +53,8 @@ tracker, and a tracker is a record rather than a rule.
 `decisions.md` has no template. One bullet per settled choice, each carrying its
 reason rather than its conclusion alone, so the next retro does not reopen it
 without new evidence. It is the one file that gains a line at every retro, which
-is why `references/retro.md` prunes it in the same pass.
+is why `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/retro.md` prunes it in
+the same pass.
 
 Gitignored, because it is this run's state rather than the team's law:
 
