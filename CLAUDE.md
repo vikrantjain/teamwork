@@ -53,9 +53,9 @@ recorded rather than the conclusion alone.
   the conflict table is read when a conflict happens and the protocol is read at
   every startup. Merging them would put the rarely-needed half in the budget that
   is paid every turn.
-- **One `member` agent serves every lane**, because the lane is the agent's name
-  and the role file is looked up from it. Generating an agent per lane would put
-  a copy of the role in a second place.
+- **One `member` agent serves every lane**, because the role file is looked up
+  from `TEAMWORK_LANE` rather than from the agent's name. Generating an agent per
+  lane would put a copy of the role in a second place.
 - **`[T5]` compares globs by matching, never by truncating them at the first
   wildcard.** Truncation is simpler and was tried: it collapsed every
   leading-wildcard glob to the empty prefix, so two lanes owning `**/*.sql` and
@@ -102,7 +102,10 @@ recorded rather than the conclusion alone.
   --team-name must all be provided together`, which a human starting a lane has
   no id to satisfy. Both states were reproduced against the installed CLI. The
   launch command is now `claude --agent teamwork:member`, which is a documented
-  flag, and each lane takes its address with `/rename <lane>`.
+  flag, and the human types `/rename <lane>` into each lane. The lane cannot do
+  that for itself: `/rename` is a built-in command rather than a skill, so
+  nothing a member can call invokes one, and a lane told to rename itself emits
+  the text and stays under its old name.
 
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, or a person.
