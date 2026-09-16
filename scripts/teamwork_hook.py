@@ -20,6 +20,18 @@ Resolving the lane, first match wins:
     2. The working directory's own name, under one worktree per lane.
     3. Nothing, and then it allows every write and says so once.
 
+Resolving the team root, first match wins, as team-root.md resolves it:
+    1. $TEAMWORK_ROOT, set by the same launch command.
+    2. The MAIN worktree's .teamwork, from `git rev-parse --git-common-dir`.
+    3. The nearest .teamwork walking up from the working directory.
+
+Rung 2 is what keeps a lane off its own stale copy. Under one worktree per lane
+every worktree carries a committed .teamwork, and those copies diverge as soon
+as a retro commits on another branch, so walking up finds the copy rather than
+the original and the hook would enforce last week's ownership. Rungs 2 and 3
+only ever find a directory named .teamwork; a team root the user named anything
+else is reachable through rung 1 alone, which is why the launch command sets it.
+
 It fails OPEN. A hook that blocked a session it could not identify would stop
 the lead, stop a session that is not on a team at all, and make the plugin
 unusable the first time the ladder missed. The cost is that a lane it cannot
@@ -49,11 +61,12 @@ them would be trusted for the tenth.
 
 import json
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from validate_team import (  # noqa: E402
-    charter_lanes, glob_regex, owned_paths, read_lines, role_files, section)
+    charter_lanes, glob_regex, owned_paths, read_lines, role_files)
 
 # Write tools name their target in one of these. Bash is deliberately absent.
 TARGET_FIELDS = ("file_path", "notebook_path", "path")
@@ -79,15 +92,43 @@ def context(event, text):
                                  "additionalContext": text}})
 
 
+def is_team_root(path):
+    return bool(path) and os.path.exists(os.path.join(path, "charter.md"))
+
+
+def main_worktree(cwd):
+    """The repository's main worktree, which is where its `.teamwork` lives.
+
+    Every linked worktree carries its own committed copy of the team root, and
+    those copies diverge the moment a retro commits on another branch. Walking
+    up from the working directory finds the copy; this finds the original.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            cwd=cwd or ".", capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0 or not out.stdout.strip():
+        return None
+    return os.path.dirname(os.path.realpath(out.stdout.strip()))
+
+
 def find_team_root(cwd):
+    """The team root, by the same ladder team-root.md resolves it with."""
     named = os.environ.get("TEAMWORK_ROOT")
-    if named and os.path.exists(os.path.join(named, "charter.md")):
+    if is_team_root(named):
         return os.path.realpath(named)
+    repo = main_worktree(cwd)
+    if repo:
+        candidate = os.path.join(repo, ".teamwork")
+        if is_team_root(candidate):
+            return os.path.realpath(candidate)
     here = os.path.realpath(cwd or ".")
     while True:
         candidate = os.path.join(here, ".teamwork")
-        if os.path.exists(os.path.join(candidate, "charter.md")):
-            return candidate
+        if is_team_root(candidate):
+            return os.path.realpath(candidate)
         parent = os.path.dirname(here)
         if parent == here:
             return None
@@ -164,14 +205,17 @@ def pre_tool_use(payload):
         allow()
 
     real = os.path.realpath(os.path.join(cwd or ".", target))
-    if inside(real, root):
-        deny("PreToolUse",
-             f"{os.path.relpath(real, root)} is in the team root. protocol.md rule 5: "
-             "write only the paths your role owns, and only the lead writes the team "
-             "root. Contracts change at a retro and nowhere else. Send FRICTION and "
-             "keep working.")
-
     repo = repo_root(cwd, root)
+    # A linked worktree's own copy of the team root is guarded too. It is not the
+    # team root, but it is what a member reads when it forgets rule 4, so a write
+    # that lands there is a contract edit whichever copy it reached.
+    for guarded in (root, os.path.realpath(os.path.join(repo, ".teamwork"))):
+        if inside(real, guarded):
+            deny("PreToolUse",
+                 f"{os.path.relpath(real, guarded)} is in the team root. protocol.md "
+                 "rule 5: write only the paths your role owns, and only the lead "
+                 "writes the team root. Contracts change at a retro and nowhere else. "
+                 "Send FRICTION and keep working.")
     if not inside(real, repo):
         allow()
     rel = os.path.relpath(real, repo)

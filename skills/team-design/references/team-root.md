@@ -82,6 +82,11 @@ That is why `protocol.md` rule 4 says to address the team root by absolute path,
 why every `RELOAD` repeats that path, and why `[T9]` fails when the charter's
 `Team root:` is not the directory being validated.
 
+The boundary hook resolves the root by this same ladder: `$TEAMWORK_ROOT`, then
+the main worktree's `.teamwork` from `git rev-parse --git-common-dir`, then the
+nearest one walking up. A hook that read a lane's own copy would enforce last
+week's ownership, which is worse than not enforcing at all.
+
 ## One filesystem
 
 Every member resolves the same path on the same machine. That is what lets

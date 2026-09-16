@@ -206,6 +206,70 @@ class TestLaneResolution(HookCase):
         self.assertEqual(out, {})
 
 
+class TestTeamRootResolution(HookCase):
+    """Which copy of the team root the hook enforces against."""
+
+    def worktree(self, lane):
+        """A real linked worktree carrying its own committed copy of the root."""
+        subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-qm", "team"], cwd=self.repo, check=True)
+        path = os.path.join(tempfile.mkdtemp(), lane)
+        subprocess.run(["git", "worktree", "add", "-q", "-b", lane, path],
+                       cwd=self.repo, check=True)
+        self.addCleanup(shutil.rmtree, os.path.dirname(path), ignore_errors=True)
+        return path
+
+    def test_teamwork_root_wins_over_anything_on_disk(self):
+        """Rung 1. The launch command sets it, and nothing overrides it."""
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": tempfile.gettempdir()},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root})
+        self.assertIn(self.root, out.get("additionalContext", ""))
+
+    def test_a_worktree_is_enforced_against_the_main_copy(self):
+        """Rung 2. Its own copy is last week's rules; the main one is the law."""
+        tree = self.worktree("web")
+        stale = os.path.join(tree, ".teamwork", "roles", "web.md")
+        with open(stale, "w", encoding="utf-8") as fh:
+            fh.write(ROLE_WEB.replace("- web/**", "- db/migrations/**"))
+        out, _ = run({"hook_event_name": "PreToolUse", "cwd": tree,
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(tree, "db/migrations/1.sql")}})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the api lane", out["permissionDecisionReason"])
+
+    def test_the_startup_note_names_the_main_copy(self):
+        tree = self.worktree("web")
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": tree})
+        self.assertIn(self.root, out.get("additionalContext", ""))
+
+    def test_a_worktrees_own_copy_is_not_writable_either(self):
+        """It is not the team root, but editing it is still editing a contract."""
+        tree = self.worktree("web")
+        out, _ = run({"hook_event_name": "PreToolUse", "cwd": tree,
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(tree, ".teamwork/charter.md")}},
+                     env={"TEAMWORK_LANE": "web"})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("in the team root", out["permissionDecisionReason"])
+
+    def test_walking_up_still_finds_a_root_outside_git(self):
+        """Rung 3. A team root can sit where git knows nothing about it."""
+        plain = os.path.realpath(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, plain, ignore_errors=True)
+        root = os.path.join(plain, ".teamwork")
+        os.makedirs(os.path.join(root, "roles"))
+        with open(os.path.join(root, "charter.md"), "w", encoding="utf-8") as fh:
+            fh.write(CHARTER.format(root=root))
+        with open(os.path.join(root, "roles", "api.md"), "w", encoding="utf-8") as fh:
+            fh.write(ROLE_API)
+        nested = os.path.join(plain, "src", "deep")
+        os.makedirs(nested)
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": nested},
+                     env={"TEAMWORK_LANE": "api"})
+        self.assertIn(root, out.get("additionalContext", ""))
+
+
 class TestStartup(HookCase):
     def test_session_start_names_the_root_and_the_lane(self):
         out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo},
