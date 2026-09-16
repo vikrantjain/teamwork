@@ -134,7 +134,11 @@ reachable under the name the charter uses.
 
 The hook does not see writes made through `Bash`: parsing a shell command for the
 file it truncates is a losing game, and a check that caught nine tenths of them
-would be trusted for the tenth.
+would be trusted for the tenth. That gap lands hardest on shared paths, which are
+usually written by a command rather than an edit — a lockfile by the package
+manager, a schema by a migration tool. So the charter gives every shared path an
+owner and every other lane a `Never` line for it, and on that one class of path
+the `Never` line is the whole of the enforcement.
 
 ## Install
 

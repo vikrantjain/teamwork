@@ -45,6 +45,13 @@ under its own `## Owns`; `[T11]` fails otherwise. The boundary hook reads role
 files and nothing else, so a path the charter hands to a lane that never claims
 it is a path the hook attributes to nobody and lets every lane write.
 
+Give every other lane a `## Never` line for each shared path as well. A shared
+path is usually written by a command rather than by an edit — a lockfile by the
+package manager, a schema by a migration tool, build output by the build — and
+the hook cannot see a write made through `Bash`. So for the one class of path the
+charter works hardest to give an owner, the prohibition in the other lanes' roles
+is the whole of the enforcement.
+
 `Isolation:` names the branch convention when lanes get worktrees. A resume and a
 finish both have to find a lane's branch again, and without the convention
 written down they match on a directory name and call a guess a lookup. Name each

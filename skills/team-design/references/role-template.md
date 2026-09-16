@@ -39,6 +39,11 @@ and the most valuable: `Owns` says where the member works, and `Never` is what
 stops it helpfully wandering. Write the prohibitions that this lane specifically
 is tempted by, not generic ones already in `protocol.md`.
 
+Every shared path another lane owns belongs here. Those are written by commands —
+a package manager, a migration tool, a build — and the boundary hook does not see
+a write made through `Bash`, so this line is the only thing standing between two
+lanes and one regenerated lockfile.
+
 ## Hands off to
 
 The lane, and the condition that triggers the handoff. If a lane hands off to
