@@ -6,11 +6,10 @@ charter that gets smaller as it gets better.
 
 ## Why
 
-Claude Code already ships the team *mechanism*: named teammates, per-teammate
-mailboxes, cross-session messaging, idle notification, worktree isolation. What
-it does not ship is a *method*. Nothing decides how many members a goal needs,
-what each may and may not touch, or how those rules improve once the work exposes
-their gaps.
+Claude Code already ships the team *mechanism*: cross-session messaging, idle
+notification, worktree isolation, a name per session. What it does not ship is a
+*method*. Nothing decides how many members a goal needs, what each may and may
+not touch, or how those rules improve once the work exposes their gaps.
 
 Left to improvise, a team fails the same three ways every time. Two members edit
 one file and neither notices until work is lost. The shared instructions grow
@@ -21,6 +20,75 @@ This plugin is the method. One sentence decides everything in it:
 
 > **A contract is read before acting. A work item records what happened. Never
 > let one become the other.**
+
+## Install
+
+This repo **is its own plugin marketplace**, so it installs with nothing set up
+on your side:
+
+```
+/plugin marketplace add vikrantjain/teamwork
+/plugin install teamwork@teamwork
+```
+
+`teamwork@teamwork` is `<plugin>@<marketplace>`. You add the **repo**, which
+registers under the marketplace name `teamwork`, and it holds the plugin of the
+same name.
+
+If you already have the `my-claude-plugins` marketplace added, install from
+there instead and skip the extra marketplace entry:
+
+```
+/plugin marketplace update my-claude-plugins
+/plugin install teamwork@my-claude-plugins
+```
+
+The plugin is needed in the session that forms or leads a team. Members are
+bound by the files in the team root, so a member can be a Claude session without
+the plugin, or a person.
+
+## A run, end to end
+
+In the session that will lead:
+
+```
+/teamwork:form add rate limiting, search and an audit log
+```
+
+It gets the breakdown, sizes the team from the dependency graph, writes the team
+root, runs the validator, and prints one launch command per lane:
+
+```
+TEAMWORK_LANE=api TEAMWORK_ROOT=/repo/.teamwork claude --agent teamwork:member
+```
+
+Open a terminal per lane and run its command. The two variables are what let the
+boundary hook tell which lane the session is; a lane started without them runs
+unenforced. A lane whose working directory is outside the team root gets
+`--add-dir <team root>` as well.
+
+Then type two lines into each lane:
+
+```
+/rename api
+/teamwork:join api
+```
+
+`/rename` is what makes the lane addressable. A session is addressed by its own
+name, which defaults to its working directory, so under one shared tree every
+lane otherwise answers to the same name and a message reaches whichever the
+platform picks first. The lane cannot do it for itself: `/rename` is a built-in
+command rather than a skill, so nothing a member can call invokes one, and a
+lane told to rename itself emits the text and stays under its old name.
+
+Each lane then reads its five files, announces itself to the lead, and works its
+own paths. While the run is live the lead has `/teamwork:status` for one screen
+of state and `/teamwork:retro` to turn the friction the rules caused into better
+rules. It ends at `/teamwork:finish`, or at `/teamwork:park` when it has to stop
+early and be picked up later.
+
+`/teamwork:adopt` is the other way in, for sessions already collaborating
+without contracts.
 
 ## What it does
 
@@ -52,26 +120,6 @@ This plugin is the method. One sentence decides everything in it:
   their lanes read from what they have actually touched, overlaps reported, and a
   charter they ratify before it binds them.
 
-## What's in it
-
-| File | Role |
-|---|---|
-| `commands/form.md` | `/teamwork:form` — size the team and write the contracts |
-| `commands/adopt.md` | `/teamwork:adopt` — put contracts around a running team |
-| `commands/join.md` | `/teamwork:join` — this session takes a lane |
-| `commands/status.md` | `/teamwork:status` — one screen of live state |
-| `commands/retro.md` | `/teamwork:retro` — improve the rules from friction |
-| `commands/park.md` | `/teamwork:park` — stop where a fresh session can resume |
-| `commands/resume.md` | `/teamwork:resume` — bring a parked team back |
-| `commands/finish.md` | `/teamwork:finish` — land the work and disband |
-| `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, parking, retro, adoption |
-| `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
-| `agents/member.md` | One generic lane; finds its role from `TEAMWORK_LANE` |
-| `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
-| `scripts/validate_team.py` | Twelve structural checks over a team root |
-| `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |
-| `hooks/hooks.json` | Which events that script runs on |
-
 ## What a team looks like on disk
 
 `/teamwork:form` writes a **team root** — one absolute path every member can
@@ -96,7 +144,8 @@ versioned with the code cannot be reviewed in a pull request. The last two are
 gitignored: they are this run's state, not the team's law.
 
 A member loads the protocol, the charter, its own role, the transport and the
-tracker: about 160 lines. Every line budget exists to keep it there.
+tracker. That is 165 lines with every budget spent to its ceiling, and fewer in
+practice. The budgets exist to keep it there.
 
 ## Two rules that carry the rest
 
@@ -110,31 +159,25 @@ intersect — `src/a*.py` and `src/*b.py` both reach `src/ab.py`, and neither
 contains the other. It names the file they collide on. This is the collision that
 loses work silently, and the cheapest time to catch it is before anyone starts.
 
-Declaring a boundary is not enforcing one, so a `PreToolUse` hook denies a write
-to a path another lane owns and tells the member to `ASK` its owner instead. It
-identifies the lane from `TEAMWORK_LANE`, which every lane's launch command sets,
-and failing that from the working directory under one worktree per lane. A
-session it cannot identify is allowed every write, because a hook that blocked
-what it could not attribute would stop the lead and every session that is not on
-a team at all.
+## How the boundary is enforced
+
+Declaring a boundary is not enforcing one, so a `PreToolUse` hook denies the
+write. A member reaching for a path another lane owns is refused and told to
+`ASK` its owner. A member reaching for the team root is refused and told that
+contracts change at a retro and nowhere else.
+
+The hook identifies the lane from `TEAMWORK_LANE`, which every launch command
+sets, and failing that from the working directory's own name under one worktree
+per lane. A session it cannot identify is allowed every write, because a hook
+that blocked what it could not attribute would stop the lead and every session
+not on a team at all. It finds the team root the way a member must: the variable
+first, then the **main** worktree's copy, never the lane's own checkout of one,
+which diverges the moment a retro commits on another branch.
 
 A lane inherits its own enforcement. The hook reads the environment and the
 working directory, and a member passes both to every agent it spawns, so a lane
 can fan out to subagents as widely as its work needs and each of them is held to
 that lane's paths. What a lane does inside itself is its own business.
-
-A lane is **addressed by its session's own name**, which defaults to its working
-directory, so you type `/rename <lane>` into each lane after starting it. The
-flags that look as though they would do this do not: outside the platform's
-experimental agent-teams mode `--team-name` and `--agent-name` are accepted and
-ignored, and inside it the CLI refuses to start unless an `--agent-id` is passed
-with them, which a human starting a lane by hand has no way to supply. So the
-launch command carries neither.
-
-The lane cannot rename itself either. `/rename` is a built-in command rather
-than a skill, so nothing a member can call invokes one, and a lane told to run
-it emits the text and stays under its old name. It is one of the two lines you
-type into each lane, and the other is `/teamwork:join <lane>`.
 
 The hook does not see writes made through `Bash`: parsing a shell command for the
 file it truncates is a losing game, and a check that caught nine tenths of them
@@ -144,31 +187,25 @@ manager, a schema by a migration tool. So the charter gives every shared path an
 owner and every other lane a `Never` line for it, and on that one class of path
 the `Never` line is the whole of the enforcement.
 
-## Install
+## What's in it
 
-This repo **is its own plugin marketplace**, so it installs with nothing set up
-on your side:
-
-```
-/plugin marketplace add vikrantjain/teamwork
-/plugin install teamwork@teamwork
-```
-
-`teamwork@teamwork` is `<plugin>@<marketplace>`: you add the **repo**, and it
-registers under the marketplace name `teamwork`, which contains the plugin of the
-same name.
-
-If you already have the `my-claude-plugins` marketplace added, install from there
-instead and skip the extra marketplace entry:
-
-```
-/plugin marketplace update my-claude-plugins
-/plugin install teamwork@my-claude-plugins
-```
-
-The plugin is needed in the session that forms or leads a team. Members need only
-the files in the team root, so a member can be a Claude session without the
-plugin, or a person.
+| File | Role |
+|---|---|
+| `commands/form.md` | `/teamwork:form` — size the team and write the contracts |
+| `commands/adopt.md` | `/teamwork:adopt` — put contracts around a running team |
+| `commands/join.md` | `/teamwork:join` — this session takes a lane |
+| `commands/status.md` | `/teamwork:status` — one screen of live state |
+| `commands/retro.md` | `/teamwork:retro` — improve the rules from friction |
+| `commands/park.md` | `/teamwork:park` — stop where a fresh session can resume |
+| `commands/resume.md` | `/teamwork:resume` — bring a parked team back |
+| `commands/finish.md` | `/teamwork:finish` — land the work and disband |
+| `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, parking, retro, adoption |
+| `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
+| `agents/member.md` | One generic lane; finds its role from `TEAMWORK_LANE` |
+| `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
+| `scripts/validate_team.py` | Twelve structural checks over a team root |
+| `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |
+| `hooks/hooks.json` | Which events that script runs on |
 
 ## Requirements
 
@@ -181,19 +218,18 @@ not: `backlog-refiner`, whose `IMPLEMENTATION_PLAN.md` is the second tracker
 rung, and `github-automation`, whose issue lifecycle the first rung reuses rather
 than inventing labels of its own.
 
-Run the checks by hand at any time:
+## Checks
 
 ```
-python3 scripts/validate_team.py <team root>
-python3 scripts/test_validate_team.py
-python3 scripts/test_teamwork_hook.py
-claude plugin validate .
+python3 scripts/validate_team.py <team root>   # one team root
+python3 scripts/test_validate_team.py          # the validator
+python3 scripts/test_teamwork_hook.py          # the hook
+claude plugin validate .                       # the manifests
 ```
 
-Leave `--strict` off that last one. It warns that `CLAUDE.md` at the repository
-root is not loaded as plugin context, which is correct and is not a problem: the
-file is this repository's own conventions for people working on the plugin, and
-nothing ships it.
+Leave `--strict` off that last one. It flags `CLAUDE.md` at the repository root
+as plugin context that will not load, which is true and is not a problem: the
+file is this repository's conventions for people working on the plugin.
 
 The behaviour that is prose rather than code has its own suite. These four cases
 are read-only, and they cover the claims no unit test can reach: that a serial
