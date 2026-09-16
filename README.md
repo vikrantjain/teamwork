@@ -187,7 +187,13 @@ Run the checks by hand at any time:
 python3 scripts/validate_team.py <team root>
 python3 scripts/test_validate_team.py
 python3 scripts/test_teamwork_hook.py
+claude plugin validate .
 ```
+
+Leave `--strict` off that last one. It warns that `CLAUDE.md` at the repository
+root is not loaded as plugin context, which is correct and is not a problem: the
+file is this repository's own conventions for people working on the plugin, and
+nothing ships it.
 
 The behaviour that is prose rather than code has its own suite. These four cases
 are read-only, and they cover the claims no unit test can reach: that a serial
