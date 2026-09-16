@@ -88,6 +88,15 @@ recorded rather than the conclusion alone.
   it spawns, so its own agents are held to its own lane at no cost. Governing
   that too would buy nothing and would cost the fan-out the context budget
   depends on.
+- **A lane is addressed by its session name, not by `--team-name` and
+  `--agent-name`.** Those flags were the launch command and they never worked:
+  with the platform's experimental agent-teams mode off they are accepted and
+  ignored, and with it on the CLI exits with `--agent-id, --agent-name, and
+  --team-name must all be provided together`, which a human starting a lane has
+  no id to satisfy. Both states were reproduced against the installed CLI. The
+  launch command is now `claude --agent teamwork:member`, which is a documented
+  flag, and each lane takes its address with `/rename <lane>`.
+
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, or a person.
 - **The boundary hook fails open, never closed.** A hook that denied a write it

@@ -24,8 +24,11 @@ would run last week's rules with nothing announcing it.
 `tracker.md`, and `roles/<lane>.md`. Never another lane's role file — you cannot
 act on it, and the context budget is the reason this team exists.
 
-Then announce yourself to the lead with your lane and the paths you own, and wait
-for the ack before taking an item.
+Then take your lane's name with `/rename <lane>`, announce yourself to the lead
+with your lane and the paths you own, and wait for the ack before taking an item.
+A session is addressed by its own name, which defaults to its working directory,
+so a lane that skips the rename is one nobody can reach under the name the
+charter uses. If the lead cannot be reached at all, say so and start anyway.
 
 With no lane given, read the charter's `## Lanes` and ask which one this session
 is. Do not infer it from the working directory; a worktree name is a convention,

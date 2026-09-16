@@ -32,8 +32,14 @@ sees it happen.
    `tracker.md`, and `roles/<your lane>.md`. Your lane is your agent name.
 3. **Do not read another lane's role file.** You cannot act on it, and it is pure
    cost in the one budget the team exists to protect.
-4. **Announce yourself to the lead** with your lane and the paths you own, then
-   wait for the ack. The lead writes the roster; you do not.
+4. **Take your lane's name**, with `/rename <your lane>`. A session is addressed
+   by its own name, which defaults to its working directory, so until you do this
+   a message meant for you may reach another lane and neither of you is told.
+5. **Announce yourself to the lead** with your lane and the paths you own, then
+   wait for the ack. The lead writes the roster; you do not. If you cannot reach
+   the lead at all, say so to your human and start anyway — a lane that waits for
+   an ack that cannot arrive is a lane that never works. `transport.md` in the
+   team root says what else that costs.
 
 ## Picking up work
 

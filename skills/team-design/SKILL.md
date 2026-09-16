@@ -50,21 +50,26 @@ unearned rule is a tax charged forever.
    last two are not committed.
 8. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
-9. **Print the launch commands** for the user, one per lane, each carrying the
-   team name, the agent name, `--add-dir <team root>` when the lane's working
-   directory is not inside it, and `TEAMWORK_LANE` and `TEAMWORK_ROOT` in front:
+9. **Print the launch commands** for the user, one per lane, each carrying
+   `TEAMWORK_LANE` and `TEAMWORK_ROOT` in front, and `--add-dir <team root>` when
+   the lane's working directory is not inside it:
 
        TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
-         claude --team-name <team> --agent-name <lane> --agent-type teamwork:member
+         claude --agent teamwork:member --add-dir <team root>
 
    The human starts every lane from these commands, and the two variables are
    what let the boundary hook deny a write to a path another lane owns. Without
    them the hook cannot tell which lane the session is, and it allows every write
    rather than blocking one it cannot attribute.
 
-   Check `ListAgents` once the lanes are up. A lane that is running and never
-   appears did not bind into the team's messaging, and
-   `references/transport.md` says what still works and what to do about it.
+   Drop `--agent teamwork:member` for a lane whose session does not have the
+   plugin. The files bind a member; the agent definition only saves it a read.
+
+10. **Tell each lane to rename itself** to its lane name, with `/rename <lane>`,
+   before `/teamwork:join <lane>`. A session is addressed by its own name, which
+   defaults to its working directory, so under one shared tree every lane answers
+   to the same name and a `SendMessage` reaches whichever one the platform picks
+   first. `references/transport.md` carries the rest.
 
 ## What belongs in a contract
 

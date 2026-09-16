@@ -37,12 +37,17 @@ using its own commands: every item blocked on another lane. These are what the
 team was in the middle of, and they are the one thing a park is supposed to have
 preserved.
 
-**4. Print the launch commands for the human**, one per lane, each carrying the
-team name, the agent name, `--add-dir <team root>` when the lane's working
-directory is not inside it, and `TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root>`
-in front. Each member then runs `/teamwork:join <lane>`. A relaunch that drops
-those two variables starts a lane the boundary hook cannot identify, so it runs
-unenforced and nothing says so at the time.
+**4. Print the launch commands for the human**, one per lane, each carrying
+`TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root>` in front and `--add-dir <team
+root>` when the lane's working directory is not inside it:
+
+    TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
+      claude --agent teamwork:member --add-dir <team root>
+
+Each member then runs `/rename <lane>` and `/teamwork:join <lane>`. A relaunch
+that drops those two variables starts a lane the boundary hook cannot identify,
+so it runs unenforced and nothing says so at the time. One that skips the rename
+starts a lane nobody can address under the name the charter uses.
 
 **Read the tracker, never the work.** Resuming is not catching up on diffs. The
 lanes read their own items; you hold the map.

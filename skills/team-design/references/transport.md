@@ -1,8 +1,11 @@
 # How members reach each other
 
 Members address each other by **lane name**: the lane is the agent name, which is
-why one agent definition serves every lane. Write the substrate into
-`<team root>/transport.md`, and every member loads it at startup.
+why one agent definition serves every lane and why a member finds its own role
+without being told which one it is. A lane is not addressable under that name
+until it takes it, which is what `## Making a lane addressable` below is for.
+Write the substrate into `<team root>/transport.md`, and every member loads it at
+startup.
 
 ## A lane is a session a human starts
 
@@ -39,19 +42,45 @@ thinks delegation needs permission either asks before every fan-out or stops
 fanning out, and the second one spends the context budget the team was formed to
 protect.
 
-## When a lane never appears in `ListAgents`
+## Making a lane addressable
 
-`--team-name`, `--agent-name` and `--agent-type` are real flags, and none of them
-appears in `claude --help`. They are what the platform passes when it spawns a
-teammate of its own, and it passes `--agent-id` and `--parent-session-id`
-alongside them. So a lane started by hand may not bind into the team's messaging,
-and the only sign of it is a lane that is running and never shows up.
+A session is addressed by **its own name**, and that name defaults to its working
+directory. Nothing in the launch command sets it.
 
-That is a degraded team rather than a broken one, and knowing which saves a run.
-`protocol.md` rule 3 already puts state in the tracker before it is announced, so
-a lane nobody can message still claims its items, still closes them, and is still
-read by the lead exactly as before. What is lost is the `ASK` and the `READY`,
-so route those through the human until it is fixed.
+`--team-name` and `--agent-name` are real flags and they do not set it either.
+Outside the platform's experimental agent-teams mode they are accepted and
+ignored; inside it the CLI refuses to start unless `--agent-id` is passed
+alongside them, and a human starting a lane by hand has no id to pass. A launch
+command built on them produces a lane that is either unaddressable or does not
+start, so this plugin does not use them.
+
+So **every lane renames itself at startup**: `/rename <lane>`, before
+`/teamwork:join`. Then `ListAgents` shows the lane names the charter uses and a
+`SendMessage` reaches exactly one lane. Skip it and one shared tree gives every
+lane the same name, so a message reaches whichever of them the platform picks
+first and the sender is never told it went to the wrong one.
+
+## When a lane is unreachable anyway
+
+A lane that has renamed itself and still never appears in `ListAgents` is not
+messaging at all. That is a degraded team rather than a broken one, and knowing
+which saves a run. `protocol.md` rule 3 puts state in the tracker before it is
+announced, so an unreachable lane still claims its items, still closes them, and
+is still read by the lead exactly as before.
+
+What is lost is **every verb**, not only `ASK` and `READY`. Route them the way
+the charter already routes a human member: the lead relays. Three cases need
+saying, because each one silently stops the team rather than slowing it.
+
+- **The startup ack.** A member waits for it before taking an item, so with no
+  messaging every lane waits forever. The human tells the lane to start, and the
+  lead writes the roster from that instead of from an ack.
+- **The park drain.** `PARK` is broadcast and answered. The human carries both
+  halves, and the lead still names every lane it could not reach — an unparked
+  lane is the thing a park exists to prevent.
+- **`RELOAD` after a retro.** A member that is not told keeps running the old
+  rules. Restart the lanes instead: a restart reloads the files by definition,
+  which is why this one is cheap and the other two are not.
 
 Append a friction line when it happens. A lead that quietly works around missing
 messaging leaves the next team to discover it the same slow way.
@@ -77,4 +106,5 @@ underscores survive in some places and not others, and a name that avoids both i
 the same name everywhere it appears.
 
 Two names are reserved by the platform and cannot be lanes: `main` and
-`team-lead`.
+`team-lead`. `[T12]` fails a team that uses either, because the refusal would
+otherwise arrive hours later when the lane tries to take its name.

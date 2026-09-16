@@ -121,6 +121,15 @@ working directory, and a member passes both to every agent it spawns, so a lane
 can fan out to subagents as widely as its work needs and each of them is held to
 that lane's paths. What a lane does inside itself is its own business.
 
+A lane is **addressed by its session's own name**, which defaults to its working
+directory, so every lane renames itself to its lane name at startup. The flags
+that look as though they would do this do not: outside the platform's
+experimental agent-teams mode `--team-name` and `--agent-name` are accepted and
+ignored, and inside it the CLI refuses to start unless an `--agent-id` is passed
+with them, which a human starting a lane by hand has no way to supply. So the
+launch command carries neither, and `/rename <lane>` is what makes a lane
+reachable under the name the charter uses.
+
 The hook does not see writes made through `Bash`: parsing a shell command for the
 file it truncates is a losing game, and a check that caught nine tenths of them
 would be trusted for the tenth.

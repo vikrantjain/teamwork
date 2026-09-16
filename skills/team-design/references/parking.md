@@ -62,4 +62,6 @@ from a fresh clone that never saw the original terminal.
 
 The team name, the lanes and the team root come from the charter on every rung,
 and every relaunch carries `TEAMWORK_LANE` and `TEAMWORK_ROOT` so the boundary
-hook can still tell which lane it is watching.
+hook can still tell which lane it is watching. Each relaunched lane renames
+itself with `/rename <lane>` as before: a session's address is its own name, and
+a resumed lane that skips it is unreachable under the name the charter uses.
