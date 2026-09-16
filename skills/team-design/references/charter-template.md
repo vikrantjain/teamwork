@@ -27,9 +27,10 @@ team forever.
     ## Done
     - <the condition that disbands the team>
 
-    ## Pointers
-    - protocol.md and conflicts.md — copied from the plugin, never edited.
-    - tracker.md — where work items live. transport.md — how members address each other.
+The charter names no other file. A member loads `tracker.md` and `transport.md`
+by name at startup, `protocol.md` says it is copied and never edited and points
+at `conflicts.md` itself, and `[T7]` proves both. A pointers section would spend
+four of these fifty lines telling a member what it has already read.
 
 ## The required lines
 
