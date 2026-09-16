@@ -44,9 +44,11 @@ root>` when the lane's working directory is not inside it:
     TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
       claude --agent teamwork:member --add-dir <team root>
 
-Each member then runs `/rename <lane>` and `/teamwork:join <lane>`. A relaunch
-that drops those two variables starts a lane the boundary hook cannot identify,
-so it runs unenforced and nothing says so at the time. One that skips the rename
+Say that the human then types `/rename <lane>` and `/teamwork:join <lane>` into
+each lane. `/rename` is a built-in command that only the person at that terminal
+can run, so a lane asked to rename itself stays under its old name. A relaunch
+that drops the two variables starts a lane the boundary hook cannot identify, so
+it runs unenforced and nothing says so at the time. One that skips the rename
 starts a lane nobody can address under the name the charter uses.
 
 **Read the tracker, never the work.** Resuming is not catching up on diffs. The

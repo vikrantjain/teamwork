@@ -71,8 +71,15 @@ unearned rule is a tax charged forever.
    Drop `--agent teamwork:member` for a lane whose session does not have the
    plugin. The files bind a member; the agent definition only points at them.
 
-10. **Tell each lane to rename itself** to its lane name, with `/rename <lane>`,
-   before `/teamwork:join <lane>`. A session is addressed by its own name, which
+10. **Print the two lines the human types into each lane** once its session is
+   open, in this order:
+
+       /rename <lane>
+       /teamwork:join <lane>
+
+   `/rename` is a built-in command, so only the person at that terminal can run
+   it. A member told to run it emits the text, nothing happens, and it never
+   learns that nothing did. A session is addressed by its own name, which
    defaults to its working directory, so under one shared tree every lane answers
    to the same name and a `SendMessage` reaches whichever one the platform picks
    first. `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md`

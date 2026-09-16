@@ -244,9 +244,11 @@ def startup(payload, event):
             f"protocol.md, charter.md, transport.md, tracker.md and roles/{lane}.md. "
             "Never another lane's role file.")
         lines.append(
-            f"Take your address with /rename {lane} before you announce yourself: a "
-            "session is addressed by its own name, which otherwise defaults to its "
-            "working directory and may be another lane's name too.")
+            f"Ask your human to run /rename {lane} before you announce yourself. It "
+            "is a built-in command you cannot run yourself, and a session is "
+            "addressed by its own name, which otherwise defaults to its working "
+            "directory and may be another lane's name too. Tell the lead if it does "
+            "not happen.")
         lines.append(
             "Writes to a path another lane owns are denied by a hook, so a boundary "
             "crossing fails rather than silently losing someone's work.")

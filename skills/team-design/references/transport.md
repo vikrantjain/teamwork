@@ -55,11 +55,17 @@ alongside them, and a human starting a lane by hand has no id to pass. A launch
 command built on them produces a lane that is either unaddressable or does not
 start, so this plugin does not use them.
 
-So **every lane renames itself at startup**: `/rename <lane>`, before
-`/teamwork:join`. Then `ListAgents` shows the lane names the charter uses and a
-`SendMessage` reaches exactly one lane. Skip it and one shared tree gives every
-lane the same name, so a message reaches whichever of them the platform picks
-first and the sender is never told it went to the wrong one.
+So **the human at each lane types `/rename <lane>`** before `/teamwork:join`.
+Then `ListAgents` shows the lane names the charter uses and a `SendMessage`
+reaches exactly one lane. Skip it and one shared tree gives every lane the same
+name, so a message reaches whichever of them the platform picks first and the
+sender is never told it went to the wrong one.
+
+The member cannot do this for itself. `/rename` is a built-in command, not a
+skill, and nothing a member can call invokes one, so a lane instructed to rename
+itself emits the text and stays under its old name. That is why the launch
+instructions name the person, and why a member that has not been renamed says so
+to the lead instead of assuming it worked.
 
 ## When a lane is unreachable anyway
 
