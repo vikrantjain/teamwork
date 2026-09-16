@@ -200,12 +200,19 @@ def startup(payload, event):
             f"protocol.md, charter.md, transport.md, tracker.md and roles/{lane}.md. "
             "Never another lane's role file.")
         lines.append(
+            f"Take your address with /rename {lane} before you announce yourself: a "
+            "session is addressed by its own name, which otherwise defaults to its "
+            "working directory and may be another lane's name too.")
+        lines.append(
             "Writes to a path another lane owns are denied by a hook, so a boundary "
             "crossing fails rather than silently losing someone's work.")
     else:
         lines.append(
             "No lane resolved for this session, so the boundary hook allows every "
-            "write. Set TEAMWORK_LANE to the lane name if this session is a member.")
+            "write. If this session is a member, relaunch it with TEAMWORK_LANE set "
+            "to its lane. If it is the lead, this is correct and TEAMWORK_LANE must "
+            "stay unset: a teammate spawned here would inherit the lead's lane name, "
+            "and the hook would then deny it its own paths and allow it the lead's.")
     context(event, " ".join(lines))
 
 
