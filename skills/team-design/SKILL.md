@@ -69,7 +69,7 @@ unearned rule is a tax charged forever.
    rather than blocking one it cannot attribute.
 
    Drop `--agent teamwork:member` for a lane whose session does not have the
-   plugin. The files bind a member; the agent definition only saves it a read.
+   plugin. The files bind a member; the agent definition only points at them.
 
 10. **Tell each lane to rename itself** to its lane name, with `/rename <lane>`,
    before `/teamwork:join <lane>`. A session is addressed by its own name, which

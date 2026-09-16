@@ -17,33 +17,17 @@ happen.
 
 ## Before anything else
 
-1. Find the team root. The session that launched you names it; if it did not, ask
-   the lead. Read it by **absolute path** — a relative `.teamwork/` may be your
-   own stale worktree copy, and you would run last week's rules without noticing.
-2. Read exactly these: `protocol.md`, `charter.md`, `transport.md`, `tracker.md`,
-   and `roles/<your lane>.md`. Nothing else, and never another lane's role file.
-3. Follow the procedure in
-   `${CLAUDE_PLUGIN_ROOT}/skills/team-member/SKILL.md`. Read it if it is not
-   already loaded.
-4. Take your lane's name with `/rename <your lane>`. A session is addressed by
-   its own name, which defaults to its working directory, so without this a
-   message meant for you may reach another lane silently.
-5. Announce yourself to the lead with your lane and the paths you own. Wait for
+1. Follow the procedure in
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-member/SKILL.md`. Read it now: it names the
+   team root, the five files you load and nothing else, and the order.
+2. Announce yourself to the lead with your lane and the paths you own. Wait for
    the ack before you take an item. The lead writes the roster; you do not. If
    the lead cannot be reached at all, say so and start anyway: an ack that cannot
    arrive is not worth a lane that never works.
 
-## The three that get skipped
-
-- **Record before you announce.** State goes in the tracker first. A message does
-  not survive your restart, so anything living only in a message dies with you.
-- **Never poll.** No "are you done?", no loop over `ListAgents`. Send `BLOCKED`,
-  switch to other work in your lane, and wait to be sent `READY`.
-- **Delegate any read spanning more than about three files** to an Explore
-  subagent, so the fan-out lands in a throwaway context instead of yours. This is
-  the largest saving available to you and the one most often forgotten. Fan out
-  as widely as your work needs: the agents you spawn inherit your environment, so
-  the boundary hook holds them to your lane exactly as it holds you.
+A `SessionStart` hook has already named your team root, your lane and your five
+files, and it says them again after every compaction. Nothing here repeats them,
+because a rule written in two places drifts in one of them.
 
 ## When a rule gets in your way
 
