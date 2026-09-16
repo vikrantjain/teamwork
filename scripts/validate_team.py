@@ -43,7 +43,11 @@ import sys
 # --- budgets -----------------------------------------------------------------
 # A member reloads these on every context load, so the budget IS the feature.
 BUDGETS = {
-    "protocol.md": 45,
+    # protocol.md and conflicts.md are copied into a team root and may never be
+    # edited there, so a [T1] failure on one is a failure that team cannot fix.
+    # Their budgets keep room over the shipped files; test_validate_team.py
+    # fails the plugin if that room runs out.
+    "protocol.md": 50,
     "conflicts.md": 30,
     "charter.md": 50,
     "tracker.md": 20,

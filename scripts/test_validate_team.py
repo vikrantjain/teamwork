@@ -16,6 +16,9 @@ from contextlib import redirect_stderr
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import validate_team  # noqa: E402
 
+# Lines a verbatim file must leave unspent, so the constitution can still grow.
+VERBATIM_HEADROOM = 3
+
 
 PROTOCOL = "# Team protocol\n\nThis file is copied, never edited.\n"
 CONFLICTS = "# When a conflict happens\n\nRead this when one actually does.\n"
@@ -704,12 +707,21 @@ class TestPluginPaths(unittest.TestCase):
                         missing.append(f"{os.path.relpath(full, PLUGIN_ROOT)} -> {rel}")
         self.assertEqual(missing, [], "plugin paths that do not resolve: " + repr(missing))
 
-    def test_verbatim_files_are_within_their_budgets(self):
-        for name, budget in (("protocol.md", 45), ("conflicts.md", 30)):
+    def test_verbatim_files_keep_room_under_their_budgets(self):
+        """A team may not edit these, so a [T1] failure on one is unfixable there.
+
+        Fitting exactly is not enough. One added line to the constitution would
+        fail every existing team on a file it is forbidden to touch.
+        """
+        for name in validate_team.VERBATIM:
+            budget = validate_team.BUDGETS[name]
             path = os.path.join(PLUGIN_ROOT, "skills", "team-member", "references", name)
             with open(path, encoding="utf-8") as fh:
                 n = len(fh.read().splitlines())
-            self.assertLessEqual(n, budget, f"{name} is {n} lines, budget {budget}")
+            self.assertLessEqual(
+                n, budget - VERBATIM_HEADROOM,
+                f"{name} is {n} lines against a budget of {budget}. Raise the "
+                "budget or cut the file: a team that inherits it cannot do either.")
 
 
 if __name__ == "__main__":
