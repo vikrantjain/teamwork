@@ -301,11 +301,71 @@ class TestT5LaneDisjoint(TeamRootCase):
 
         Truncating each glob at its first wildcard made both of them the empty
         prefix, which failed a valid team and named no path to fix.
+
+        The lanes own nothing else, because a lane that also owned a directory
+        would reach the other lane's extension inside it, and that is a real
+        collision rather than the truncation this test is about.
         """
-        write(self.root, "roles/api.md", ROLE_API.replace("- migrations/**", "- **/*.sql"))
-        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src/ui/**\n- **/*.css"))
+        write(self.root, "roles/api.md",
+              ROLE_API.replace("- src/api/**\n- migrations/**", "- **/*.sql"))
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- **/*.css"))
         code, out = self.run_validator()
         self.assertEqual(code, 0, out)
+
+    def test_intersecting_globs_fail_though_neither_contains_the_other(self):
+        """`src/a*.py` and `src/*b.py` both reach `src/ab.py`.
+
+        Drawing a path from one glob and testing it against the other missed
+        this: neither drawn path satisfied the other's literals, so two lanes
+        that collide on every file matching both spellings passed.
+        """
+        write(self.root, "roles/api.md",
+              ROLE_API.replace("- src/api/**\n- migrations/**", "- src/a*.py"))
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src/*b.py"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T5]", out)
+        self.assertIn("src/ab.py", out)
+
+    def test_a_directory_reached_by_another_lanes_extension_fails(self):
+        """`src/api/**` and `**/*.css` both reach `src/api/x.css`."""
+        write(self.root, "roles/api.md",
+              ROLE_API.replace("- src/api/**\n- migrations/**", "- src/api/**"))
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- **/*.css"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T5]", out)
+
+    def test_every_witness_is_a_path_both_globs_really_reach(self):
+        """[T5] must never fail a team over a collision that cannot happen.
+
+        The witness is built from both patterns at once, so it is checked back
+        against the same `glob_regex` the boundary hook enforces with before it
+        is reported.
+        """
+        from validate_team import glob_regex, overlap, witness
+        pairs = [
+            ("src/a*.py", "src/*b.py"), ("a/*/c", "a/b/*"),
+            ("src/api/**", "**/*.css"), ("src/*/test/**", "src/api/*/**"),
+            ("docs/**", "**/*.md"), ("src", "src/api/**"),
+            ("**/[ab]*.sql", "**/a?.sql"), ("*.json", "package-lock.json"),
+        ]
+        for a, b in pairs:
+            with self.subTest(a=a, b=b):
+                self.assertIsNotNone(overlap(a, b), f"{a} and {b} do overlap")
+                w = witness(a, b)
+                if w is None:
+                    continue  # containment is proved without building a path
+                self.assertRegex(w, glob_regex(a))
+                self.assertRegex(w, glob_regex(b))
+
+    def test_disjoint_globs_produce_no_witness(self):
+        from validate_team import overlap, witness
+        for a, b in [("web/**", "docs/**"), ("**/*.css", "**/*.sql"),
+                     ("src/a*.py", "src/b*.py"), ("docs/*.md", "web/*.md")]:
+            with self.subTest(a=a, b=b):
+                self.assertIsNone(witness(a, b))
+                self.assertIsNone(overlap(a, b))
 
     def test_a_leading_wildcard_glob_still_catches_a_real_overlap(self):
         write(self.root, "roles/api.md", ROLE_API.replace("- migrations/**", "- **/*.sql"))

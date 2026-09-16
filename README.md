@@ -105,7 +105,9 @@ no issue ids. `validate_team.py` fails on all of them, because a charter that
 absorbs a work log stops being read, and unread rules are not rules.
 
 **Lanes own disjoint paths.** The validator fails a team where two roles claim
-one path, or where one role's glob contains another's. This is the collision that
+one path, where one role's glob contains another's, or where two globs merely
+intersect — `src/a*.py` and `src/*b.py` both reach `src/ab.py`, and neither
+contains the other. It names the file they collide on. This is the collision that
 loses work silently, and the cheapest time to catch it is before anyone starts.
 
 Declaring a boundary is not enforcing one, so a `PreToolUse` hook denies a write

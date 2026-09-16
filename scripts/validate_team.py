@@ -20,7 +20,8 @@ Checks:
                           and Never, and repo-relative Owns globs
     [T3] no-log           no date, checkbox, issue id or status marker in a contract
     [T4] roster-closure   lanes named in the charter and role files on disk agree
-    [T5] lane-disjoint    no path is owned by two roles
+    [T5] lane-disjoint    no path is owned by two roles, whether one role's glob
+                          contains another's or the two merely intersect
     [T6] tracker-named    tracker.md names one backend and its commands
     [T7] verbatim         protocol.md and conflicts.md still match the plugin
     [T8] friction-cap     warn that a retro is due
@@ -342,8 +343,163 @@ def covers(pattern, other):
     return bool(glob_regex(pattern).match(probe_path(other)))
 
 
+# Characters a witness may be built from. Short on purpose: it only has to
+# produce one path both globs match, never every path either of them matches.
+ALPHABET = "abcxyz01._-"
+
+
+def _tokens(pattern):
+    """The glob as single-step matchers, so two of them can be unified."""
+    out, i = [], 0
+    while i < len(pattern):
+        if pattern.startswith("**", i):
+            out.append(("dstar", None))
+            i += 2
+        elif pattern[i] == "*":
+            out.append(("star", None))
+            i += 1
+        elif pattern[i] == "?":
+            out.append(("cls", re.compile(r"[^/]")))
+            i += 1
+        elif pattern[i] == "[":
+            close = pattern.find("]", i)
+            if close == -1:
+                out.append(("lit", "["))
+                i += 1
+            else:
+                body = pattern[i + 1:close]
+                if body.startswith("!"):
+                    body = "^" + body[1:]
+                out.append(("cls", re.compile("[" + body + "]")))
+                i = close + 1
+        else:
+            out.append(("lit", pattern[i]))
+            i += 1
+    return out
+
+
+def _one_char(token, allow_slash):
+    """A character this token can match, or None."""
+    kind, value = token
+    if kind == "lit":
+        return value if (allow_slash or value != "/") else None
+    for ch in ALPHABET:
+        if value.match(ch):
+            return ch
+    return None
+
+
+def _shared_char(ta, tb):
+    """A character both tokens match, or None."""
+    if ta[0] == "lit" and tb[0] == "lit":
+        return ta[1] if ta[1] == tb[1] else None
+    if ta[0] == "lit":
+        return ta[1] if tb[1].match(ta[1]) else None
+    if tb[0] == "lit":
+        return tb[1] if ta[1].match(tb[1]) else None
+    for ch in ALPHABET:
+        if ta[1].match(ch) and tb[1].match(ch):
+            return ch
+    return None
+
+
+def _nullable(tokens):
+    return all(kind in ("star", "dstar") for kind, _ in tokens)
+
+
+def _unify(a, b):
+    """One concrete path both token lists match, or None.
+
+    Two globs can reach one file without either containing the other:
+    `src/a*.py` and `src/*b.py` both reach `src/ab.py`. Comparing each glob
+    against a path drawn from the other misses that, because neither drawn path
+    happens to satisfy the other's literals. This builds the path from both
+    patterns at once instead.
+    """
+    memo = {}
+
+    def go(i, j):
+        if (i, j) in memo:
+            return memo[(i, j)]
+        memo[(i, j)] = None  # a cycle contributes nothing
+        result = None
+        if i == len(a) and j == len(b):
+            result = ""
+        elif i == len(a):
+            result = "" if _nullable(b[j:]) else None
+        elif j == len(b):
+            result = "" if _nullable(a[i:]) else None
+        else:
+            ta, tb = a[i], b[j]
+            if ta[0] in ("star", "dstar") or tb[0] in ("star", "dstar"):
+                for ni, nj in ((i + 1, j), (i, j + 1)):
+                    skipping = a if ni > i else b
+                    if skipping[ni - 1 if ni > i else nj - 1][0] not in ("star", "dstar"):
+                        continue
+                    tail = go(ni, nj)
+                    if tail is not None:
+                        result = tail
+                        break
+                if result is None:
+                    # A star absorbs one character the other side produces.
+                    for star_in_a in (True, False):
+                        wild, other, oj = ((ta, tb, True) if star_in_a
+                                           else (tb, ta, False))
+                        if wild[0] not in ("star", "dstar"):
+                            continue
+                        if other[0] in ("star", "dstar"):
+                            continue
+                        ch = _one_char(other, wild[0] == "dstar")
+                        if ch is None:
+                            continue
+                        tail = go(i, j + 1) if oj else go(i + 1, j)
+                        if tail is not None:
+                            result = ch + tail
+                            break
+            else:
+                ch = _shared_char(ta, tb)
+                if ch is not None:
+                    tail = go(i + 1, j + 1)
+                    if tail is not None:
+                        result = ch + tail
+        memo[(i, j)] = result
+        return result
+
+    return go(0, 0)
+
+
+def _forms(pattern):
+    """The spellings a pattern reaches, so a bare directory reaches its subtree."""
+    if has_wildcard(pattern):
+        return [pattern]
+    bare = pattern.rstrip("/")
+    return [bare, bare + "/**"]
+
+
+def witness(a, b):
+    """A concrete path both globs match, or None.
+
+    Every candidate is checked against `glob_regex`, which is the same code the
+    boundary hook enforces with. A witness that does not survive that check is
+    discarded, so [T5] never fails a team over a collision that cannot happen.
+    """
+    ra, rb = glob_regex(a), glob_regex(b)
+    for fa in _forms(a):
+        for fb in _forms(b):
+            found = _unify(_tokens(fa), _tokens(fb))
+            if not found or not ra.match(found) or not rb.match(found):
+                continue
+            if found.endswith("/"):
+                # A witness naming a directory reads as a typo in the failure.
+                named = found + "file"
+                if ra.match(named) and rb.match(named):
+                    return named
+            return found
+    return None
+
+
 def overlap(a, b):
-    """'equal', 'a' when a contains b, 'b' when b contains a, or None."""
+    """'equal', 'a' when a contains b, 'b' when b contains a, 'partial', or None."""
     if a == b:
         return "equal"
     a_covers_b = covers(a, b)
@@ -354,7 +510,7 @@ def overlap(a, b):
         return "a"
     if b_covers_a:
         return "b"
-    return None
+    return "partial" if witness(a, b) else None
 
 
 def normalise(pattern):
@@ -402,6 +558,11 @@ def check_lane_disjoint(root, rep):
             if verdict == "equal":
                 rep.fail("T5", "roles/", 0,
                          f"{sorted([lane_a, lane_b])} both own {pat_a!r}. {LOST_WORK}")
+            elif verdict == "partial":
+                rep.fail("T5", "roles/", 0,
+                         f"{pat_a!r} ({lane_a}) and {pat_b!r} ({lane_b}) both reach "
+                         f"{witness(pat_a, pat_b)!r}. Neither contains the other, so "
+                         f"the overlap is only the files in between. {LOST_WORK}")
             else:
                 outer, inner = ((pat_a, lane_a), (pat_b, lane_b))
                 if verdict == "b":

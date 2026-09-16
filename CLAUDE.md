@@ -60,8 +60,15 @@ recorded rather than the conclusion alone.
   wildcard.** Truncation is simpler and was tried: it collapsed every
   leading-wildcard glob to the empty prefix, so two lanes owning `**/*.sql` and
   `**/*.css` failed a valid team while a real overlap against a literal path went
-  unseen. Each glob is now turned into a regex and tested against a concrete path
-  drawn from the other.
+  unseen. Each glob is turned into a regex instead.
+- **`[T5]` decides overlap by building a path from both globs at once, not by
+  drawing one from either.** Drawing a path from one glob and testing it against
+  the other proves containment and nothing else: `src/a*.py` and `src/*b.py`
+  collide on every `src/a…b.py` and passed, because neither drawn path satisfied
+  the other's literals. The unifier returns a concrete witness, and the witness is
+  checked back against the same `glob_regex` the boundary hook enforces with, so
+  a reported collision is one that can actually happen and the failure names the
+  file.
 - **`decisions.md` is the one contract file pruned on a schedule.** Every other
   file is bounded by the remove-a-line-to-add-one rule, but this one gains a line
   at every retro. Left alone it reaches its budget and `[T1]` then blocks the
