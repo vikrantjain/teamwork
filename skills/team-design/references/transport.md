@@ -1,9 +1,10 @@
 # How members reach each other
 
-Members address each other by **lane name**: the lane is the agent name, which is
-why one agent definition serves every lane and why a member finds its own role
-without being told which one it is. A lane is not addressable under that name
-until it takes it, which is what `## Making a lane addressable` below is for.
+Members address each other by **lane name**. The lane is what `TEAMWORK_LANE`
+carries, which is why one agent definition serves every lane: the role file is
+looked up from the variable, not from the agent. A lane is not addressable under
+that name until it takes it, which is what `## Making a lane addressable` below
+is for.
 Write the substrate into `<team root>/transport.md`, and every member loads it at
 startup.
 

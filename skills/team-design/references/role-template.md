@@ -1,8 +1,8 @@
 # The role file
 
-One per lane, at `<team root>/roles/<lane>.md`, at most 30 lines. The lane name is
-the member's agent name, which is how a member finds its own role without being
-told which one it is.
+One per lane, at `<team root>/roles/<lane>.md`, at most 30 lines. The file is
+named for the lane, and `TEAMWORK_LANE` carries the lane, which is how a member
+finds its own role without being told which one it is.
 
 Exactly four headings, in this order. `[T2]` fails on one that is missing,
 duplicated or out of order, because a role that varies in shape cannot be read

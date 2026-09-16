@@ -66,7 +66,7 @@ This plugin is the method. One sentence decides everything in it:
 | `commands/finish.md` | `/teamwork:finish` — land the work and disband |
 | `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, parking, retro, adoption |
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
-| `agents/member.md` | One generic lane; finds its role by its own agent name |
+| `agents/member.md` | One generic lane; finds its role from `TEAMWORK_LANE` |
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
 | `scripts/validate_team.py` | Twelve structural checks over a team root |
 | `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |

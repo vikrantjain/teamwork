@@ -29,7 +29,9 @@ sees it happen.
    its `Team root:` line. Never read a relative `.teamwork/`: in a worktree that
    is your own stale copy, and you would run last week's rules without noticing.
 2. **Load exactly five files**: `protocol.md`, `charter.md`, `transport.md`,
-   `tracker.md`, and `roles/<your lane>.md`. Your lane is your agent name.
+   `tracker.md`, and `roles/<your lane>.md`. Your lane is what `TEAMWORK_LANE`
+   names, or what you were given when you joined. Ask rather than guess: a lane
+   that reads the wrong role file owns the wrong paths and is told so by nothing.
 3. **Do not read another lane's role file.** You cannot act on it, and it is pure
    cost in the one budget the team exists to protect.
 4. **Take your lane's name**, with `/rename <your lane>`. A session is addressed
