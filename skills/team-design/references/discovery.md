@@ -75,12 +75,19 @@ boundary denying a write somebody needed. This is the same gate
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/adoption.md` puts in front
 of a running team, for the same reason.
 
-## When the work produces no files
+## When the work seems to produce no files
 
-Lanes are sets of paths. That is what `[T5]` proves disjoint and what the
-boundary hook denies on, so work that writes nothing has no boundary to enforce.
+It almost always produces some. Writing, research, design and operations all
+land somewhere, and where they land is the lane's `Owns`: a folder of drafts, a
+directory of exports, one spreadsheet. Ask where each piece's output will sit,
+and partition that.
 
-Say that plainly rather than forming a team that looks enforced and is not. The
-contracts still do their other jobs: they say who covers what, who hands off to
-whom, and when to stop. Nothing checks them, and a member that crosses a
-boundary is told by nobody.
+A lane that claims no path cannot be formed at all. `[T2]` fails an empty
+`## Owns`, and the validator runs before anyone is told the team exists, so this
+is a hard stop rather than a caveat. That is deliberate. Lanes are sets of
+paths, which is what `[T5]` proves disjoint and what the boundary hook denies
+on.
+
+Where the work genuinely writes nothing, say so and do not form a team. The
+contracts would still name who covers what and when to stop, and nothing would
+check any of it, which is a team that looks enforced and is not.
