@@ -34,12 +34,11 @@ sees it happen.
    that reads the wrong role file owns the wrong paths and is told so by nothing.
 3. **Do not read another lane's role file.** You cannot act on it, and it is pure
    cost in the one budget the team exists to protect.
-4. **Ask your human to run `/rename <your lane>`.** It is a built-in command
-   and you cannot run it, so say the line and wait to be told it is done. A
-   session is addressed by its own name, which defaults to its working directory,
-   so until it is renamed a message meant for you may reach another lane and
-   neither of you is told. Say so to the lead if it does not happen: the roster
-   has to record a lane nobody can address.
+4. **Ask your human to run `/rename <your lane>`.** You cannot run it yourself,
+   so say the line and wait to be told it is done. Until it is done a message
+   meant for you may reach another lane, and neither of you is told. Say so to
+   the lead if it does not happen: the roster has to record a lane nobody can
+   address.
 5. **Announce yourself to the lead** with your lane and the paths you own, then
    wait for the ack. The lead writes the roster; you do not. If you cannot reach
    the lead at all, say so to your human and start anyway — a lane that waits for

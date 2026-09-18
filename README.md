@@ -75,12 +75,10 @@ Then type two lines into each lane:
 /teamwork:join api
 ```
 
-`/rename` is what makes the lane addressable. A session is addressed by its own
-name, which defaults to its working directory, so under one shared tree every
-lane otherwise answers to the same name and a message reaches whichever the
-platform picks first. The lane cannot do it for itself: `/rename` is a built-in
-command rather than a skill, so nothing a member can call invokes one, and a
-lane told to rename itself emits the text and stays under its old name.
+`/rename` is what makes the lane addressable, and the person at the terminal has
+to type it. A session is addressed by its own name, which defaults to its working
+directory, so unrenamed lanes in one tree all answer to the same name and a
+message reaches whichever the platform picks first.
 
 Each lane then reads its five files, announces itself to the lead, and works its
 own paths. While the run is live the lead has `/teamwork:status` for one screen

@@ -300,11 +300,9 @@ def startup(payload, event):
                 "that may write the team root. Everything outside roles/lead.md's "
                 "Owns still belongs to a member: reach it with a message.")
         lines.append(
-            f"Ask your human to run /rename {lane} before you announce yourself. It "
-            "is a built-in command you cannot run yourself, and a session is "
-            "addressed by its own name, which otherwise defaults to its working "
-            "directory and may be another lane's name too. Tell the lead if it does "
-            "not happen.")
+            f"Ask your human to run /rename {lane} before you announce yourself. You "
+            "cannot run it yourself, and until it is done a message meant for you may "
+            "reach another lane. Tell the lead if it does not happen.")
         lines.append(
             "Writes to a path another lane owns are denied by a hook, so a boundary "
             "crossing fails rather than silently losing someone's work.")

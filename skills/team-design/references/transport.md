@@ -46,14 +46,8 @@ protect.
 ## Making a lane addressable
 
 A session is addressed by **its own name**, and that name defaults to its working
-directory. Nothing in the launch command sets it.
-
-`--team-name` and `--agent-name` are real flags and they do not set it either.
-Outside the platform's experimental agent-teams mode they are accepted and
-ignored; inside it the CLI refuses to start unless `--agent-id` is passed
-alongside them, and a human starting a lane by hand has no id to pass. A launch
-command built on them produces a lane that is either unaddressable or does not
-start, so this plugin does not use them.
+directory. Nothing in the launch command sets it, and neither do `--team-name`
+and `--agent-name`, which is why this plugin does not use them.
 
 So **the human at each lane types `/rename <lane>`** before `/teamwork:join`.
 Then `ListAgents` shows the lane names the charter uses and a `SendMessage`
@@ -63,9 +57,9 @@ sender is never told it went to the wrong one.
 
 The member cannot do this for itself. `/rename` is a built-in command, not a
 skill, and nothing a member can call invokes one, so a lane instructed to rename
-itself emits the text and stays under its old name. That is why the launch
-instructions name the person, and why a member that has not been renamed says so
-to the lead instead of assuming it worked.
+itself emits the text and stays under its old name. That is why every other file
+names the person rather than the lane, and why a member that has not been renamed
+says so to the lead instead of assuming it worked.
 
 ## When a lane is unreachable anyway
 

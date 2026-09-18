@@ -4,8 +4,8 @@ A team is worth its coordination cost only when each member carries less than on
 session would have carried alone. Break these and you have paid for a team and
 bought a slower single session.
 
-The startup load is five files and about 160 lines. Every line budget in the team
-root exists to keep it there, and everything below is about not spending more.
+The startup load is five files. Every line budget in the team root exists to keep
+it small, and everything below is about not spending more.
 
 Nothing here repeats `protocol.md`. Its rule 1 already covers pointers over
 payloads and its rule 2 covers never polling, and a rule written in two places

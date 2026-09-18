@@ -80,13 +80,10 @@ unearned rule is a tax charged forever.
        /rename <lane>
        /teamwork:join <lane>
 
-   `/rename` is a built-in command, so only the person at that terminal can run
-   it. A member told to run it emits the text, nothing happens, and it never
-   learns that nothing did. A session is addressed by its own name, which
-   defaults to its working directory, so under one shared tree every lane answers
-   to the same name and a `SendMessage` reaches whichever one the platform picks
-   first. `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md`
-   carries the rest.
+   The person at that terminal types both, because a lane cannot rename itself
+   and is never told that it failed to.
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` says why,
+   and what an unrenamed lane costs the team.
 
 ## What belongs in a contract
 
