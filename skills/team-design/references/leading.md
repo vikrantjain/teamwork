@@ -33,8 +33,11 @@ it after the duties below, never instead of them.
 
 ## What you never do
 
-- **Never verify a lane's `Done means` yourself.** That is what made it a
-  checkable condition. Reading the work to confirm it undoes the saving.
+- **Never verify a lane's `Done means` as the lead.** That is what made it a
+  checkable condition, and re-reading the work to confirm it undoes the saving.
+  A review lane is not an exception to this. It reads work because its own `Done
+  means` sends it to, one item at a time, and that context is charged to the lane
+  rather than to the map. Another lane's `DONE` still stands on its own.
 - **Never take a lane another lane waits on.** A lead holding work in the
   critical path cannot hold the map, and the map is the only thing no one else
   can hold. A downstream lane is not that; see above.
