@@ -21,8 +21,10 @@ A lane is parked when all four hold. Anything less is a stop, not a park.
 3. **Its work is where the team can find it, or the item says where it is** — the
    branch, the worktree, the stash, the directory. Under version control that
    means nothing uncommitted is left unnamed. Without it, it means no half-file
-   is left somewhere only this session knew about. Nobody else finds it by
-   looking.
+   is left somewhere only this session knew about. A workflow or any other
+   background run still going counts here too, and it is saved nowhere at all:
+   the lane finishes it or stops it before answering. Nobody else finds any of
+   this by looking.
 4. **Its outstanding `FRICTION` has been sent and appended.** Friction that was
    never written is a retro that never happens.
 

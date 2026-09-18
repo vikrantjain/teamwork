@@ -21,8 +21,8 @@ ${CLAUDE_PLUGIN_ROOT}/skills/team-member/SKILL.md
 
 Four conditions, all of them, before you answer `PARK`: your claimed item closed
 or released, every `BLOCKED` you opened recorded against its item, your tree
-clean or the item naming where the unfinished work is, and your last `FRICTION`
-sent. **A claim left behind by a session that no longer exists is an item nobody
+clean or the item naming where the unfinished work is with nothing still running
+in the background, and your last `FRICTION` sent. **A claim left behind by a session that no longer exists is an item nobody
 can take and nobody can see is stuck.**
 
 ## If this session is the lead

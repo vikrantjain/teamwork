@@ -95,7 +95,9 @@ when four things are true, and not before:
    in a message dies when you do.
 3. Your work is saved where the team can find it, or the item says where it is:
    the branch, the worktree, the stash, the directory. Nobody finds it by
-   looking.
+   looking. A workflow or any other background run still going is saved nowhere,
+   so finish it or stop it first: closing this terminal takes its results with
+   it.
 4. Your last `FRICTION` is sent.
 
 Then answer `PARK` and stop. You may park your own lane while the team runs on;

@@ -73,6 +73,13 @@ or run a workflow, and none of that is the team's business. The hook reads the
 environment and the working directory, and a member passes both to everything it
 spawns, so a lane's own agents are held to that lane's paths at no cost.
 
+A workflow is safe for that reason and one more: it starts only when the human at
+that terminal asks for it, so a lane cannot drift into one. What it does change
+is stopping. A workflow reports when it finishes rather than within the turn, so
+a lane that answers `PARK` with one still running has work held nowhere, and
+closing the terminal takes it. That is the third park condition, and
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md` names it.
+
 Say this plainly in the charter when a lane is likely to want it. A member that
 thinks delegation needs permission either asks before every fan-out or stops
 fanning out, and the second one spends the context budget the team was formed to
