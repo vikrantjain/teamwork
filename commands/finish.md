@@ -13,7 +13,7 @@ Read the team root by its absolute path first, then follow:
 ${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/finishing.md
 ```
 
-Four things carry this command, and three of them are refusals.
+Five things carry this command, and three of them are refusals.
 
 **Check the charter's `## Done` before anything else.** It is the team's stop
 condition and it was written to be checkable by someone who was not here. If it
@@ -25,6 +25,10 @@ bottleneck the team was formed to remove.
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md`. A lane that has
 not parked still holds a claim, and landing around it integrates work whose owner
 believes it is still in progress.
+
+**Read `friction.md` before you land anything.** Finishing deletes this run's
+state, so a retro's worth of evidence goes with it unless somebody reads it
+first. Either run `/teamwork:retro` on it or report what is in it.
 
 **Land it the way the charter's `Workspace:` line says it is separated**, not the
 way the disk looks. Under one worktree per lane or separate repositories, test
@@ -42,9 +46,6 @@ human gates by the charter's own definition.
 Lead your report with **what will not land cleanly**, naming the lane and the
 files. That is the bill for the workspace the team chose, and it is the one part
 of finishing the human cannot read off the tracker.
-
-If `friction.md` still holds notes, say so. Finishing deletes this run's state,
-and a retro's worth of evidence goes with it unless somebody reads it first.
 
 With no argument, use the team root named in this session's charter. If this
 session has no charter, say so rather than searching the filesystem for one.
