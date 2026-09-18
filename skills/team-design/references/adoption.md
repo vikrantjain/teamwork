@@ -26,9 +26,15 @@ then `/reload-plugins` without restarting.
    this plugin exists to prevent, and adoption is the moment it becomes visible.
    Lead with it. Do not quietly pick a winner — the user may know which edit
    matters.
-4. **Resolve the team root** by
-   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`. Sessions in
-   different folders is the normal case here, not the exception.
+4. **Read the workspace off the sessions, then resolve the team root.** Here the
+   workspace is observed rather than chosen: one shared tree when every session
+   is in the same directory, one worktree per lane when each has its own
+   checkout, separate repositories or separate directories otherwise. Write it on
+   the charter's `Workspace:` line, or `[T13]` fails the draft and the lanes'
+   globs have no agreed meaning. Then resolve the team root by
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`, whose
+   ladder keys on that answer. Sessions in different folders is the normal case
+   here, not the exception.
 5. **Draft the team root at minimum size** — `protocol.md` and `conflicts.md`
    copied verbatim, a charter, one role per session, `tracker.md`, `transport.md`.
 6. **Record open work only.** Do not back-fill what is already finished.
