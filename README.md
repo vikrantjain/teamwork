@@ -245,11 +245,12 @@ Leave `--strict` off that last one. It flags `CLAUDE.md` at the repository root
 as plugin context that will not load, which is true and is not a problem: the
 file is this repository's conventions for people working on the plugin.
 
-The behaviour that is prose rather than code has its own suite. These four cases
+The behaviour that is prose rather than code has its own suite. These five cases
 are read-only, and they cover the claims no unit test can reach: that a serial
-goal is refused, that lanes come from the dependency graph, that a member routes
-a cross-lane fix instead of making it, and that a cause appearing once produces
-no rule.
+goal is refused, that lanes come from the dependency graph, that a goal with no
+plan and no version control is asked about rather than guessed at, that a member
+routes a cross-lane fix instead of making it, and that a cause appearing once
+produces no rule.
 
 ```
 claude plugin eval .
