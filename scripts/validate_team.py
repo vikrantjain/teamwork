@@ -771,8 +771,9 @@ def check_team_root(root, rep):
         return
     if os.path.realpath(declared) != os.path.realpath(root):
         rep.fail("T9", "charter.md", 0,
-                 f"team root is {declared!r} but this is {root!r}. You are editing a "
-                 "copy, not the team root.")
+                 f"team root is {declared!r} but this is {root!r}. Either you are "
+                 "editing a copy, and the team root is the one named here, or this "
+                 "team root moved and the line was not rewritten with it.")
 
 
 # The four workspaces, each recognised by the one word that tells it from the

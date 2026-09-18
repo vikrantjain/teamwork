@@ -21,6 +21,16 @@ warnings and failures verbatim. A `[T7]` failure on `protocol.md` or
 in your report. Do not send a `RELOAD`: no member is running yet, and the lanes
 you are about to launch read the re-copied files for the first time.
 
+A `[T9]` failure says the charter names a different directory from the one you
+are validating, and its two causes need opposite answers. When the directory it
+names is still a team root, you are in a stale copy: resume from the one the
+charter names and change nothing. When it is not there, this team root has
+moved, by a clone or a rename or a new machine. Rewrite `Team root:` and
+`Workspace root:` to the paths this copy and this workspace actually have. You
+are the lead, so those two lines are yours to write, and a charter left naming
+the old ones points the boundary hook at a tree nobody is editing, where every
+glob misses and every write is allowed.
+
 **2. Re-derive each lane's launch command**, by the ladder in:
 
 ```
