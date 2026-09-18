@@ -6,6 +6,10 @@ improvement loop are this plugin's.
 
 ## Rules
 
+- **`docs/intent.md` is the human's statement of what the plugin is for.**
+  Every decision below answers to it. It is not instructions for a team and no
+  session edits it: a lead that read it as procedure would skip sizing and the
+  charter, which are where the real method lives.
 - **Every rule names its failure mode.** Say what goes wrong without it. A rule
   that cannot name one is advice, and advice is not followed.
 - **Write every plugin path as `${CLAUDE_PLUGIN_ROOT}/...`, in full, every time.**
