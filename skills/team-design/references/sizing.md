@@ -56,8 +56,10 @@ lane to have one is the bottleneck arriving by another route.
 ## Workspace
 
 Lanes have to be separated on disk before they can be separated by contract.
-Choose one of four, write it on the charter's `Workspace:` line, and record why in
-`decisions.md` so the next retro does not re-litigate it.
+Choose one of four, write it on the charter's `Workspace:` line in the spelling
+below, and record why in `decisions.md` so the next retro does not re-litigate
+it. `[T13]` fails a charter that names none of them, and fails one whose wording
+reads as two, because the hook matches this line by keyword and would pick one.
 
 - **one shared tree** — every lane works in the same directory. Costs nothing and
   removes nothing, so it is right only when the lanes are genuinely disjoint on

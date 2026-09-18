@@ -220,7 +220,7 @@ the `Never` line is the whole of the enforcement.
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
 | `agents/member.md` | One generic lane; finds its role from `TEAMWORK_LANE` |
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
-| `scripts/validate_team.py` | Twelve structural checks over a team root |
+| `scripts/validate_team.py` | Thirteen structural checks over a team root |
 | `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |
 | `hooks/hooks.json` | Which events that script runs on |
 

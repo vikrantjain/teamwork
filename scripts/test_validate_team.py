@@ -26,6 +26,7 @@ CONFLICTS = "# When a conflict happens\n\nRead this when one actually does.\n"
 CHARTER = """# Ship the widget service
 
 Team root: {root}
+Workspace: one shared tree
 
 ## Lanes
 - api — the service and its migrations
@@ -679,6 +680,58 @@ class TestT12LaneNames(TeamRootCase):
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("not usable as an address", out)
+
+
+class TestT13WorkspaceNamed(TeamRootCase):
+    """The line the boundary hook reads to anchor every Owns glob."""
+
+    def set_workspace(self, value):
+        write(self.root, "charter.md",
+              CHARTER.format(root=self.root).replace(
+                  "Workspace: one shared tree", value))
+
+    def test_a_missing_workspace_line_fails(self):
+        self.set_workspace("")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T13]", out)
+        self.assertIn("no 'Workspace:' line", out)
+
+    def test_the_old_isolation_name_is_named_as_a_rename(self):
+        self.set_workspace("Isolation: one worktree per lane")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("renamed to 'Workspace:'", out)
+
+    def test_an_unknown_workspace_fails(self):
+        self.set_workspace("Workspace: however everyone likes")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("names none of the four", out)
+
+    def test_a_value_reading_as_two_workspaces_fails(self):
+        """The hook matches by keyword, so it would silently pick one."""
+        self.set_workspace("Workspace: one shared tree, not one worktree per lane")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("reads as", out)
+
+    def test_two_workspace_lines_fail(self):
+        self.set_workspace(
+            "Workspace: one shared tree\nWorkspace: separate directories")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("more than one", out)
+
+    def test_each_of_the_four_passes(self):
+        for value in ("one shared tree",
+                      "one worktree per lane, branches wt/<lane>",
+                      "separate repositories",
+                      "separate directories"):
+            with self.subTest(value):
+                self.set_workspace(f"Workspace: {value}")
+                code, out = self.run_validator()
+                self.assertEqual(code, 0, out)
 
 
 class TestPluginPaths(unittest.TestCase):

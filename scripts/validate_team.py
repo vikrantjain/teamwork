@@ -30,6 +30,7 @@ Checks:
     [T11] shared-paths    every charter shared path names a lane, that lane's role
                           claims it, and no other lane's role reaches it
     [T12] lane-names      every lane name is usable as an address
+    [T13] workspace-named charter names exactly one of the four workspaces
 
 [T3] and [T5] are the load-bearing ones. [T3] is what stops a charter becoming a
 log, and [T5] is what stops two members editing one file.
@@ -742,6 +743,65 @@ def check_team_root(root, rep):
                  "copy, not the team root.")
 
 
+# The four workspaces, each recognised by the one word that tells it from the
+# others. The boundary hook reads this same line to decide what `Owns` globs are
+# relative to, so a charter naming none of them, or two of them, is a charter the
+# hook resolves by guessing.
+WORKSPACES = {
+    "shared tree": "one shared tree",
+    "worktree": "one worktree per lane",
+    "repositor": "separate repositories",
+    "director": "separate directories",
+}
+WORKSPACE_HELP = ("Name one of: " + ", ".join(sorted(WORKSPACES.values())) + ".")
+
+
+def check_workspace_named(root, rep):
+    """The charter names one workspace, so every `Owns` glob has one meaning.
+
+    Without this line the hook falls back to a guess, and the guess is wrong for
+    a worktree nested inside the main tree: every glob then misses and every
+    out-of-lane write is allowed. Nothing says so, which is why this is a check
+    and not a warning.
+    """
+    charter = os.path.join(root, "charter.md")
+    if not os.path.exists(charter):
+        return
+    lines = [l.strip() for l in read_lines(charter)]
+    stated = [l for l in lines if l.lower().startswith("workspace:")]
+    if not stated:
+        # `Isolation:` was this line's name when it had two values. The hook still
+        # reads it, so an old team keeps enforcing; the validator names the rename
+        # rather than passing it, because a migration nobody is told about is one
+        # nobody makes.
+        if any(l.lower().startswith("isolation:") for l in lines):
+            rep.fail("T13", "charter.md", 0,
+                     "'Isolation:' was renamed to 'Workspace:' when it grew from two "
+                     "values to four. Rename the line. " + WORKSPACE_HELP)
+        else:
+            rep.fail("T13", "charter.md", 0,
+                     "no 'Workspace:' line. The boundary hook reads it to decide what "
+                     "'## Owns' globs are relative to, so without it the hook guesses "
+                     "and a wrong guess allows every out-of-lane write. "
+                     + WORKSPACE_HELP)
+        return
+    if len(stated) > 1:
+        rep.fail("T13", "charter.md", 0,
+                 "more than one 'Workspace:'. Lanes are separated one way, or the "
+                 "globs of the lanes separated the other way mean nothing.")
+        return
+    value = stated[0].split(":", 1)[1].strip().lower()
+    matched = sorted({name for word, name in WORKSPACES.items() if word in value})
+    if not matched:
+        rep.fail("T13", "charter.md", 0,
+                 f"workspace {value!r} names none of the four. " + WORKSPACE_HELP)
+    elif len(matched) > 1:
+        rep.fail("T13", "charter.md", 0,
+                 f"workspace {value!r} reads as {' and '.join(matched)}. The hook "
+                 "matches this line by keyword and would pick one of them, so say "
+                 "exactly one. " + WORKSPACE_HELP)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("root", help="the team root directory")
@@ -777,6 +837,7 @@ def main(argv=None):
     check_team_root(root, rep)
     check_shared_paths(root, rep)
     check_lane_names(root, rep)
+    check_workspace_named(root, rep)
     return rep.emit()
 
 

@@ -55,9 +55,11 @@ charter works hardest to give an owner, the prohibition in the other lanes' role
 is the whole of the enforcement.
 
 `Workspace:` is one of the four in
-`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md`. It decides what
-a lane's `Owns` globs are relative to. A team that leaves it out is a team
-whose paths mean two things.
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md`, and `[T13]`
+fails a charter naming none of them or two of them. It decides what a lane's
+`Owns` globs are relative to, and the boundary hook reads the same line. A team
+that leaves it out is one whose hook guesses, and a wrong guess allows every
+out-of-lane write with nothing said.
 
 Under one worktree per lane it also names the branch convention. A resume and a
 finish both have to find a lane's branch again, and without the convention
