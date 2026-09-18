@@ -171,9 +171,10 @@ absorbs a work log stops being read, and unread rules are not rules.
 
 **Lanes own disjoint paths.** This is the floor everything else stands on, and it
 needs files, not git. The validator fails a team where two roles claim one path,
-where one role's glob contains another's, or where two globs merely intersect — `src/a*.py` and `src/*b.py` both reach `src/ab.py`, and neither
-contains the other. It names the file they collide on. This is the collision that
-loses work silently, and the cheapest time to catch it is before anyone starts.
+where one role's glob contains another's, or where two globs merely intersect.
+`src/a*.py` and `src/*b.py` both reach `src/ab.py`, and neither contains the
+other. It names the file they collide on. This is the collision that loses work
+silently, and the cheapest time to catch it is before anyone starts.
 
 ## How the boundary is enforced
 
@@ -186,11 +187,12 @@ exception there, because protocol rule 5 gives it that file to write.
 Paths are read relative to the workspace: each lane's own tree under one worktree
 per lane, and the directory holding them all under the other three. The hook
 identifies the lane from `TEAMWORK_LANE`, which every launch command sets, and
-failing that from the working directory's own name under one worktree per lane. A session it cannot identify is allowed every write, because a hook
-that blocked what it could not attribute would stop the lead and every session
-not on a team at all. It finds the team root the way a member must: the variable
-first, then the **main** worktree's copy, never the lane's own checkout of one,
-which diverges the moment a retro commits on another branch.
+failing that from the working directory's own name under one worktree per lane.
+A session it cannot identify is allowed every write, because a hook that blocked
+what it could not attribute would stop the lead and every session not on a team
+at all. It finds the team root the way a member must: the variable first, then
+the **main** worktree's copy, never the lane's own checkout of one, which
+diverges the moment a retro commits on another branch.
 
 A lane inherits its own enforcement. The hook reads the environment and the
 working directory, and a member passes both to every agent it spawns, so a lane
@@ -224,6 +226,7 @@ the `Never` line is the whole of the enforcement.
 | `scripts/validate_team.py` | Thirteen structural checks over a team root |
 | `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |
 | `hooks/hooks.json` | Which events that script runs on |
+| `docs/intent.md` | What the plugin is built for, in its author's words |
 
 ## Requirements
 
