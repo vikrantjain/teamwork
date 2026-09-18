@@ -180,7 +180,8 @@ loses work silently, and the cheapest time to catch it is before anyone starts.
 Declaring a boundary is not enforcing one, so a `PreToolUse` hook denies the
 write. A member reaching for a path another lane owns is refused and told to
 `ASK` its owner. A member reaching for the team root is refused and told that
-contracts change at a retro and nowhere else.
+contracts change at a retro and nowhere else. The lead's own lane is the one
+exception there, because protocol rule 5 gives it that file to write.
 
 Paths are read relative to the workspace: each lane's own tree under one worktree
 per lane, and the directory holding them all under the other three. The hook

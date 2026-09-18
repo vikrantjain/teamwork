@@ -1,5 +1,5 @@
 {
-  "description": "Denies a write to a path another lane owns, and to the team root, so a boundary crossing fails instead of silently overwriting another lane's work. Tells a joining session its team root, its lane and the five files it loads, and says it again after a compaction. Allows every write it cannot attribute to a lane, so it never stops the lead or a session that is not on a team.",
+  "description": "Denies a write to a path another lane owns, so a boundary crossing fails instead of silently overwriting another lane's work. Denies a write to the team root from every lane but the lead's, because contracts change at a retro and nowhere else. Tells a joining session its team root, its lane and the five files it loads, and says it again after a compaction. Allows every write it cannot attribute to a lane, so it never stops a session that is not on a team.",
   "hooks": {
     "PreToolUse": [
       {
