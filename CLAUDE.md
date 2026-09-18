@@ -116,7 +116,8 @@ recorded rather than the conclusion alone.
   gain, and left the lead's paths owned by nobody, so `[T5]` proved nothing about
   them and every member could write them. The failure mode that survives is a lead
   holding work in the critical path, which becomes the bottleneck. `lead` is a
-  meaningful lane name: it is the one lane the hook lets write the team root.
+  meaningful lane name: it is the one lane the hook lets write the team root,
+  which `protocol.md` rule 5 already reserves to the lead.
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, or a person.
 - **The boundary hook fails open, never closed.** A hook that denied a write it
