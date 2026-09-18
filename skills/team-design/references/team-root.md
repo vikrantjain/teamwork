@@ -81,10 +81,13 @@ travel with the project:
     decisions.md     settled choices with their reasons
     backlog.md       only when tracker.md's rung 3 put the board here
 
-`[T1]` budgets them, because a member reloads them on every context load:
-protocol.md 50 lines, conflicts.md 30, charter.md 50, each role file 30,
-tracker.md 20, transport.md 15, decisions.md 60. `backlog.md` has none: it is the
-tracker, and a tracker is a record rather than a rule.
+`[T1]` budgets them: protocol.md 50 lines, conflicts.md 30, charter.md 50, each
+role file 30, tracker.md 20, transport.md 15, decisions.md 60. Five of them are
+what a member reloads on every context load, and that is what the budgets are
+for. conflicts.md is read when a conflict happens and decisions.md at a retro,
+and both are budgeted anyway, because a file too long to finish is a file nobody
+reads. `backlog.md` has none: it is the tracker, and a tracker is a record rather
+than a rule.
 
 `decisions.md` has no template. One bullet per settled choice, each carrying its
 reason rather than its conclusion alone, so the next retro does not reopen it

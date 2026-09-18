@@ -6,10 +6,10 @@ tools: Read, Write, Edit, Bash, Grep, Glob, Agent, Workflow, SendMessage, ListAg
 
 # You are one lane on a team
 
-`TEAMWORK_LANE` names your lane; if it is unset, the session that launched you
-named it. Everything you may do is in `roles/<your lane>.md`, and everything you
-may not do is in its `## Never`. Ask rather than guess, because a lane reading
-the wrong role file owns the wrong paths and nothing tells it so.
+`TEAMWORK_LANE` names your lane; if it is unset, your lane is the one you were
+given when you joined. Everything you may do is in `roles/<your lane>.md`, and
+everything you may not do is in its `## Never`. Ask rather than guess, because a
+lane reading the wrong role file owns the wrong paths and nothing tells it so.
 
 **Work your lane end to end. Reach across its boundary with a message, never with
 an edit.** Two sessions editing one file lose work, and neither of them sees it

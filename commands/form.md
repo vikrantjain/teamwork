@@ -36,7 +36,9 @@ different folders cannot read a relative `.teamwork/`. Follow
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`; when the
 ladder reaches its last rung, ask the user for a path instead of picking one.
 Write the `Workspace root:` line in the same pass, naming the directory every
-lane's `Owns` globs are read against. That last rung is exactly where it stops
+lane's `Owns` globs are read against. Omit that line under one worktree per lane,
+where each lane reads its globs against its own tree and the validator fails a
+charter naming an anchor nothing uses. That last rung is exactly where it stops
 being the team root's parent, and a boundary hook reading globs against the wrong
 directory allows every write with nothing said.
 
