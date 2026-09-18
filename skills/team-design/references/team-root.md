@@ -39,15 +39,26 @@ every member, because a member reads them by absolute path.
 
 ## What `Owns` globs are relative to
 
-One directory, the same for every lane, and the boundary hook computes it the
-same way the contracts describe it. Get this wrong and every glob misses, which
-reads as a team with no boundaries rather than as an error.
+One directory, the same for every lane, and the charter names it on its
+`Workspace root:` line so the boundary hook and the contracts cannot disagree.
+Get this wrong and every glob misses, which reads as a team with no boundaries
+rather than as an error.
 
 - **One shared tree** — the tree. `src/api/**` is `<tree>/src/api/**`.
-- **One worktree per lane** — each lane's own worktree, so every lane writes the
-  same globs and they resolve to different files.
-- **Separate repositories or directories** — the directory holding them all,
-  which is the team root's parent. A lane owns `payments/**`, not `src/**`.
+- **One worktree per lane** — each lane's own worktree. Two lanes may name the
+  same directory and still write different files, and they must still own
+  disjoint globs, because `[T5]` compares the globs and not the trees. There is
+  no `Workspace root:` line here: there is no one directory to name.
+- **Separate repositories or directories** — the directory holding them all. A
+  lane owns `payments/**`, not `src/**`.
+
+Rungs 1 to 3 of the ladder put the team root inside that directory, so the line
+usually repeats its parent. Write it anyway. Rung 4 puts the team root wherever
+the user said, and a hook deriving the anchor from the team root's parent then
+reads every lane's globs against a directory the work is not in. `[T14]` fails a
+charter that leaves the line out, because the failure it prevents is silent:
+every write is allowed, and the member is still told at startup that its writes
+are enforced.
 
 A write outside that directory is not the team's business and is allowed. That is
 how a member still writes its own scratch files and its own home configuration
@@ -111,6 +122,10 @@ The boundary hook resolves the root by this same ladder: `$TEAMWORK_ROOT`, then
 the main worktree's `.teamwork` from `git rev-parse --git-common-dir`, then the
 nearest one walking up. A hook that read a lane's own copy would enforce last
 week's ownership, which is worse than not enforcing at all.
+
+It then reads `Workspace root:` from the charter it found. A team formed before
+that line existed falls back to the old derivation, so it keeps enforcing where
+the derivation was right. `[T14]` is what stops a new team relying on it.
 
 ## One filesystem
 

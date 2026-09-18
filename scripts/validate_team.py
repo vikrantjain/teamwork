@@ -16,8 +16,8 @@ Exit codes:
 
 Checks:
     [T1] budgets          every contract file is within its line budget
-    [T2] role-shape       each role file has the four headings, a non-empty Owns
-                          and Never, and workspace-relative Owns globs
+    [T2] role-shape       each role file has the four headings, no empty section
+                          under any of them, and workspace-relative Owns globs
     [T3] no-log           no date, checkbox, issue id or status marker in a contract
     [T4] roster-closure   lanes named in the charter and role files on disk agree
     [T5] lane-disjoint    no path is owned by two roles, whether one role's glob
@@ -31,6 +31,9 @@ Checks:
                           claims it, and no other lane's role reaches it
     [T12] lane-names      every lane name is usable as an address
     [T13] workspace-named charter names exactly one of the four workspaces
+    [T14] workspace-root  charter declares the directory Owns globs are relative
+                          to, except under worktrees where each lane has its own
+    [T15] charter-shape   charter says where to stop and what done looks like
 
 [T3] and [T5] are the load-bearing ones. [T3] is what stops a charter becoming a
 log, and [T5] is what stops two members editing one file.
@@ -137,6 +140,21 @@ def read_lines(path):
         return fh.read().splitlines()
 
 
+def charter_field(root, name):
+    """The value on the charter's `<name>:` line, or None when there is none.
+
+    The boundary hook reads these lines with this same function. A charter line
+    one of them honours and the other ignores is a rule that holds in the
+    contracts and not on disk.
+    """
+    charter = os.path.join(root, "charter.md")
+    if not os.path.exists(charter):
+        return None
+    m = re.search(rf"^[ \t]*{re.escape(name)}:[ \t]*(\S.*)$",
+                  "\n".join(read_lines(charter)), re.M | re.I)
+    return m.group(1).strip().strip("`") if m else None
+
+
 def role_files(root):
     roles_dir = os.path.join(root, "roles")
     if not os.path.isdir(roles_dir):
@@ -180,6 +198,11 @@ def check_budgets(root, rep):
                          f"{n} lines, budget {budget}. To add a line, remove one.")
 
 
+def filled(lines, heading):
+    """Whether anything but blank lines sits under this heading."""
+    return any(l.strip() for l in section(lines, heading))
+
+
 def check_role_shape(root, rep):
     for path in role_files(root):
         lines = read_lines(path)
@@ -196,9 +219,18 @@ def check_role_shape(root, rep):
                      "headings are out of order. The order is "
                      + ", ".join(ROLE_HEADINGS)
                      + ". A role that varies in shape cannot be read quickly.")
-        if "## Never" in found and not [l for l in section(lines, "## Never") if l.strip()]:
+        if "## Never" in found and not filled(lines, "## Never"):
             rep.fail("T2", rel, 0,
                      "'## Never' is empty. A role with no prohibition has no boundary.")
+        if "## Hands off to" in found and not filled(lines, "## Hands off to"):
+            rep.fail("T2", rel, 0,
+                     "'## Hands off to' is empty. Write 'nobody' when the lane is a "
+                     "leaf. A reader should not have to infer that from silence.")
+        if "## Done means" in found and not filled(lines, "## Done means"):
+            rep.fail("T2", rel, 0,
+                     "'## Done means' is empty. A member closes an item against this "
+                     "section, so a DONE reported against an empty one is a claim "
+                     "nobody can check.")
         entries = owns_entries(lines)
         if "## Owns" in found and not entries:
             rep.fail("T2", rel, 0,
@@ -802,6 +834,108 @@ def check_workspace_named(root, rep):
                  "exactly one. " + WORKSPACE_HELP)
 
 
+def declared_workspace(root):
+    """The one workspace the charter names, or None when it names none or two.
+
+    [T13] reports both of those, so a check reading this treats None as already
+    reported and says nothing further.
+    """
+    value = charter_field(root, "Workspace")
+    if not value:
+        return None
+    matched = {name for word, name in WORKSPACES.items() if word in value.lower()}
+    return matched.pop() if len(matched) == 1 else None
+
+
+WORKSPACE_ROOT_HELP = (
+    "Write 'Workspace root: /absolute/path' naming the directory every lane's "
+    "'## Owns' globs are relative to.")
+
+
+def check_workspace_root(root, rep):
+    """The anchor for `Owns` globs is declared, never derived.
+
+    The hook used to take it to be the team root's parent. That is right when the
+    team root sits in the directory holding the lanes, and wrong whenever the
+    user named a path somewhere else, which team-root.md's last rung invites. The
+    wrong anchor makes every glob miss, so every out-of-lane write is allowed and
+    the member is still told at startup that its writes are enforced. Declaring
+    the anchor is also what lets a member read its own globs' meaning off the
+    charter instead of re-deriving the ladder.
+
+    Under one worktree per lane there is nothing to declare: each lane's globs
+    are relative to its own tree, which the hook reads from the session itself.
+    """
+    workspace = declared_workspace(root)
+    if workspace is None:
+        return
+    stated = [l.strip() for l in read_lines(os.path.join(root, "charter.md"))
+              if l.strip().lower().startswith("workspace root:")]
+    if workspace == "one worktree per lane":
+        if stated:
+            rep.fail("T14", "charter.md", 0,
+                     "'Workspace root:' under one worktree per lane. Each lane's globs "
+                     "are relative to its own worktree, which the hook reads from the "
+                     "session, so this line names an anchor nothing uses. Remove it.")
+        return
+    if not stated:
+        rep.fail("T14", "charter.md", 0,
+                 "no 'Workspace root:' line. Without it the hook falls back to the team "
+                 "root's parent, which is not where the lanes are whenever the team root "
+                 "was given a path of its own, and every glob then misses with nothing "
+                 "said. " + WORKSPACE_ROOT_HELP)
+        return
+    if len(stated) > 1:
+        rep.fail("T14", "charter.md", 0,
+                 "more than one 'Workspace root:'. Globs are relative to one directory, "
+                 "or two lanes' globs are read against two different trees.")
+        return
+    declared = stated[0].split(":", 1)[1].strip().strip("`")
+    if not os.path.isabs(declared):
+        rep.fail("T14", "charter.md", 0,
+                 f"workspace root {declared!r} is relative. It resolves differently in "
+                 "every lane's working directory, so each lane would read its globs "
+                 "against a different tree. " + WORKSPACE_ROOT_HELP)
+    elif not os.path.isdir(declared):
+        rep.fail("T14", "charter.md", 0,
+                 f"workspace root {declared!r} is not a directory on this machine. The "
+                 "hook resolves every lane's paths under it, and a path that is not "
+                 "there reaches nothing, so no write is ever attributed to a lane.")
+
+
+# The charter sections a member and the finish procedure both act on. `## Lanes`
+# is proved by [T4] and `## Shared paths` may be empty, so neither is here.
+REQUIRED_SECTIONS = {
+    "## Human gates": ("protocol.md rule 9 sends every member here before it publishes, "
+                       "deletes, touches production or spends money. A charter with none "
+                       "is a team that stops at nothing, and no member can tell that "
+                       "from a team that needs no gates."),
+    "## Done": ("This is the team's stop condition, and /teamwork:finish checks it before "
+                "it lands anything. A team with no stop condition does not stop, and the "
+                "cost is paid for as long as nobody notices."),
+}
+
+
+def check_charter_shape(root, rep):
+    """The charter says where to stop, and what stopping for good looks like.
+
+    Both sections were gathered by one question in one branch of discovery, so a
+    team formed from a plan the project already had could reach a charter holding
+    neither. Nothing reported it, because every other check reads lines that were
+    there.
+    """
+    charter = os.path.join(root, "charter.md")
+    if not os.path.exists(charter):
+        return
+    lines = read_lines(charter)
+    present = {l.strip() for l in lines}
+    for heading, why in REQUIRED_SECTIONS.items():
+        if heading not in present:
+            rep.fail("T15", "charter.md", 0, f"no {heading!r} section. {why}")
+        elif not filled(lines, heading):
+            rep.fail("T15", "charter.md", 0, f"{heading!r} is empty. {why}")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("root", help="the team root directory")
@@ -838,6 +972,8 @@ def main(argv=None):
     check_shared_paths(root, rep)
     check_lane_names(root, rep)
     check_workspace_named(root, rep)
+    check_workspace_root(root, rep)
+    check_charter_shape(root, rep)
     return rep.emit()
 
 

@@ -19,10 +19,13 @@ Four steps get skipped under time pressure, and each one changes the result.
 
 **Get the breakdown before sizing anything.** Team size is the width of the
 dependency graph, not a feeling about the goal. Use the plan the project already
-has, under whatever name it carries; with none, ask the five questions in
-`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md` in one message.
-Never write a plan to justify a roster: it is a second source of truth that
-nobody maintains.
+has, under whatever name it carries, and ask whatever it leaves unanswered from
+the five questions in
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md`, in one
+message. A plan lists the pieces. It does not say what two people must never
+touch at once, or what has to stop and ask you, so finding one shortens the
+interview and never replaces it. Never write a plan to justify a roster: it is a
+second source of truth that nobody maintains.
 
 **Be willing to answer "one session".** When the parallel width is one, say so and
 stop. Forming a two-member team for serial work buys coordination cost and no
@@ -32,6 +35,10 @@ throughput.
 different folders cannot read a relative `.teamwork/`. Follow
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`; when the
 ladder reaches its last rung, ask the user for a path instead of picking one.
+Write the `Workspace root:` line in the same pass, naming the directory every
+lane's `Owns` globs are read against. That last rung is exactly where it stops
+being the team root's parent, and a boundary hook reading globs against the wrong
+directory allows every write with nothing said.
 
 **Propose before you write.** The lanes, the paths, the workspace, the tracker
 and the gates go to the human first, and nothing lands in the team root until

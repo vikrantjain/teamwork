@@ -27,6 +27,7 @@ CHARTER = """# Ship the widget service
 
 Team root: {root}
 Workspace: one shared tree
+Workspace root: {workspace}
 
 ## Lanes
 - api — the service and its migrations
@@ -89,11 +90,16 @@ Send: SendMessage to the lane name
 """
 
 
+def charter(root):
+    """The fixture charter, anchored at the directory the team root sits in."""
+    return CHARTER.format(root=root, workspace=os.path.dirname(root))
+
+
 def build(root):
     os.makedirs(os.path.join(root, "roles"))
     write(root, "protocol.md", PROTOCOL)
     write(root, "conflicts.md", CONFLICTS)
-    write(root, "charter.md", CHARTER.format(root=root))
+    write(root, "charter.md", charter(root))
     write(root, "tracker.md", TRACKER)
     write(root, "transport.md", TRANSPORT)
     write(root, "roles/api.md", ROLE_API)
@@ -179,6 +185,33 @@ class TestT2RoleShape(TeamRootCase):
         self.assertIn("no prohibition", out)
 
 
+class TestT2EmptySections(TeamRootCase):
+    """A heading with nothing under it is a section a member cannot act on."""
+
+    def test_empty_done_means_fails(self):
+        write(self.root, "roles/ui.md",
+              ROLE_UI.replace("- The console renders against a running service.\n", ""))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T2]", out)
+        self.assertIn("nobody can check", out)
+
+    def test_empty_hands_off_to_fails(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace(
+            "- api, when the console needs a field that does not exist.\n", ""))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T2]", out)
+        self.assertIn("infer that from silence", out)
+
+    def test_a_leaf_lane_says_nobody_and_passes(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace(
+            "- api, when the console needs a field that does not exist.",
+            "- Nobody; this lane is a leaf."))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+
 class TestT3NoLog(TeamRootCase):
     def test_date_fails(self):
         append(self.root, "charter.md", "\nLane api started on 2026-09-12.\n")
@@ -207,7 +240,7 @@ class TestT3NoLog(TeamRootCase):
                      "See RFC-7231 for the status codes.",
                      "The accent colour is #336699."):
             with self.subTest(text=text):
-                write(self.root, "charter.md", CHARTER.format(root=self.root))
+                write(self.root, "charter.md", charter(self.root))
                 append(self.root, "charter.md", f"\n- {text}\n")
                 code, out = self.run_validator()
                 self.assertEqual(code, 0, out)
@@ -215,7 +248,7 @@ class TestT3NoLog(TeamRootCase):
     def test_a_real_ticket_is_still_an_issue_id(self):
         for text in ("Fixed under PROJ-456.", "Superseded by #123."):
             with self.subTest(text=text):
-                write(self.root, "charter.md", CHARTER.format(root=self.root))
+                write(self.root, "charter.md", charter(self.root))
                 append(self.root, "charter.md", f"\n- {text}\n")
                 code, out = self.run_validator()
                 self.assertEqual(code, 1, out)
@@ -266,7 +299,7 @@ class TestT4RosterClosure(TeamRootCase):
     def test_lane_without_role_file_fails(self):
         append(self.root, "charter.md", "")
         write(self.root, "charter.md",
-              CHARTER.format(root=self.root).replace(
+              charter(self.root).replace(
                   "- ui — the console", "- ui — the console\n- worker — the queue"))
         code, out = self.run_validator()
         self.assertEqual(code, 1)
@@ -551,14 +584,14 @@ class TestT8FrictionCap(TeamRootCase):
 class TestT9TeamRoot(TeamRootCase):
     def test_missing_team_root_line_fails(self):
         write(self.root, "charter.md",
-              CHARTER.format(root=self.root).replace(f"Team root: {self.root}\n", ""))
+              charter(self.root).replace(f"Team root: {self.root}\n", ""))
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("[T9]", out)
 
     def test_relative_team_root_fails(self):
         write(self.root, "charter.md",
-              CHARTER.format(root=self.root).replace(
+              charter(self.root).replace(
                   f"Team root: {self.root}", "Team root: .teamwork"))
         code, out = self.run_validator()
         self.assertEqual(code, 1)
@@ -568,7 +601,7 @@ class TestT9TeamRoot(TeamRootCase):
         other = tempfile.mkdtemp()
         try:
             write(self.root, "charter.md",
-                  CHARTER.format(root=self.root).replace(
+                  charter(self.root).replace(
                       f"Team root: {self.root}", f"Team root: {other}"))
             code, out = self.run_validator()
             self.assertEqual(code, 1)
@@ -667,7 +700,7 @@ class TestT12LaneNames(TeamRootCase):
         os.rename(os.path.join(self.root, "roles/ui.md"),
                   os.path.join(self.root, "roles/team-lead.md"))
         write(self.root, "charter.md",
-              CHARTER.format(root=self.root).replace("- ui \u2014", "- team-lead \u2014"))
+              charter(self.root).replace("- ui \u2014", "- team-lead \u2014"))
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("reserved by the platform", out)
@@ -676,7 +709,7 @@ class TestT12LaneNames(TeamRootCase):
         os.rename(os.path.join(self.root, "roles/ui.md"),
                   os.path.join(self.root, "roles/UI_Lane.md"))
         write(self.root, "charter.md",
-              CHARTER.format(root=self.root).replace("- ui \u2014", "- UI_Lane \u2014"))
+              charter(self.root).replace("- ui \u2014", "- UI_Lane \u2014"))
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("not usable as an address", out)
@@ -686,9 +719,13 @@ class TestT13WorkspaceNamed(TeamRootCase):
     """The line the boundary hook reads to anchor every Owns glob."""
 
     def set_workspace(self, value):
-        write(self.root, "charter.md",
-              CHARTER.format(root=self.root).replace(
-                  "Workspace: one shared tree", value))
+        text = charter(self.root).replace("Workspace: one shared tree", value)
+        if "worktree" in value:
+            # Each lane's globs are read against its own tree, so there is no
+            # single anchor to declare and [T14] fails one that is.
+            text = "\n".join(l for l in text.splitlines()
+                              if not l.lower().startswith("workspace root:")) + "\n"
+        write(self.root, "charter.md", text)
 
     def test_a_missing_workspace_line_fails(self):
         self.set_workspace("")
@@ -732,6 +769,114 @@ class TestT13WorkspaceNamed(TeamRootCase):
                 self.set_workspace(f"Workspace: {value}")
                 code, out = self.run_validator()
                 self.assertEqual(code, 0, out)
+
+
+class TestT14WorkspaceRoot(TeamRootCase):
+    """The anchor every Owns glob is read against, declared rather than derived.
+
+    Deriving it as the team root's parent was right only when the team root sat
+    in the directory holding the lanes. Anywhere else every glob missed, so every
+    out-of-lane write was allowed and the member was still told at startup that
+    its writes were enforced.
+    """
+
+    def set_anchor(self, value):
+        write(self.root, "charter.md",
+              charter(self.root).replace(
+                  f"Workspace root: {os.path.dirname(self.root)}", value))
+
+    def test_a_missing_workspace_root_fails(self):
+        self.set_anchor("")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T14]", out)
+        self.assertIn("no 'Workspace root:' line", out)
+
+    def test_a_relative_workspace_root_fails(self):
+        self.set_anchor("Workspace root: ../src")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T14]", out)
+        self.assertIn("is relative", out)
+
+    def test_a_workspace_root_that_is_not_a_directory_fails(self):
+        self.set_anchor(f"Workspace root: {os.path.join(self.root, 'nowhere')}")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T14]", out)
+        self.assertIn("not a directory", out)
+
+    def test_two_workspace_roots_fail(self):
+        self.set_anchor(f"Workspace root: {os.path.dirname(self.root)}\n"
+                        f"Workspace root: {self.root}")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T14]", out)
+        self.assertIn("more than one", out)
+
+    def test_worktrees_declare_no_anchor(self):
+        """Each lane reads its globs against its own tree, so the line names nothing."""
+        write(self.root, "charter.md",
+              charter(self.root).replace("Workspace: one shared tree",
+                                         "Workspace: one worktree per lane"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T14]", out)
+        self.assertIn("names an anchor nothing uses", out)
+
+    def test_worktrees_without_the_line_pass(self):
+        text = charter(self.root).replace("Workspace: one shared tree",
+                                          "Workspace: one worktree per lane")
+        write(self.root, "charter.md", "\n".join(
+            l for l in text.splitlines()
+            if not l.lower().startswith("workspace root:")) + "\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+    def test_an_unreadable_workspace_line_reports_t13_alone(self):
+        """[T13] already named it, and two checks on one line read as two faults."""
+        write(self.root, "charter.md",
+              charter(self.root).replace("Workspace: one shared tree",
+                                         "Workspace: however everyone likes"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T13]", out)
+        self.assertNotIn("[T14]", out)
+
+
+class TestT15CharterShape(TeamRootCase):
+    """Where a member stops and asks, and what stops the team for good.
+
+    Both were gathered by one question in one branch of discovery, so a team
+    formed from a plan the project already kept could reach a charter with
+    neither and nothing said so.
+    """
+
+    def drop(self, heading, body):
+        write(self.root, "charter.md",
+              charter(self.root).replace(f"{heading}\n{body}\n", ""))
+
+    def test_a_charter_without_human_gates_fails(self):
+        self.drop("## Human gates", "- Anything that writes to production.")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T15]", out)
+        self.assertIn("## Human gates", out)
+
+    def test_a_charter_without_done_fails(self):
+        self.drop("## Done", "- The console drives the service end to end.")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T15]", out)
+        self.assertIn("does not stop", out)
+
+    def test_an_empty_section_fails_like_a_missing_one(self):
+        write(self.root, "charter.md",
+              charter(self.root).replace("- Anything that writes to production.\n", ""))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T15]", out)
+        self.assertIn("is empty", out)
 
 
 class TestPluginPaths(unittest.TestCase):

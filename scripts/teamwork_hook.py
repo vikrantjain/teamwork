@@ -26,11 +26,12 @@ Resolving the team root, first match wins, as team-root.md resolves it:
     3. The nearest .teamwork walking up from the working directory.
 
 `Owns` globs are relative to the workspace, and which directory that is comes
-from the charter's `Workspace:` line. Under one worktree per lane it is the
-worktree this session is in, because every lane writes the same globs into a
-different tree. Under the other three the lanes share one anchor and it is the
-team root's parent: the tree itself under one shared tree, and the directory
-holding every repository or lane directory under the other two. Git is not
+from the charter. Under one worktree per lane it is the worktree this session is
+in: each lane's globs are read against its own tree, so two lanes may name the
+same directory and still write different files. Under the other three the lanes
+share one anchor and the charter declares it on its `Workspace root:` line. A
+team formed before that line existed falls back to the team root's parent, which
+is where the ladder puts it unless the user named a path of its own. Git is not
 required for any of this; only the team root's second rung uses it.
 
 Rung 2 is what keeps a lane off its own stale copy. Under one worktree per lane
@@ -75,7 +76,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from validate_team import (  # noqa: E402
-    charter_lanes, glob_regex, owned_paths, read_lines, role_files)
+    charter_field, charter_lanes, glob_regex, owned_paths, read_lines, role_files)
 
 # Write tools name their target in one of these. Bash is deliberately absent.
 TARGET_FIELDS = ("file_path", "notebook_path", "path")
@@ -203,19 +204,27 @@ def workspace_root(cwd, root):
     """The directory `Owns` globs are relative to.
 
     Under one worktree per lane each lane has its own tree, so the anchor is the
-    tree this session is in and every lane writes the same globs. Under the other
-    three the lanes share one anchor: the team root's parent. That is the tree
-    itself under one shared tree, and the directory holding every repository or
-    lane directory under the other two, where a lane owns `payments/**` and is
-    only disjoint from one owning `web/**` when both are read from there.
+    tree this session is in and each lane's globs are read against it. Under the
+    other three the lanes share one anchor and the charter names it, because
+    deriving it was wrong whenever the team root was not the directory holding
+    the lanes: every glob then missed, every out-of-lane write was allowed, and
+    the member was still told at startup that its writes were enforced.
 
-    Anchoring at the enclosing repository instead would make both of those `**`,
-    so every glob would match every file and the team would look unowned.
+    The derivation stays as the fallback, for a team formed before the line
+    existed. It is the team root's parent, which is the tree itself under one
+    shared tree and the directory holding every repository or lane directory
+    under the other two, where a lane owns `payments/**` and is only disjoint
+    from one owning `web/**` when both are read from there. Anchoring at the
+    enclosing repository instead makes both of those `**`, so every glob matches
+    every file and the team looks unowned.
     """
     here = os.path.realpath(cwd or ".")
     repo = enclosing_repo(here)
     if workspace_is_worktrees(root):
         return repo or os.path.dirname(root)
+    declared = charter_field(root, "Workspace root")
+    if declared and os.path.isabs(declared) and os.path.isdir(declared):
+        return os.path.realpath(declared)
     parent = os.path.dirname(root)
     if inside(here, parent):
         return parent

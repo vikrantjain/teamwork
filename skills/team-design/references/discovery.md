@@ -9,7 +9,9 @@ maintains. What is needed is a list of pieces and the paths each one writes.
 
 ## 1. Find the plan the project already has
 
-Look for what this project actually keeps, in this order, first match wins:
+A plan answers one of the five questions below, which is the one about the
+pieces. Look for what this project actually keeps, in this order, first match
+wins:
 
 1. **A plan file**, under whatever name it carries. `IMPLEMENTATION_PLAN.md`,
    `PLAN.md`, `ROADMAP.md`, a design doc, a spec, a numbered task list in the
@@ -17,16 +19,23 @@ Look for what this project actually keeps, in this order, first match wins:
 2. **The project's issue tracker**, when its open items already describe the
    work. `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md` finds
    it, and the same store then becomes the team's tracker.
-3. **Nothing.** Go to the interview.
+3. **Nothing.** Then question 2 is asked like the other four.
 
 A plan that exists wins over anything you would derive. Deriving a second
 breakdown beside an existing one gives two answers to "what are the pieces", and
 the lanes get drawn from whichever one you happened to read.
 
-## 2. With no plan, interview
+## 2. Ask whatever the plan did not answer
 
-Five questions. Ask them **in one message**, because one turn answers all five
-and five turns answer them no better.
+Five questions. Ask every one the plan has not already answered, **in one
+message**, because one turn answers all five and five turns answer them no
+better.
+
+**Finding a plan does not end this step.** A plan lists the pieces. It was not
+written to say who may touch what, where bugs go, or when the team stops, so it
+answers question 2 and rarely another. Treating it as the whole interview is how
+a charter reaches `## Human gates` and `## Done` with nothing under them, and
+`[T15]` then fails the team after the work of drafting it.
 
 1. **What is the goal, and how will you know it is finished?** The first line of
    the charter and its `## Done`. A team with no stop condition does not stop.

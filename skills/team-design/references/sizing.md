@@ -15,9 +15,11 @@ goal feels, because ambition does not parallelize — dependency structure does.
 4. **If the width is one, do not form a team.** Say one session is the right
    answer and stop. A team-forming skill that always forms a team is a hammer,
    and a second member on serial work adds coordination cost for no throughput.
-5. **Cap at four lanes.** Coordination messages grow with the square of the
-   roster while throughput grows at best linearly, so past four the team spends
-   more turns talking than working.
+5. **Four lanes is the default cap.** Coordination messages grow with the
+   square of the roster while throughput grows at best linearly, so past four the
+   team spends more turns talking than working. Go past it only when the human
+   asks and the graph is genuinely that wide, and write the reason in
+   `decisions.md`, or the next retro folds lanes it cannot see the point of.
 6. **Fold a lane holding fewer than three items** into its nearest neighbour. A
    lane that finishes in one turn spends more on joining than on working.
 7. **Team size is lanes plus one lead**, and the lead may hold one of those lanes
@@ -43,6 +45,12 @@ this section alone and the team is well formed.
 It may also own a lane, on one condition: **no other lane waits on its output.**
 Integration testing, deployment, documentation and review are downstream of
 everyone by definition, and a lead doing one of them is not in anybody's way.
+
+**One lane, and it may carry several of those duties at once.** A lane is a set
+of paths, so a lead that integrates, documents and deploys writes one
+`roles/lead.md` whose `## Owns` is the union of those paths. The condition limits
+where that lane sits in the graph. It does not limit how many jobs sit inside
+it.
 
 A lead holding work that others wait on is the bottleneck the team was formed to
 remove, and it arrives gradually enough that nobody notices until the lead is the
@@ -77,6 +85,12 @@ reads as two, because the hook matches this line by keyword and would pick one.
   written relative to the directory holding them all, as `payments/**`.
 - **separate directories** — the same, without version control. Finishing has
   nothing to merge, because the work is already in place.
+
+Under the three that are not worktrees, name the anchor on the charter's
+`Workspace root:` line as well. It is the directory every lane's `Owns` globs are
+read against, `[T14]` fails a charter without it, and
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` says what a
+derived anchor cost.
 
 Enforcement does not depend on the choice. Every lane is a session the human
 starts from the printed launch command, which sets `TEAMWORK_LANE`, so the

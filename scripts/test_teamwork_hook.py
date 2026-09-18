@@ -367,6 +367,94 @@ class TestWorkspaces(HookCase):
         self.assertIn("You are web", out["permissionDecisionReason"])
 
 
+class TestWorkspaceRootDeclared(HookCase):
+    """The team root does not have to sit in the directory holding the lanes.
+
+    team-root.md's last rung lets the user name a path of its own. Deriving the
+    anchor from the team root's parent then pointed at a directory the work was
+    not in, so every glob missed and every out-of-lane write was allowed.
+    """
+
+    def off_parent(self, workspace="separate directories", anchor=True):
+        """Lanes in one directory, the team root deliberately in another."""
+        base = os.path.realpath(tempfile.mkdtemp())
+        away = os.path.realpath(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, base, ignore_errors=True)
+        self.addCleanup(shutil.rmtree, away, ignore_errors=True)
+        root = os.path.join(away, "myteam")
+        os.makedirs(os.path.join(root, "roles"))
+        line = f"Workspace: {workspace}"
+        charter = CHARTER.format(root=root).replace(
+            "Workspace: one worktree per lane", line)
+        if anchor:
+            declared = anchor if isinstance(anchor, str) else base
+            charter = charter.replace(line, f"{line}\nWorkspace root: {declared}")
+        with open(os.path.join(root, "charter.md"), "w", encoding="utf-8") as fh:
+            fh.write(charter)
+        for lane, text in (("api", ROLE_API), ("web", ROLE_WEB)):
+            with open(os.path.join(root, "roles", f"{lane}.md"), "w",
+                      encoding="utf-8") as fh:
+                fh.write(text)
+        return base, root
+
+    def crossing(self, base, root):
+        return run({"hook_event_name": "PreToolUse",
+                    "cwd": os.path.join(base, "web"),
+                    "tool_name": "Write",
+                    "tool_input": {"file_path": os.path.join(
+                        base, "services/billing/rates.py")}},
+                   env={"TEAMWORK_LANE": "web", "TEAMWORK_ROOT": root})
+
+    def test_the_declared_anchor_holds_the_boundary(self):
+        base, root = self.off_parent()
+        out, _ = self.crossing(base, root)
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the api lane", out["permissionDecisionReason"])
+
+    def test_a_lane_still_writes_its_own_paths(self):
+        base, root = self.off_parent()
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(base, "web"),
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(base, "web/app.tsx")}},
+                     env={"TEAMWORK_LANE": "web", "TEAMWORK_ROOT": root})
+        self.assertEqual(out, {})
+
+    def test_separate_repositories_too(self):
+        """Without the line this anchors at the lane's own repo and every glob misses."""
+        base, root = self.off_parent("separate repositories")
+        for component in ("services", "web"):
+            os.makedirs(os.path.join(base, component), exist_ok=True)
+            subprocess.run(["git", "init", "-q"],
+                           cwd=os.path.join(base, component), check=True)
+        out, _ = self.crossing(base, root)
+        self.assertEqual(out.get("permissionDecision"), "deny")
+
+    def test_without_the_line_it_falls_back_and_cannot_anchor_off_parent(self):
+        """The pre-0.5 derivation, kept so an old team keeps enforcing in place.
+
+        It cannot reach this team, which is why [T14] refuses to validate one
+        formed without the line rather than leaving it to be discovered here.
+        """
+        base, root = self.off_parent(anchor=False)
+        out, _ = self.crossing(base, root)
+        self.assertEqual(out, {})
+
+    def test_an_anchor_that_is_not_there_falls_back_rather_than_crashing(self):
+        base, root = self.off_parent(anchor="/no/such/directory")
+        out, _ = self.crossing(base, root)
+        self.assertEqual(out, {})
+
+    def test_worktrees_ignore_the_line_and_use_the_session_tree(self):
+        """Each lane reads its globs against its own tree, so no line overrides it."""
+        self.write(".teamwork/charter.md",
+                   CHARTER.format(root=self.root).replace(
+                       "Workspace: one worktree per lane",
+                       "Workspace: one worktree per lane\nWorkspace root: /tmp"))
+        out = self.edit("web/app.tsx", lane="api")
+        self.assertEqual(out[0].get("permissionDecision"), "deny")
+
+
 class TestLeadLane(HookCase):
     """A lead may hold a downstream lane, and it is the only one in the root."""
 

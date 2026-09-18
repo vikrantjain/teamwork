@@ -19,6 +19,10 @@ documentation, review. It is a lane like any other, with a role file at
 `roles/lead.md` and its name under the charter's `## Lanes`. Work it after the
 duties below, never instead of them.
 
+One lane may carry several of those duties at once. A lane is a set of paths, so
+`roles/lead.md` owns the union of them and the condition is unchanged: nothing
+else may be waiting on any of it.
+
 ## What only you do
 
 - **Append `FRICTION` to `friction.md`.** Members send, you write. Two members

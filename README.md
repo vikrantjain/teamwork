@@ -46,7 +46,9 @@ there instead and skip the extra marketplace entry:
 
 The plugin is needed in the session that forms or leads a team. Members are
 bound by the files in the team root, so a member can be a Claude session without
-the plugin, or a person.
+the plugin, or a person. Install it in every member you can, though: the boundary
+hook ships with the plugin, so a lane that does not have it is bound by the
+contracts and checked by nothing, and nothing in that session says so.
 
 ## A run, end to end
 
@@ -92,8 +94,9 @@ without contracts.
 ## What it does
 
 - **Starts from the work you already have.** It reads the project's own plan
-  under whatever name it carries, and when there is none it asks five questions
-  and proposes a structure you amend before anything is written.
+  under whatever name it carries, then asks what the plan does not answer, which
+  is usually everything but the pieces. It proposes a structure you amend before
+  anything is written.
 - **Sizes the team from that**, not from the goal. Team size is the width of the
   dependency graph, capped at four lanes. When the width is one it says so and
   declines to form a team.
@@ -101,15 +104,17 @@ without contracts.
   paths, and a validator fails the team if two lanes claim the same one. A hook
   then denies the write itself, so crossing a boundary fails instead of quietly
   overwriting another lane's work. A lane is a session you start, which is what
-  makes the boundary identifiable.
+  makes the boundary identifiable, and the hook runs in the lanes that have the
+  plugin installed.
 - **Keeps work items in the project's own tracker** — GitHub issues, a plan file
   that already tracks itself, or a file board beside the contracts. One store, so
   there is never a second place to look.
 - **Fits the project rather than assuming one.** The charter's `Workspace:` line
   is one shared tree, one worktree per lane, separate repositories or separate
   directories, and everything downstream of it — where the team root goes, what
-  `Owns` globs are relative to, what finishing has to merge — follows from that
-  one line. Git is used where it exists and never required.
+  finishing has to merge, whether a second line names the directory globs are
+  read against — follows from that one line. Git is used where it exists and
+  never required.
 - **Improves its own rules.** Members file friction and keep working; a retro
   groups it by cause, reverts the last rule that failed, and makes the smallest
   edit that would have prevented each recurring cause. To add a line you must
@@ -127,9 +132,10 @@ without contracts.
   cannot undo.
 - **Lets the lead be as involved as the work needs.** Most leads hold the map and
   nothing else, and assign nothing, because the lanes were partitioned before
-  anyone started. A lead may also hold one downstream lane — integration,
-  deployment, documentation, review — with a role file and a boundary like any
-  other. It may not hold work another lane is waiting for.
+  anyone started. A lead may also hold one downstream lane with a role file and a
+  boundary like any other, and that one lane may cover integration, deployment,
+  documentation and review at once. It may not hold work another lane is waiting
+  for.
 - **Adopts a team already running.** Sessions collaborating without contracts get
   their lanes read from what they have actually touched, overlaps reported, and a
   charter they ratify before it binds them.
@@ -185,7 +191,11 @@ contracts change at a retro and nowhere else. The lead's own lane is the one
 exception there, because protocol rule 5 gives it that file to write.
 
 Paths are read relative to the workspace: each lane's own tree under one worktree
-per lane, and the directory holding them all under the other three. The hook
+per lane, and under the other three the directory the charter names on its
+`Workspace root:` line. That line is declared rather than derived. Deriving it
+from the team root's parent was right until you put the team root somewhere else,
+and then every glob missed, every write was allowed, and the member was still
+told at startup that its writes were enforced. The hook
 identifies the lane from `TEAMWORK_LANE`, which every launch command sets, and
 failing that from the working directory's own name under one worktree per lane.
 A session it cannot identify is allowed every write, because a hook that blocked
@@ -223,7 +233,7 @@ the `Never` line is the whole of the enforcement.
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
 | `agents/member.md` | One generic lane; finds its role from `TEAMWORK_LANE` |
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
-| `scripts/validate_team.py` | Thirteen structural checks over a team root |
+| `scripts/validate_team.py` | Fifteen structural checks over a team root |
 | `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |
 | `hooks/hooks.json` | Which events that script runs on |
 | `docs/intent.md` | What the plugin is built for, in its author's words |
@@ -250,12 +260,12 @@ Leave `--strict` off that last one. It flags `CLAUDE.md` at the repository root
 as plugin context that will not load, which is true and is not a problem: the
 file is this repository's conventions for people working on the plugin.
 
-The behaviour that is prose rather than code has its own suite. These five cases
+The behaviour that is prose rather than code has its own suite. These six cases
 are read-only, and they cover the claims no unit test can reach: that a serial
 goal is refused, that lanes come from the dependency graph, that a goal with no
-plan and no version control is asked about rather than guessed at, that a member
-routes a cross-lane fix instead of making it, and that a cause appearing once
-produces no rule.
+plan and no version control is asked about rather than guessed at, that a plan
+shortens the interview instead of replacing it, that a member routes a cross-lane
+fix instead of making it, and that a cause appearing once produces no rule.
 
 ```
 claude plugin eval .

@@ -9,6 +9,7 @@ team forever.
 
     Team root: /absolute/path/to/.teamwork
     Workspace: <one shared tree | one worktree per lane, branches <prefix>/<lane> | separate repositories | separate directories>
+    Workspace root: <absolute path the Owns globs are read against; omitted under worktrees>
 
     ## Lanes
     - <lane> — <what it covers, in a phrase>
@@ -53,6 +54,17 @@ the hook cannot see a write made through `Bash`. So for the one class of path th
 charter works hardest to give an owner, the prohibition in the other lanes' roles
 is the whole of the enforcement.
 
+`Workspace root:` names the directory every lane's `## Owns` globs are read
+against, and `[T14]` fails a charter without it. It is usually the team root's
+parent, and it is declared rather than derived from that. The derivation was
+wrong whenever the user gave the team root a path of its own, and a wrong anchor
+makes every glob miss: every out-of-lane write is then allowed, and the member is
+still told at startup that its writes are enforced.
+
+Omit the line under one worktree per lane. Each lane reads its globs against its
+own tree there, so there is no single directory to name, and `[T14]` fails a
+charter that names one anyway.
+
 `Workspace:` is one of the four in
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md`, and `[T13]`
 fails a charter naming none of them or two of them. It decides what a lane's
@@ -68,8 +80,8 @@ that directory's own name against the lane names, so a worktree named anything
 else leaves the lane unidentified and every write allowed.
 
 Under separate repositories or separate directories, `Owns` is relative to the
-directory holding them all, which is the team root's parent. `payments/**` and
-`web/**` are then two lanes; `src/**` written in both is one collision `[T5]`
+directory holding them all, which is what `Workspace root:` names. `payments/**`
+and `web/**` are then two lanes; `src/**` written in both is one collision `[T5]`
 would have caught and now cannot see.
 
 ## Working rules

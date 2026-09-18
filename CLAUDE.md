@@ -40,10 +40,9 @@ improvement loop are this plugin's.
 Reopening one of these without new evidence wastes a session, so the reason is
 recorded rather than the conclusion alone.
 
-- **`~/.claude/teams/` was the obvious home for a team root and is refused.** The
-  platform's team directory is readable without a prompt and would have been
-  convenient. Contracts that live outside the repo are not versioned with the
-  code, not reviewable in a pull request, and do not travel with the project.
+- **`~/.claude/teams/` was the obvious home for a team root and is refused.**
+  Contracts that live outside the repo are not versioned with the code, not
+  reviewable in a pull request, and do not travel with the project.
 - **The platform's `~/.claude/tasks/` board is not a tracker rung.** It offers
   atomic claiming and reassignment on death, which no file board does. It is
   still refused: it lives in the home folder, it is deleted as items complete,
@@ -60,16 +59,13 @@ recorded rather than the conclusion alone.
 - **One `member` agent serves every lane**, because the role file is looked up
   from `TEAMWORK_LANE` rather than from the agent's name. Generating an agent per
   lane would put a copy of the role in a second place.
-- **`[T5]` compares globs by matching, never by truncating them at the first
-  wildcard.** Truncation collapsed every leading-wildcard glob to the empty
-  prefix, so two lanes owning `**/*.sql` and `**/*.css` failed a valid team while
-  a real overlap against a literal path went unseen. Each glob becomes a regex.
-- **`[T5]` decides overlap by building a path from both globs at once, not by
-  drawing one from either.** Drawing from one glob and testing it against the
-  other proves containment and nothing else: `src/a*.py` and `src/*b.py` collide
-  on every `src/a…b.py` and passed. The unifier returns a concrete witness,
-  checked back against the same `glob_regex` the boundary hook enforces with, so
-  a reported collision can actually happen and the failure names the file.
+- **`[T5]` turns each glob into a regex, then builds a witness from both at
+  once.** Truncating a glob at its first wildcard collapsed every leading-wildcard
+  pattern to the empty prefix, failing valid teams and missing real overlaps.
+  Drawing a path from one glob and testing the other against it proves containment
+  and nothing else: `src/a*.py` and `src/*b.py` collide on every `src/a…b.py` and
+  passed. The witness is checked back against the same `glob_regex` the boundary
+  hook enforces with, so a reported collision can actually happen.
 - **`decisions.md` is the one contract file pruned on a schedule.** Every other
   file is bounded by the remove-a-line-to-add-one rule, but this one gains a line
   at every retro. Left alone it reaches its budget and `[T1]` then blocks the
@@ -95,31 +91,41 @@ recorded rather than the conclusion alone.
   spawns, so its own agents are held to its own lane at no cost. Governing that
   too would cost the fan-out the context budget depends on.
 - **A lane is addressed by its session name, not by `--team-name` and
-  `--agent-name`.** Those flags were the launch command and never worked, and both
-  states were reproduced against the installed CLI: with agent-teams mode off they
-  are accepted and ignored, and with it on the CLI exits with `--agent-id,
-  --agent-name, and --team-name must all be provided together`, which a human
-  starting a lane has no id to satisfy. The launch command is now `claude
-  --agent teamwork:member`, and the human types `/rename <lane>` into each lane. A
-  lane told to rename itself emits the text and stays under its old name, because
-  `/rename` is a built-in command and nothing a member can call invokes one.
+  `--agent-name`.** Those flags were the launch command and never worked, verified
+  against the installed CLI: with agent-teams mode off they are accepted and
+  ignored, and with it on the CLI demands an `--agent-id` a human starting a lane
+  cannot supply. The launch command is `claude --agent teamwork:member`, and the
+  human types `/rename <lane>` into each lane. A lane told to rename itself emits
+  the text and stays under its old name, because nothing a member can call invokes
+  a built-in command.
 - **The charter's `Workspace:` line replaced `Isolation:`, and has four values.**
   Worktree-or-shared-tree assumed one git repository: a project with a repository
   per component formed a team that could not be landed, and a project with no
-  version control failed at the `.gitignore` step. The line also decides what
-  `Owns` globs are relative to: each lane's own tree under worktrees, the
-  directory holding them all otherwise. Anchoring at the enclosing repository made
-  every multi-repo glob match every file. The hook still reads `Isolation:`, or a
-  team formed under the old name loses its second lane rung silently.
+  version control failed at the `.gitignore` step. The hook still reads
+  `Isolation:`, or a team formed under the old name loses its second lane rung
+  silently.
+- **`Workspace root:` is declared, never derived from where the team root sits.**
+  Deriving it as the team root's parent held until the user gave the root a path
+  of its own, which the ladder's last rung invites. Every glob then missed: every
+  out-of-lane write was allowed, and the member was still told at startup that its
+  writes were enforced. `[T14]` requires the line, and refuses it under worktrees
+  where each lane reads its globs against its own tree.
 - **The lead may hold one lane, when no other lane waits on it.** "The lead takes
   no lane" refused the integration-tester, deployer and documenter leads for no
   gain, and left the lead's paths owned by nobody, so `[T5]` proved nothing about
   them and every member could write them. The failure mode that survives is a lead
-  holding work in the critical path, which becomes the bottleneck. `lead` is a
-  meaningful lane name: it is the one lane the hook lets write the team root,
-  which `protocol.md` rule 5 already reserves to the lead.
-- **The plugin is required only in the lead session.** Members are bound by the
-  files, which is what lets a member be a session without the plugin, or a person.
+  holding work in the critical path, which becomes the bottleneck. That one lane
+  may carry several downstream duties, because a lane is a set of paths and
+  `roles/lead.md` owns their union. `lead` is a meaningful lane name: it is the one
+  lane the hook lets write the team root, which `protocol.md` rule 5 already
+  reserves to the lead.
+- **The plugin is required in the lead session and wanted in every member.**
+  Members are bound by the files, which is what lets a member be a session without
+  the plugin, or a person. The boundary hook ships with the plugin, so a lane
+  without it is bound and unchecked, and nothing in that session says so.
+- **Nothing checks for duplicated effort; the partition is the whole mechanism.**
+  Two lanes cannot write one path, so what is left is two lanes building similar
+  things in their own trees, and seeing that means reading both lanes' work.
 - **The boundary hook fails open, never closed.** A hook that denied a write it
   could not attribute would stop the lead, stop every session that is not on a
   team, and break the plugin the first time lane resolution missed. An
@@ -141,6 +147,5 @@ recorded rather than the conclusion alone.
   coordination was offered and is removed. It cannot hold `protocol.md` rule 4,
   because no absolute path is shared, so `[T9]` failed for every member not on the
   machine that formed the team. Its transport was a second plugin, which broke the
-  property that a member is bound by the files alone, and its sync was git, so a
-  `RELOAD` meant "everyone pull" with nothing to make that happen. Resuming from a
-  fresh clone is a different feature and it stays.
+  property that a member is bound by the files alone. Resuming from a fresh clone
+  is a different feature and it stays.

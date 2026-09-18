@@ -25,8 +25,10 @@ unearned rule is a tax charged forever.
 
 ## Forming a team
 
-1. **Get the breakdown first**, from the plan the project already has or from
-   five questions when it has none. Follow
+1. **Get the breakdown first**, from the plan the project already has and from
+   the questions it does not answer. A plan says what the pieces are and almost
+   never says who may touch what or when the team stops, so finding one shortens
+   the interview rather than replacing it. Follow
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md`. It also
    reads the ground the team will run on, and it ends at a proposal the human
    ratifies before anything is written.
@@ -38,6 +40,10 @@ unearned rule is a tax charged forever.
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`; its ladder
    keys on the workspace, which is why step 2 comes first. Ask the user rather
    than guessing; a wrong guess scatters team state where nobody looks for it.
+   Resolve the **workspace root** in the same pass, which is the directory every
+   lane's `Owns` globs are read against, and write it on the charter under the
+   three workspaces that are not worktrees. It is usually the team root's parent,
+   and `[T14]` still fails a charter that leaves it to be derived from that.
 4. **Pick the tracker**, following
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md`. One backend,
    written into `tracker.md` with its create, claim and close commands.
@@ -72,7 +78,11 @@ unearned rule is a tax charged forever.
    rather than blocking one it cannot attribute.
 
    Drop `--agent teamwork:member` for a lane whose session does not have the
-   plugin. The files bind a member; the agent definition only points at them.
+   plugin. The files bind a member, and the agent definition only points at them.
+   Say what that lane gives up, because it is not visible from inside it: the
+   boundary hook ships with the plugin, so nothing checks that lane's writes and
+   nothing at startup tells it so. It cannot run `/teamwork:join` either. Hand it
+   the five files to read by absolute path in place of the join.
 
 10. **Print the two lines the human types into each lane** once its session is
    open, in this order:
@@ -83,7 +93,9 @@ unearned rule is a tax charged forever.
    The person at that terminal types both, because a lane cannot rename itself
    and is never told that it failed to.
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` says why,
-   and what an unrenamed lane costs the team.
+   and what an unrenamed lane costs the team. A lane without the plugin types
+   `/rename <lane>` as well, since that one is built in, and reads its five files
+   instead of joining.
 
 ## What belongs in a contract
 
@@ -111,7 +123,8 @@ Forming is a burst; leading is the rest, and it is mostly restraint. Most leads
 hold no lane and assign nothing, because the lanes were partitioned before anyone
 started and each member takes its own next item. A lead may also hold one lane of
 its own when nothing waits on it, as a lane like any other, with a role file and
-a name under `## Lanes`.
+a name under `## Lanes`. That one lane may carry several downstream duties at
+once, because a lane is a set of paths and `roles/lead.md` owns their union.
 
 The duties that belong to nobody else — appending friction, writing the roster,
 assigning the contested item, owning the unowned shared path, broadcasting

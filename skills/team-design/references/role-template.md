@@ -31,9 +31,10 @@ responsibilities — the validator reads this section to prove no two lanes own 
 same path, and a sentence here defeats that check.
 
 Globs are relative to the workspace, never absolute. Which directory that is
-comes from the charter's `Workspace:` line: the tree under one shared tree, the
-lane's own worktree under one worktree per lane, and the directory holding them
-all under separate repositories or separate directories. An absolute path and a
+comes from the charter. Under one worktree per lane it is the lane's own
+worktree, so two lanes may name one directory and still write different files;
+they must still be disjoint, because `[T5]` compares the globs and not the trees.
+Under the other three the charter's `Workspace root:` line names it. An absolute path and a
 relative one naming the same file look unequal to `[T5]`, which then passes a
 real collision, so `[T2]` rejects the absolute one.
 

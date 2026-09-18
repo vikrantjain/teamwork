@@ -31,12 +31,19 @@ then `/reload-plugins` without restarting.
    is in the same directory, one worktree per lane when each has its own
    checkout, separate repositories or separate directories otherwise. Write it on
    the charter's `Workspace:` line, or `[T13]` fails the draft and the lanes'
-   globs have no agreed meaning. Then resolve the team root by
+   globs have no agreed meaning. Under the three that are not worktrees, write
+   the directory holding the sessions' work on the `Workspace root:` line as
+   well, or `[T14]` fails it for the same reason one rung down. Then resolve the
+   team root by
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`, whose
    ladder keys on that answer. Sessions in different folders is the normal case
    here, not the exception.
 5. **Draft the team root at minimum size** — `protocol.md` and `conflicts.md`
    copied verbatim, a charter, one role per session, `tracker.md`, `transport.md`.
+   Two charter sections cannot be read off running sessions and have to be asked
+   for: **what should stop and ask you, every time**, and **what finishing looks
+   like**. `[T15]` fails a charter without them, and a team adopted mid-flight is
+   the case where nobody has ever said either out loud.
 6. **Record open work only.** Do not back-fill what is already finished.
    Reconstructing a history into the tracker is the same mistake as putting a log
    in the charter, one file over.
