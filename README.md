@@ -257,12 +257,18 @@ without it. `gh` only if you want GitHub issues as the tracker.
 python3 scripts/validate_team.py <team root>   # one team root
 python3 scripts/test_validate_team.py          # the validator
 python3 scripts/test_teamwork_hook.py          # the hook
-claude plugin validate .                       # the manifests
+claude plugin validate .                       # the marketplace manifest
+claude plugin validate .claude-plugin/plugin.json      # the plugin itself
 ```
 
-Leave `--strict` off that last one. It flags `CLAUDE.md` at the repository root
-as plugin context that will not load, which is true and is not a problem: the
-file is this repository's conventions for people working on the plugin.
+Both manifests sit at this repository's root, and validating the directory finds
+the marketplace one and stops there. The second command is the one that reads the
+plugin's skills, agents and commands, so a run without it proves only that the
+marketplace entry parses.
+
+Leave `--strict` off that second command. It flags `CLAUDE.md` at the repository
+root as plugin context that will not load, which is true and is not a problem:
+the file is this repository's conventions for people working on the plugin.
 
 The behaviour that is prose rather than code has its own suite. These six cases
 are read-only, and they cover the claims no unit test can reach: that a serial
