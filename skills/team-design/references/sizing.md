@@ -96,7 +96,10 @@ Enforcement does not depend on the choice. Every lane is a session the human
 starts from the printed launch command, which sets `TEAMWORK_LANE`, so the
 boundary hook identifies the lane under any of the four. The hook's second rung,
 the working directory's own name, is a backstop for a lane someone started
-without that variable, and it works only under one worktree per lane.
+without that variable. It works under the three that give a lane a directory of
+its own, so name each of those directories for its lane. It cannot work under one
+shared tree, where every lane's directory is the same one and its name would
+answer for all of them.
 
 So choose worktrees for the reasons above and for the branch each lane needs at
 the end, not to buy a boundary you already have.

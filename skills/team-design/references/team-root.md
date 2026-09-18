@@ -14,7 +14,9 @@ first. It does not require git; only rung 2 does.
 
 1. **One shared tree** — `<tree>/.teamwork`, where the tree is the repository
    root when there is one and the directory the work lives in when there is not.
-   Members are already inside it and need no `--add-dir`.
+   Members are already inside it, so `--add-dir` grants them nothing. The
+   launch command still carries it, because one command shape across every
+   workspace is one fewer thing for the human to get wrong.
 2. **One worktree per lane** — the **main** worktree's `.teamwork`, found from
    any worktree as the parent of
    `git rev-parse --path-format=absolute --git-common-dir`. It computes the same

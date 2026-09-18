@@ -65,10 +65,12 @@ root, runs the validator, and prints one launch command per lane:
 TEAMWORK_LANE=api TEAMWORK_ROOT=/repo/.teamwork claude --agent teamwork:member
 ```
 
-Open a terminal per lane and run its command. The two variables are what let the
-boundary hook tell which lane the session is; a lane started without them runs
-unenforced. A lane whose working directory is outside the team root gets
-`--add-dir <team root>` as well.
+Open a terminal per lane and run its command from that lane's own directory.
+Every lane gets the same shape, with `--add-dir` and every path written in full:
+outside one shared tree it is the only thing that lets a lane read its own five
+files, and a relative path resolves against wherever the command was pasted and
+reports nothing when it misses. The two variables are what let the boundary hook
+tell which lane the session is.
 
 Then type two lines into each lane:
 
@@ -197,7 +199,8 @@ from the team root's parent was right until you put the team root somewhere else
 and then every glob missed, every write was allowed, and the member was still
 told at startup that its writes were enforced. The hook
 identifies the lane from `TEAMWORK_LANE`, which every launch command sets, and
-failing that from the working directory's own name under one worktree per lane.
+failing that from the working directory's own name, wherever a lane has a
+directory of its own.
 A session it cannot identify is allowed every write, because a hook that blocked
 what it could not attribute would stop the lead and every session not on a team
 at all. It finds the team root the way a member must: the variable first, then

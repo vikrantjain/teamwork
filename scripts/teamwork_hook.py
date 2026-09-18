@@ -17,7 +17,7 @@ never validated against.
 
 Resolving the lane, first match wins:
     1. $TEAMWORK_LANE, set by the launch command the lead prints.
-    2. The working directory's own name, under one worktree per lane.
+    2. The working directory's own name, wherever a lane has a tree of its own.
     3. Nothing, and then it allows every write and says so once.
 
 Resolving the team root, first match wins, as team-root.md resolves it:
@@ -156,20 +156,46 @@ def lanes_of(root):
         os.path.basename(p)[:-3] for p in role_files(root)}
 
 
-def workspace_is_worktrees(root):
-    """Whether each lane has a tree of its own.
+def workspace_line(root):
+    """The charter's workspace value, lowercased, or None.
 
     `Isolation:` is what this line was called when it had two values instead of
     four. The alias stays because a team formed under the old name would
     otherwise lose its second lane rung silently, which reads as a team with no
-    boundaries rather than as an error.
+    boundaries rather than as an error. `Workspace root:` does not match either
+    prefix, so the two lines cannot be confused for one another.
     """
     for line in read_lines(os.path.join(root, "charter.md")):
         lowered = line.strip().lower()
         for prefix in ("workspace:", "isolation:"):
             if lowered.startswith(prefix):
-                return "worktree" in lowered
-    return False
+                return lowered
+    return None
+
+
+def workspace_is_worktrees(root):
+    """Whether each lane has its own checkout, which decides the glob anchor."""
+    line = workspace_line(root)
+    return bool(line) and "worktree" in line
+
+
+def lane_has_own_directory(root):
+    """Whether a lane's working directory is named for the lane.
+
+    True under worktrees, separate repositories and separate directories: each
+    lane sits in a directory of its own, and the charter asks for that directory
+    to carry the lane's name, so the name is a second way to identify a lane
+    started without $TEAMWORK_LANE.
+
+    False under one shared tree, where every lane's working directory is the
+    same one and the name would answer for all of them or for none. False as
+    well when the line is missing or unreadable, because a wrong lane here
+    denies a lane its own paths and hands it another lane's.
+    """
+    line = workspace_line(root)
+    if not line or "shared tree" in line:
+        return False
+    return any(word in line for word in ("worktree", "repositor", "director"))
 
 
 def resolve_lane(root, cwd):
@@ -178,7 +204,7 @@ def resolve_lane(root, cwd):
     named = os.environ.get("TEAMWORK_LANE")
     if named in lanes:
         return named, "$TEAMWORK_LANE"
-    if workspace_is_worktrees(root) and cwd:
+    if lane_has_own_directory(root) and cwd:
         base = os.path.basename(os.path.realpath(cwd))
         if base in lanes:
             return base, "the working directory's name"

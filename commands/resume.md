@@ -37,9 +37,10 @@ using its own commands: every item blocked on another lane. These are what the
 team was in the middle of, and they are the one thing a park is supposed to have
 preserved.
 
-**4. Print the launch commands for the human**, one per lane, each carrying
-`TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root>` in front and `--add-dir <team
-root>` when the lane's working directory is not inside it:
+**4. Print the launch commands for the human**, one per lane, identical but for
+the lane name, every path absolute and `--add-dir` on all of them. A relative
+path resolves against whatever directory the command is pasted into and says
+nothing when it misses, which starts a lane that cannot read its own contracts:
 
     TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
       claude --agent teamwork:member --add-dir <team root>

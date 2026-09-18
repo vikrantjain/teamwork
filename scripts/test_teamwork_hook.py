@@ -205,6 +205,84 @@ class TestLaneResolution(HookCase):
         self.assertEqual(out, {})
 
 
+class TestLaneFromDirectoryName(HookCase):
+    """Rung 2: a lane started without $TEAMWORK_LANE, identified by its directory.
+
+    It applies wherever a lane has a tree of its own and the charter asks for
+    that tree to carry the lane's name. Under one shared tree every lane's
+    working directory is the same one, so the name answers for all of them and
+    the rung must not fire.
+    """
+
+    def plain(self, workspace):
+        base = os.path.realpath(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, base, ignore_errors=True)
+        root = os.path.join(base, ".teamwork")
+        os.makedirs(os.path.join(root, "roles"))
+        with open(os.path.join(root, "charter.md"), "w", encoding="utf-8") as fh:
+            fh.write(CHARTER.format(root=root).replace(
+                "Workspace: one worktree per lane", f"Workspace: {workspace}"))
+        for lane, text in (("api", ROLE_API), ("web", ROLE_WEB)):
+            with open(os.path.join(root, "roles", f"{lane}.md"), "w",
+                      encoding="utf-8") as fh:
+                fh.write(text)
+        return base, root
+
+    def crossing(self, base, root, lane_dir):
+        """The lane named by its directory reaching for the other lane's path."""
+        os.makedirs(os.path.join(base, lane_dir), exist_ok=True)
+        return run({"hook_event_name": "PreToolUse",
+                    "cwd": os.path.join(base, lane_dir),
+                    "tool_name": "Write",
+                    "tool_input": {"file_path": os.path.join(base, "web/app.tsx")}},
+                   env={"TEAMWORK_ROOT": root})
+
+    def test_separate_directories_resolve_by_name(self):
+        base, root = self.plain("separate directories")
+        out, _ = self.crossing(base, root, "api")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("You are api", out["permissionDecisionReason"])
+
+    def test_separate_repositories_resolve_by_name(self):
+        base, root = self.plain("separate repositories")
+        out, _ = self.crossing(base, root, "api")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+
+    def test_a_shared_tree_never_resolves_by_name(self):
+        """Every lane's directory is the same one, so the name proves nothing."""
+        base, root = self.plain("one shared tree")
+        out, _ = self.crossing(base, root, "api")
+        self.assertEqual(out, {})
+
+    def test_a_directory_matching_no_lane_resolves_nothing(self):
+        base, root = self.plain("separate directories")
+        out, _ = self.crossing(base, root, "not-a-lane")
+        self.assertEqual(out, {})
+
+    def test_the_old_isolation_name_still_carries_the_rung(self):
+        base, root = self.plain("separate directories")
+        charter = os.path.join(root, "charter.md")
+        with open(charter, encoding="utf-8") as fh:
+            text = fh.read()
+        with open(charter, "w", encoding="utf-8") as fh:
+            fh.write(text.replace("Workspace: separate directories",
+                                  "Isolation: separate directories"))
+        out, _ = self.crossing(base, root, "api")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+
+    def test_a_charter_with_no_workspace_line_resolves_nothing(self):
+        """A guess here would hand a lane another lane's paths."""
+        base, root = self.plain("separate directories")
+        charter = os.path.join(root, "charter.md")
+        with open(charter, encoding="utf-8") as fh:
+            text = fh.read()
+        with open(charter, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(l for l in text.splitlines()
+                                if not l.lower().startswith("workspace:")) + "\n")
+        out, _ = self.crossing(base, root, "api")
+        self.assertEqual(out, {})
+
+
 class TestTeamRootResolution(HookCase):
     """Which copy of the team root the hook enforces against."""
 

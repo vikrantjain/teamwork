@@ -65,17 +65,30 @@ unearned rule is a tax charged forever.
    why they are not committed.
 8. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
-9. **Print the launch commands** for the user, one per lane, each carrying
-   `TEAMWORK_LANE` and `TEAMWORK_ROOT` in front, and `--add-dir <team root>` when
-   the lane's working directory is not inside it:
+9. **Print the launch commands** for the user, one per lane, identical but for
+   the lane name, every path absolute:
 
        TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
          claude --agent teamwork:member --add-dir <team root>
 
-   The human starts every lane from these commands, and the two variables are
-   what let the boundary hook deny a write to a path another lane owns. Without
-   them the hook cannot tell which lane the session is, and it allows every write
-   rather than blocking one it cannot attribute.
+   Each is run from that lane's own working directory. Print the same shape for
+   every lane rather than trimming it per lane: under one shared tree the team
+   root is already inside the lane's directory and `--add-dir` changes nothing,
+   and under the other three it is the only thing that lets the lane read its own
+   five files. One shape is one thing for the human to get wrong.
+
+   **Write every path in full.** `--add-dir` accepts a relative path, resolves it
+   against whatever directory the command was pasted into, and reports nothing
+   when it lands somewhere else. That lane then starts, is told its lane and its
+   team root, has its writes policed against globs it cannot read, and cannot
+   open the charter that would explain it. The boundary hook reads the files
+   itself rather than through the tool that `--add-dir` governs, which is why a
+   lane can be bound and blind at the same time.
+
+   The two variables are what let the boundary hook deny a write to a path
+   another lane owns. Without them the hook falls back to the lane's directory
+   name, and under one shared tree there is no such fallback, so it allows every
+   write rather than blocking one it cannot attribute.
 
    Drop `--agent teamwork:member` for a lane whose session does not have the
    plugin. The files bind a member, and the agent definition only points at them.

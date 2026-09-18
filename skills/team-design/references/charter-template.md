@@ -74,10 +74,13 @@ out-of-lane write with nothing said.
 
 Under one worktree per lane it also names the branch convention. A resume and a
 finish both have to find a lane's branch again, and without the convention
-written down they match on a directory name and call a guess a lookup. Name each
-worktree directory for its lane as well. The boundary hook's second rung matches
-that directory's own name against the lane names, so a worktree named anything
-else leaves the lane unidentified and every write allowed.
+written down they match on a directory name and call a guess a lookup.
+
+Name each lane's directory for its lane, under worktrees and under separate
+repositories and separate directories alike. The boundary hook's second rung
+matches that directory's own name against the lane names, so a directory named
+anything else leaves a lane started without `TEAMWORK_LANE` unidentified and
+every write allowed.
 
 Under separate repositories or separate directories, `Owns` is relative to the
 directory holding them all, which is what `Workspace root:` names. `payments/**`
