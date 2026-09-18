@@ -11,7 +11,7 @@ boundary is wrong. Resolve it by the table, then send FRICTION.
 |---|---|
 | You need a change in a path you do not own | You do not make it. ASK the owner, and the owner makes it. |
 | Two members want one item | The partition is wrong. The lead assigns it. Where the tracker has an assignee, the first write wins and the other takes the next item without arguing. |
-| Merge conflict between worktrees | Whoever merges second resolves it. If the resolution touches another lane's owned path, stop and ASK. |
+| Merge conflict between two lanes' branches | Whoever merges second resolves it. If the resolution touches another lane's owned path, stop and ASK. |
 | Two rules disagree | Precedence is fixed: protocol.md, then charter.md, then your own role file. There is nothing to negotiate. |
 | A waits on B and B waits on A | Neither of you resolves it. The lead splits one item. Never restructure the breakdown while working it. |
 | A shared path has no owner | It belongs to the lead until a retro assigns it. Do not adopt it yourself. |
