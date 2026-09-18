@@ -62,7 +62,8 @@ It gets the breakdown, sizes the team from the dependency graph, writes the team
 root, runs the validator, and prints one launch command per lane:
 
 ```
-TEAMWORK_LANE=api TEAMWORK_ROOT=/repo/.teamwork claude --agent teamwork:member
+TEAMWORK_LANE=api TEAMWORK_ROOT=/repo/.teamwork \
+  claude --agent teamwork:member --add-dir /repo/.teamwork
 ```
 
 Open a terminal per lane and run its command from that lane's own directory.
