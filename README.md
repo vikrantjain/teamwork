@@ -2,7 +2,8 @@
 
 Run several Claude Code sessions as a team on one goal — with rules each member
 can actually follow, work items where the project already keeps them, and a
-charter that gets smaller as it gets better.
+charter that gets smaller as it gets better. One repository, several
+repositories, or no version control at all; software or not.
 
 ## Why
 
@@ -92,7 +93,10 @@ without contracts.
 
 ## What it does
 
-- **Sizes the team from the work**, not the goal. Team size is the width of the
+- **Starts from the work you already have.** It reads the project's own plan
+  under whatever name it carries, and when there is none it asks five questions
+  and proposes a structure you amend before anything is written.
+- **Sizes the team from that**, not from the goal. Team size is the width of the
   dependency graph, capped at four lanes. When the width is one it says so and
   declines to form a team.
 - **Gives every lane a boundary, and enforces it.** Each member owns disjoint
@@ -100,9 +104,14 @@ without contracts.
   then denies the write itself, so crossing a boundary fails instead of quietly
   overwriting another lane's work. A lane is a session you start, which is what
   makes the boundary identifiable.
-- **Keeps work items in the project's own tracker** — GitHub issues, an existing
-  `IMPLEMENTATION_PLAN.md`, or a file board. One store, so there is never a
-  second place to look.
+- **Keeps work items in the project's own tracker** — GitHub issues, a plan file
+  that already tracks itself, or a file board beside the contracts. One store, so
+  there is never a second place to look.
+- **Fits the project rather than assuming one.** The charter's `Workspace:` line
+  is one shared tree, one worktree per lane, separate repositories or separate
+  directories, and everything downstream of it — where the team root goes, what
+  `Owns` globs are relative to, what finishing has to merge — follows from that
+  one line. Git is used where it exists and never required.
 - **Improves its own rules.** Members file friction and keep working; a retro
   groups it by cause, reverts the last rule that failed, and makes the smallest
   edit that would have prevented each recurring cause. To add a line you must
@@ -113,9 +122,14 @@ without contracts.
   set of sessions then resumes from the charter and the tracker alone, on this
   machine or on a clone that never saw the original run.
 - **Lands the work when it is done.** Finishing checks the charter's stop
-  condition, parks every lane, then tests each merge with `git merge-tree` and
-  hands the merges and worktree removals to you. It never merges and never
-  removes a worktree, because both destroy something the next turn cannot undo.
+  condition, parks every lane, then lands the work the way the workspace says it
+  is separated: merges tested with `git merge-tree` and handed to you where there
+  are branches, a report of what sits where when there are not. It never merges
+  and never removes a worktree, because both destroy something the next turn
+  cannot undo.
+- **Lets the lead work when nothing waits on it.** A lead may hold one downstream
+  lane — integration, deployment, documentation, review — with a role file and a
+  boundary like any other. It may not hold work another lane is waiting for.
 - **Adopts a team already running.** Sessions collaborating without contracts get
   their lanes read from what they have actually touched, overlaps reported, and a
   charter they ratify before it binds them.
@@ -139,9 +153,11 @@ reach, inside the project or at a location you name. Never in your home folder.
   roster.md       which lane is up, where, and whether it has acked.
 ```
 
-Everything down to `backlog.md` is committed, because a contract that is not
-versioned with the code cannot be reviewed in a pull request. The last two are
-gitignored: they are this run's state, not the team's law.
+Everything down to `backlog.md` is committed when the project is under version
+control, because a contract that is not versioned with the code cannot be
+reviewed in a pull request. The last two are gitignored: they are this run's
+state, not the team's law. With no version control the same files still bind
+every member, because a member reads them by absolute path.
 
 A member loads the protocol, the charter, its own role, the transport and the
 tracker. That is 165 lines with every budget spent to its ceiling, and fewer in
@@ -153,9 +169,9 @@ practice. The budgets exist to keep it there.
 no issue ids. `validate_team.py` fails on all of them, because a charter that
 absorbs a work log stops being read, and unread rules are not rules.
 
-**Lanes own disjoint paths.** The validator fails a team where two roles claim
-one path, where one role's glob contains another's, or where two globs merely
-intersect — `src/a*.py` and `src/*b.py` both reach `src/ab.py`, and neither
+**Lanes own disjoint paths.** This is the floor everything else stands on, and it
+needs files, not git. The validator fails a team where two roles claim one path,
+where one role's glob contains another's, or where two globs merely intersect — `src/a*.py` and `src/*b.py` both reach `src/ab.py`, and neither
 contains the other. It names the file they collide on. This is the collision that
 loses work silently, and the cheapest time to catch it is before anyone starts.
 
@@ -166,9 +182,10 @@ write. A member reaching for a path another lane owns is refused and told to
 `ASK` its owner. A member reaching for the team root is refused and told that
 contracts change at a retro and nowhere else.
 
-The hook identifies the lane from `TEAMWORK_LANE`, which every launch command
-sets, and failing that from the working directory's own name under one worktree
-per lane. A session it cannot identify is allowed every write, because a hook
+Paths are read relative to the workspace: each lane's own tree under one worktree
+per lane, and the directory holding them all under the other three. The hook
+identifies the lane from `TEAMWORK_LANE`, which every launch command sets, and
+failing that from the working directory's own name under one worktree per lane. A session it cannot identify is allowed every write, because a hook
 that blocked what it could not attribute would stop the lead and every session
 not on a team at all. It finds the team root the way a member must: the variable
 first, then the **main** worktree's copy, never the lane's own checkout of one,
@@ -199,7 +216,7 @@ the `Never` line is the whole of the enforcement.
 | `commands/park.md` | `/teamwork:park` — stop where a fresh session can resume |
 | `commands/resume.md` | `/teamwork:resume` — bring a parked team back |
 | `commands/finish.md` | `/teamwork:finish` — land the work and disband |
-| `skills/team-design/` | Lead side: sizing, team root, trackers, transport, templates, leading, parking, retro, adoption |
+| `skills/team-design/` | Lead side: discovery, sizing, team root, trackers, transport, templates, leading, parking, retro, adoption |
 | `skills/team-member/` | Member side: the procedure, the protocol, conflicts, context discipline |
 | `agents/member.md` | One generic lane; finds its role from `TEAMWORK_LANE` |
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
@@ -210,13 +227,11 @@ the `Never` line is the whole of the enforcement.
 ## Requirements
 
 Python 3 for the validator and the hook, standard library only, no build step.
-`git` for worktree isolation and for the team root in a multi-repo layout. `gh`
-only if you want GitHub issues as the tracker.
 
-Two sibling plugins are used when they are installed and skipped when they are
-not: `backlog-refiner`, whose `IMPLEMENTATION_PLAN.md` is the second tracker
-rung, and `github-automation`, whose issue lifecycle the first rung reuses rather
-than inventing labels of its own.
+Nothing else is required. `git` is used when the project has it — for one
+worktree per lane, for resolving the team root from the main worktree, and for
+the merges finishing hands over — and every one of those has a path that works
+without it. `gh` only if you want GitHub issues as the tracker.
 
 ## Checks
 

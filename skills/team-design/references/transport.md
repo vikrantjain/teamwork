@@ -115,3 +115,7 @@ the same name everywhere it appears.
 Two names are reserved by the platform and cannot be lanes: `main` and
 `team-lead`. `[T12]` fails a team that uses either, because the refusal would
 otherwise arrive hours later when the lane tries to take its name.
+
+`lead` means the lane the lead holds and nothing else. It is the one lane the
+boundary hook lets write the team root, so a member given that name is a member
+that may rewrite the contracts.

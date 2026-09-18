@@ -94,8 +94,9 @@ when four things are true, and not before:
    in the tracker. A claim you leave behind is an item nobody can take.
 2. Every `BLOCKED` you opened is recorded against its item. An edge living only
    in a message dies when you do.
-3. Your tree is clean, or the item names the branch, worktree or stash holding
-   the unfinished work. Nobody can find it by looking.
+3. Your work is saved where the team can find it, or the item says where it is:
+   the branch, the worktree, the stash, the directory. Nobody finds it by
+   looking.
 4. Your last `FRICTION` is sent.
 
 Then answer `PARK` and stop. You may park your own lane while the team runs on;

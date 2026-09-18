@@ -42,8 +42,9 @@ formed to remove.
 
 Finish by running
 `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>` and
-reporting it verbatim. Commit the team root only when the tracker is a file
-inside it; everything else there was already committed.
+reporting it verbatim. Commit the team root only when it is under version control
+and the tracker is a file inside it; everything else there was already
+committed.
 
 Close by naming **every lane that did not answer `PARK`**. An unparked lane left
 work in a state only the human can go and look at, and silence here reads as

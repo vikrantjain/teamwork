@@ -1,6 +1,6 @@
 ---
 description: Size a team from the work and write its contracts — how many members, which paths each owns, what each may never do, where work items live, and how members address each other. Refuses to form a team when one session is the right answer.
-argument-hint: <the goal, or a path to an existing IMPLEMENTATION_PLAN.md>
+argument-hint: <the goal, or a path to a plan the project already has>
 ---
 
 # /teamwork:form — design the team
@@ -15,12 +15,14 @@ a roster instead of deriving one:
 ${CLAUDE_PLUGIN_ROOT}/skills/team-design/SKILL.md
 ```
 
-Three steps get skipped under time pressure, and each one changes the result.
+Four steps get skipped under time pressure, and each one changes the result.
 
 **Get the breakdown before sizing anything.** Team size is the width of the
-dependency graph, not a feeling about the goal. Prefer an existing
-`IMPLEMENTATION_PLAN.md`; with none, derive a minimal stream list rather than
-writing a plan, which is `backlog-refiner`'s job.
+dependency graph, not a feeling about the goal. Use the plan the project already
+has, under whatever name it carries; with none, ask the five questions in
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md` in one message.
+Never write a plan to justify a roster: it is a second source of truth that
+nobody maintains.
 
 **Be willing to answer "one session".** When the parallel width is one, say so and
 stop. Forming a two-member team for serial work buys coordination cost and no
@@ -31,8 +33,13 @@ different folders cannot read a relative `.teamwork/`. Follow
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`; when the
 ladder reaches its last rung, ask the user for a path instead of picking one.
 
-With no argument, ask what the goal is. Do not infer it from the repository —
-a team formed around a guessed goal partitions the wrong work.
+**Propose before you write.** The lanes, the paths, the workspace, the tracker
+and the gates go to the human first, and nothing lands in the team root until
+they accept. A boundary the human never agreed to is one that denies a write
+somebody needed, hours later.
+
+With no argument, ask what the goal is. Do not infer it from the project — a team
+formed around a guessed goal partitions the wrong work.
 
 Finish by running
 `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>` and printing

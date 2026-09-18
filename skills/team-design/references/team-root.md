@@ -9,32 +9,55 @@ location the projects genuinely share, or at a path the user gives.
 
 ## The ladder, first match wins
 
-1. **One shared tree** — `<repo>/.teamwork`. Members are already inside it and
-   need no `--add-dir`.
-2. **Worktrees of one repo** — the **main** worktree's `.teamwork`, found from
+The charter's `Workspace:` line decides the first three rungs, so choose it
+first. It does not require git; only rung 2 does.
+
+1. **One shared tree** — `<tree>/.teamwork`, where the tree is the repository
+   root when there is one and the directory the work lives in when there is not.
+   Members are already inside it and need no `--add-dir`.
+2. **One worktree per lane** — the **main** worktree's `.teamwork`, found from
    any worktree as the parent of
    `git rev-parse --path-format=absolute --git-common-dir`. It computes the same
    from everywhere, so nothing is asked.
-3. **Several repos under a shared parent** — `<common ancestor>/.teamwork`, but
-   only when that ancestor is meaningful: not the home directory, not a
-   filesystem root, and either carrying a workspace marker (a superproject
-   `.git`, `pnpm-workspace.yaml`, `go.work`, a Cargo or Maven workspace, a
-   `.code-workspace`) or holding every member's root as a direct child.
+3. **Separate repositories, or separate directories** — `<common
+   ancestor>/.teamwork`, but only when that ancestor is meaningful: not the home
+   directory, not a filesystem root, and either carrying a workspace marker (a
+   superproject `.git`, `pnpm-workspace.yaml`, `go.work`, a Cargo or Maven
+   workspace, a `.code-workspace`) or holding every member's root as a direct
+   child.
 4. **Anything else — ask the user.** A shallow common ancestor is a coincidence,
    not a shared location, and guessing one scatters team state where nobody
    thinks to look for it.
 
 Record the answer in the charter so it is asked once and never re-derived.
 
-Rungs 3 and 4 can land outside any repository. Say so when they do: nothing there
-is committed, so the contracts are not reviewable in a pull request and do not
-travel with the project, which were the two reasons for writing them down. A park
-then has nothing to commit either.
+Rungs 3 and 4 can land outside any repository, and so can rung 1 when the project
+has no version control. Say so when it happens: nothing there is committed, so
+the contracts are not reviewable in a pull request and do not travel with the
+project, which were two of the reasons for writing them down. They still bind
+every member, because a member reads them by absolute path.
+
+## What `Owns` globs are relative to
+
+One directory, the same for every lane, and the boundary hook computes it the
+same way the contracts describe it. Get this wrong and every glob misses, which
+reads as a team with no boundaries rather than as an error.
+
+- **One shared tree** — the tree. `src/api/**` is `<tree>/src/api/**`.
+- **One worktree per lane** — each lane's own worktree, so every lane writes the
+  same globs and they resolve to different files.
+- **Separate repositories or directories** — the directory holding them all,
+  which is the team root's parent. A lane owns `payments/**`, not `src/**`.
+
+A write outside that directory is not the team's business and is allowed. That is
+how a member still writes its own scratch files and its own home configuration
+while its lane is enforced.
 
 ## What the team root holds
 
-Committed, because a contract that is not versioned with the code cannot be
-reviewed in a pull request and does not travel with the project:
+Committed when the team root is under version control, because a contract that is
+not versioned with the code cannot be reviewed in a pull request and does not
+travel with the project:
 
     protocol.md      copied from the plugin, never edited
     conflicts.md     copied from the plugin, never edited
@@ -56,20 +79,22 @@ without new evidence. It is the one file that gains a line at every retro, which
 is why `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/retro.md` prunes it in
 the same pass.
 
-Gitignored, because it is this run's state rather than the team's law:
+Not committed, because it is this run's state rather than the team's law:
 
     friction.md      what the rules cost, appended by the lead only
     roster.md        which lane is up, where, and whether it has acked
 
-Add both to the project's `.gitignore` when you create the team root. Committing
-them puts a churning file in every member's next pull, and `roster.md` is wrong
-for everyone the moment one member restarts.
+Add both to the project's `.gitignore` when the team root is under git.
+Committing them puts a churning file in every member's next pull, and
+`roster.md` is wrong for everyone the moment one member restarts. With no version
+control there is nothing to ignore and nothing to do.
 
 `roster.md` has no template and no budget: it is a scratch list the lead writes
 from the acks, one line per lane giving the lane, its working directory, and
 whether it has acked or parked. Nobody but the lead, `/teamwork:status` and
 `/teamwork:resume` reads it. Losing it costs nothing: a resume re-derives each
-lane's working directory from the charter and from `git worktree list`.
+lane's working directory from the charter, and from `git worktree list` when the
+workspace is worktrees.
 
 ## Why worktrees are the case that bites
 

@@ -7,14 +7,16 @@ means two places to look, and an item in the place nobody checks is a lost item.
 ## The ladder, first match wins
 
 1. **The project's own issue tracker**, when one is reachable. GitHub issues when
-   `gh auth status` succeeds and a remote exists — reuse `github-automation`'s
-   epic, feature, story and bug lifecycle rather than inventing labels. Likewise
-   any other tracker the project already uses.
-2. **`IMPLEMENTATION_PLAN.md`**, when `backlog-refiner` produced one. It is
-   self-tracking by design, so use its own pickability and roll-up rules as
-   written. Do not restate them in the charter.
+   `gh auth status` succeeds and a remote exists, or Jira, Linear, or whatever
+   else the project files against. Reuse its existing lifecycle and labels; a
+   team that invents its own leaves items the project's own tools cannot see.
+2. **A plan file that already tracks itself**, when the project keeps one. Some
+   carry item ids, ownership and a status of their own. Use those rules as
+   written, and do not restate them in the charter.
 3. **`<team root>/backlog.md`**, a minimal fallback beside the contracts. One
-   item per line: id, one-line outcome, owning lane, and what done means.
+   item per line: id, one-line outcome, owning lane, and what done means. This is
+   the rung for a project that tracks nothing yet, including one with no version
+   control at all.
 
 ## What is never the backend
 

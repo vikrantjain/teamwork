@@ -9,7 +9,7 @@ team forever.
 
     Team root: /absolute/path/to/.teamwork
     Team name: <what this team is called; it names the run, not a CLI flag>
-    Isolation: <one shared tree | one worktree per lane, branches <prefix>/<lane>>
+    Workspace: <one shared tree | one worktree per lane, branches <prefix>/<lane> | separate repositories | separate directories>
 
     ## Lanes
     - <lane> — <what it covers, in a phrase>
@@ -40,6 +40,7 @@ otherwise, which is what catches a member editing its own stale worktree copy.
 `## Lanes` entries must start with the lane name, because `[T4]` matches them
 against the files in `roles/`. A lane named here with no role file, or a role file
 named in no lane, is a team where somebody has no rules or nobody has that lane.
+A lead holding a downstream lane is listed here as `lead`, like any other.
 
 `## Shared paths` entries name an owner, and that lane's role must claim the path
 under its own `## Owns`; `[T11]` fails otherwise. The boundary hook reads role
@@ -53,12 +54,22 @@ the hook cannot see a write made through `Bash`. So for the one class of path th
 charter works hardest to give an owner, the prohibition in the other lanes' roles
 is the whole of the enforcement.
 
-`Isolation:` names the branch convention when lanes get worktrees. A resume and a
+`Workspace:` is one of the four in
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md`. It decides what
+a lane's `Owns` globs are relative to. A team that leaves it out is a team
+whose paths mean two things.
+
+Under one worktree per lane it also names the branch convention. A resume and a
 finish both have to find a lane's branch again, and without the convention
 written down they match on a directory name and call a guess a lookup. Name each
 worktree directory for its lane as well. The boundary hook's second rung matches
 that directory's own name against the lane names, so a worktree named anything
 else leaves the lane unidentified and every write allowed.
+
+Under separate repositories or separate directories, `Owns` is relative to the
+directory holding them all, which is the team root's parent. `payments/**` and
+`web/**` are then two lanes; `src/**` written in both is one collision `[T5]`
+would have caught and now cannot see.
 
 ## Working rules
 

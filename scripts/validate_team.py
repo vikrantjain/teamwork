@@ -17,7 +17,7 @@ Exit codes:
 Checks:
     [T1] budgets          every contract file is within its line budget
     [T2] role-shape       each role file has the four headings, a non-empty Owns
-                          and Never, and repo-relative Owns globs
+                          and Never, and workspace-relative Owns globs
     [T3] no-log           no date, checkbox, issue id or status marker in a contract
     [T4] roster-closure   lanes named in the charter and role files on disk agree
     [T5] lane-disjoint    no path is owned by two roles, whether one role's glob
@@ -207,10 +207,10 @@ def check_role_shape(root, rep):
         for entry in entries:
             if entry.startswith("/"):
                 rep.fail("T2", rel, 0,
-                         f"'## Owns' entry {entry!r} is absolute. Owns are "
-                         "repo-relative globs; an absolute path and a relative one "
-                         "naming the same file look unequal to [T5], which then "
-                         "passes a real collision.")
+                         f"'## Owns' entry {entry!r} is absolute. Owns are relative "
+                         "to the workspace named on the charter's 'Workspace:' line; "
+                         "an absolute path and a relative one naming the same file "
+                         "look unequal to [T5], which then passes a real collision.")
 
 
 def check_no_log(root, rep):

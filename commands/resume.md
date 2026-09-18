@@ -28,9 +28,9 @@ ${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md
 ```
 
 `roster.md` when it survived, then `git worktree list` when the charter's
-`Isolation:` is one worktree per lane, then the charter alone for a shared tree,
-then ask. **Never guess a working directory.** A lane started in the wrong tree
-edits the wrong files, and the first sign of it is lost work.
+`Workspace:` is one worktree per lane, then the charter alone for the other three
+workspaces, then ask. **Never guess a working directory.** A lane started in the
+wrong tree edits the wrong files, and the first sign of it is lost work.
 
 **3. Report the open cross-lane edges** from the tracker named in `tracker.md`,
 using its own commands: every item blocked on another lane. These are what the

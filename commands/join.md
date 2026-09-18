@@ -8,7 +8,7 @@ argument-hint: <lane name> [team root path, if this session is outside it]
 Lane, and team root if given: **$ARGUMENTS**
 
 Run the `team-member` skill's procedure. Read it if it is not already loaded,
-because a session that joins without it works the repo instead of the lane:
+because a session that joins without it works the project instead of the lane:
 
 ```
 ${CLAUDE_PLUGIN_ROOT}/skills/team-member/SKILL.md

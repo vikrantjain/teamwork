@@ -16,10 +16,12 @@ then `/reload-plugins` without restarting.
    separate terminals, so the first is the one that finds them. Name the ones you
    could not reach rather than leaving them out; an unreachable session is still
    editing files.
-2. **Observe the division that exists.** In order of weight: `git status`, recent
-   commits, `git worktree list`, then one `ASK` to each session for the paths it
-   has written and what it is working on. Each answers from its own context, so
-   this costs one cheap turn each and is far more accurate than the diff alone.
+2. **Observe the division that exists.** Under version control, in order of
+   weight: `git status`, recent commits, `git worktree list`. Without it, the
+   files modified most recently under each session's working directory. Then, in
+   both cases, one `ASK` to each session for the paths it has written and what it
+   is working on. Each answers from its own context, so this costs one cheap turn
+   each and is far more accurate than reading the disk alone.
 3. **Report overlaps first.** Two sessions writing one path is the exact failure
    this plugin exists to prevent, and adoption is the moment it becomes visible.
    Lead with it. Do not quietly pick a winner — the user may know which edit

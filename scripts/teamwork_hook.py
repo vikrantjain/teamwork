@@ -25,6 +25,14 @@ Resolving the team root, first match wins, as team-root.md resolves it:
     2. The MAIN worktree's .teamwork, from `git rev-parse --git-common-dir`.
     3. The nearest .teamwork walking up from the working directory.
 
+`Owns` globs are relative to the workspace, and which directory that is comes
+from the charter's `Workspace:` line. Under one worktree per lane it is the
+worktree this session is in, because every lane writes the same globs into a
+different tree. Under the other three the lanes share one anchor and it is the
+team root's parent: the tree itself under one shared tree, and the directory
+holding every repository or lane directory under the other two. Git is not
+required for any of this; only the team root's second rung uses it.
+
 Rung 2 is what keeps a lane off its own stale copy. Under one worktree per lane
 every worktree carries a committed .teamwork, and those copies diverge as soon
 as a retro commits on another branch, so walking up finds the copy rather than
@@ -42,11 +50,12 @@ working directory, and a session passes both to everything it spawns, so a lane
 can fan out as widely as its work needs and each agent is held to that lane's
 paths. That is why nothing here governs what happens inside a lane.
 
-The lead must never set $TEAMWORK_LANE. A teammate spawned in the lead's own
-process inherits its environment, so a lead carrying a lane name hands that name
-to every teammate it spawns. They would then be denied their own paths and
-allowed the lead's, which is worse than no enforcement because it is wrong in
-both directions.
+The lead must never set $TEAMWORK_LANE to a member's lane. Anything spawned in
+the lead's own process inherits its environment, so that lane's name would be
+handed to the spawned session, which would then be denied its own paths and
+allowed the lead's. `lead` is the one safe value: it is the lane a lead holds
+when its work is downstream of everyone, and it is the only lane allowed to
+write the team root, which protocol.md rule 5 already reserves to the lead.
 
 There is no SessionEnd branch. Naming a lane's uncommitted work as it exits was
 the obvious place to catch the third park condition, and the platform prints a
@@ -90,6 +99,12 @@ def deny(event, reason):
 def context(event, text):
     emit({"hookSpecificOutput": {"hookEventName": event,
                                  "additionalContext": text}})
+
+
+# The lane a lead holds when its work is downstream of every other lane. It is
+# the one lane allowed inside the team root, because protocol.md rule 5 reserves
+# that to the lead and a lead locked out of friction.md cannot lead.
+LEAD_LANE = "lead"
 
 
 def is_team_root(path):
@@ -140,10 +155,19 @@ def lanes_of(root):
         os.path.basename(p)[:-3] for p in role_files(root)}
 
 
-def isolation_is_worktrees(root):
+def workspace_is_worktrees(root):
+    """Whether each lane has a tree of its own.
+
+    `Isolation:` is what this line was called when it had two values instead of
+    four. The alias stays because a team formed under the old name would
+    otherwise lose its second lane rung silently, which reads as a team with no
+    boundaries rather than as an error.
+    """
     for line in read_lines(os.path.join(root, "charter.md")):
-        if line.strip().lower().startswith("isolation:"):
-            return "worktree" in line.lower()
+        lowered = line.strip().lower()
+        for prefix in ("workspace:", "isolation:"):
+            if lowered.startswith(prefix):
+                return "worktree" in lowered
     return False
 
 
@@ -153,30 +177,53 @@ def resolve_lane(root, cwd):
     named = os.environ.get("TEAMWORK_LANE")
     if named in lanes:
         return named, "$TEAMWORK_LANE"
-    if isolation_is_worktrees(root) and cwd:
+    if workspace_is_worktrees(root) and cwd:
         base = os.path.basename(os.path.realpath(cwd))
         if base in lanes:
             return base, "the working directory's name"
     return None, None
 
 
-def repo_root(cwd, root):
-    here = os.path.realpath(cwd or ".")
+def inside(path, directory):
+    return os.path.commonpath([path, directory]) == directory
+
+
+def enclosing_repo(here):
+    """The repository or worktree this directory is in, or None."""
     while True:
         if os.path.exists(os.path.join(here, ".git")):
             return here
         parent = os.path.dirname(here)
         if parent == here:
-            return os.path.dirname(root)
+            return None
         here = parent
 
 
-def inside(path, directory):
-    return os.path.commonpath([path, directory]) == directory
+def workspace_root(cwd, root):
+    """The directory `Owns` globs are relative to.
+
+    Under one worktree per lane each lane has its own tree, so the anchor is the
+    tree this session is in and every lane writes the same globs. Under the other
+    three the lanes share one anchor: the team root's parent. That is the tree
+    itself under one shared tree, and the directory holding every repository or
+    lane directory under the other two, where a lane owns `payments/**` and is
+    only disjoint from one owning `web/**` when both are read from there.
+
+    Anchoring at the enclosing repository instead would make both of those `**`,
+    so every glob would match every file and the team would look unowned.
+    """
+    here = os.path.realpath(cwd or ".")
+    repo = enclosing_repo(here)
+    if workspace_is_worktrees(root):
+        return repo or os.path.dirname(root)
+    parent = os.path.dirname(root)
+    if inside(here, parent):
+        return parent
+    return repo or parent
 
 
 def owners(root, rel):
-    """Every lane whose `## Owns` reaches this repo-relative path."""
+    """Every lane whose `## Owns` reaches this workspace-relative path."""
     out = []
     for path in role_files(root):
         lane = os.path.basename(path)[:-3]
@@ -205,20 +252,24 @@ def pre_tool_use(payload):
         allow()
 
     real = os.path.realpath(os.path.join(cwd or ".", target))
-    repo = repo_root(cwd, root)
-    # A linked worktree's own copy of the team root is guarded too. It is not the
-    # team root, but it is what a member reads when it forgets rule 4, so a write
-    # that lands there is a contract edit whichever copy it reached.
-    for guarded in (root, os.path.realpath(os.path.join(repo, ".teamwork"))):
-        if inside(real, guarded):
-            deny("PreToolUse",
-                 f"{os.path.relpath(real, guarded)} is in the team root. protocol.md "
-                 "rule 5: write only the paths your role owns, and only the lead "
-                 "writes the team root. Contracts change at a retro and nowhere else. "
-                 "Send FRICTION and keep working.")
-    if not inside(real, repo):
+    anchor = workspace_root(cwd, root)
+    # A lane's own copy of the team root is guarded too. It is not the team root,
+    # but it is what a member reads when it forgets rule 4, so a write that lands
+    # there is a contract edit whichever copy it reached.
+    repo = enclosing_repo(os.path.realpath(cwd or "."))
+    copies = {os.path.realpath(os.path.join(d, ".teamwork"))
+              for d in (anchor, repo) if d}
+    if lane != LEAD_LANE:
+        for guarded in [root] + sorted(copies):
+            if inside(real, guarded):
+                deny("PreToolUse",
+                     f"{os.path.relpath(real, guarded)} is in the team root. "
+                     "protocol.md rule 5: write only the paths your role owns, and "
+                     "only the lead writes the team root. Contracts change at a retro "
+                     "and nowhere else. Send FRICTION and keep working.")
+    if not inside(real, anchor):
         allow()
-    rel = os.path.relpath(real, repo)
+    rel = os.path.relpath(real, anchor)
     claims = owners(root, rel)
     if not claims or any(owner == lane for owner, _ in claims):
         allow()
@@ -243,6 +294,11 @@ def startup(payload, event):
             f"Your lane is {lane} (resolved from {how}). Load exactly five files: "
             f"protocol.md, charter.md, transport.md, tracker.md and roles/{lane}.md. "
             "Never another lane's role file.")
+        if lane == "lead":
+            lines.append(
+                "You are the lead holding the lead lane, so you are the one session "
+                "that may write the team root. Everything outside roles/lead.md's "
+                "Owns still belongs to a member: reach it with a message.")
         lines.append(
             f"Ask your human to run /rename {lane} before you announce yourself. It "
             "is a built-in command you cannot run yourself, and a session is "
@@ -256,9 +312,10 @@ def startup(payload, event):
         lines.append(
             "No lane resolved for this session, so the boundary hook allows every "
             "write. If this session is a member, relaunch it with TEAMWORK_LANE set "
-            "to its lane. If it is the lead, this is correct and TEAMWORK_LANE must "
-            "stay unset: a teammate spawned here would inherit the lead's lane name, "
-            "and the hook would then deny it its own paths and allow it the lead's.")
+            "to its lane. If it is the lead, this is correct. A lead that holds a "
+            "downstream lane may relaunch with TEAMWORK_LANE=lead; it must never be "
+            "set to a member's lane, because anything spawned here inherits the "
+            "value and would then be denied its own paths and allowed the lead's.")
     context(event, " ".join(lines))
 
 

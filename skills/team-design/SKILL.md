@@ -25,16 +25,19 @@ unearned rule is a tax charged forever.
 
 ## Forming a team
 
-1. **Get the breakdown first.** Prefer an existing `IMPLEMENTATION_PLAN.md`. With
-   none, derive a minimal stream list — do not write a full plan, that is
-   `backlog-refiner`'s job and duplicating it creates a second source of truth.
-2. **Size the team from the breakdown**, never from the goal's ambition. Follow
+1. **Get the breakdown first**, from the plan the project already has or from
+   five questions when it has none. Follow
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md`. It also
+   reads the ground the team will run on, and it ends at a proposal the human
+   ratifies before anything is written.
+2. **Size the team from the breakdown**, never from the goal's ambition, and
+   choose the workspace in the same pass. Follow
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` exactly. It
    can return "one session", and when it does, say so and stop.
 3. **Resolve the team root** — one absolute path every member can reach. Follow
-   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`. Ask the
-   user rather than guessing; a wrong guess scatters team state where nobody
-   looks for it.
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`; its ladder
+   keys on the workspace, which is why step 2 comes first. Ask the user rather
+   than guessing; a wrong guess scatters team state where nobody looks for it.
 4. **Pick the tracker**, following
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md`. One backend,
    written into `tracker.md` with its create, claim and close commands.
@@ -49,11 +52,11 @@ unearned rule is a tax charged forever.
    `protocol.md` and `conflicts.md` from
    `${CLAUDE_PLUGIN_ROOT}/skills/team-member/references/` byte for byte.
 7. **Create the rest of the team root**, or the validator reports a team that is
-   half-built. `decisions.md` holding the isolation choice and its reason, an
-   empty `friction.md`, an empty `roster.md`, and `friction.md` and `roster.md`
-   added to the project's `.gitignore`.
-   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` says why
-   those last two are not committed.
+   half-built. `decisions.md` holding the workspace choice and its reason, an
+   empty `friction.md` and an empty `roster.md`. Add those last two to the
+   project's `.gitignore` when the team root is under git, and skip that when it
+   is not. `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` says
+   why they are not committed.
 8. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
 9. **Print the launch commands** for the user, one per lane, each carrying
@@ -107,12 +110,17 @@ unearned rule is a tax charged forever.
 
 ## Leading it once it runs
 
-Forming is a burst; leading is the rest, and it is mostly restraint. The duties
-that belong to nobody else — appending friction, writing the roster, assigning
-the contested item, owning the unowned shared path, broadcasting `RELOAD` — are
-in `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md`, with the
-ones a lead is tempted into and should not do. **Hold the map, not the work**, or
-the lead becomes the bottleneck the team was formed to remove.
+Forming is a burst; leading is the rest, and it is mostly restraint. A lead may
+hold one lane of its own when nothing waits on it — integration, deployment,
+documentation, review — and it is a lane like any other, with a role file and a
+name under `## Lanes`.
+
+The duties that belong to nobody else — appending friction, writing the roster,
+assigning the contested item, owning the unowned shared path, broadcasting
+`RELOAD` — are in
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md`, with the ones a
+lead is tempted into and should not do. **Hold the map, not the work**, or the
+lead becomes the bottleneck the team was formed to remove.
 
 ## Stopping it, and starting it again
 
@@ -128,11 +136,13 @@ the log `[T3]` exists to keep out.
 
 **A run that reaches `## Done` is finished, not parked.**
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/finishing.md` checks the
-stop condition, parks every lane, tests each merge with `git merge-tree` and
-hands the merges and the worktree removals to the human. It
-never merges and never removes a worktree, because both are human gates by the
-charter's own definition and a park is the only thing that was protecting the
-uncommitted work inside them.
+stop condition, parks every lane, and then lands the work the way the charter's
+`Workspace:` line says it is separated. Under worktrees or separate repositories
+that means testing each merge and handing the merges and removals to the human;
+under one shared tree or separate directories there is nothing to merge and the
+report says where the work is. It never merges and never removes a worktree,
+because both are human gates by the charter's own definition and a park is the
+only thing that was protecting the uncommitted work inside them.
 
 ## Improving the rules while the work runs
 
@@ -154,7 +164,8 @@ flight invalidate that work.
 
 ## Further detail
 
-- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` — how many members, and when the answer is none.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md` — finding the work, and the five questions when there is no plan.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` — how many members, which workspace, and when the answer is none.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` — where the shared files live, and when to ask.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md` — choosing one work-item backend.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` — the one kind of member, and how lanes are addressed.

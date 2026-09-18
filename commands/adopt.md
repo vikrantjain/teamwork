@@ -18,9 +18,11 @@ ${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/adoption.md
 Two steps carry the whole command, and both are easy to skip.
 
 **Read the division that already exists; do not invent one.** The work has been
-carved up by what each session has actually touched. `git status`, recent
-commits, `git worktree list`, then one `ASK` to each session for the paths it has
-written. A roster designed from the goal instead would cut across work in flight.
+carved up by what each session has actually touched. Under version control that
+is `git status`, recent commits and `git worktree list`; without it, the most
+recently modified files under each session's working directory. Then one `ASK` to
+each session for the paths it has written. A roster designed from the goal
+instead would cut across work in flight.
 
 **Ratification is a gate, not a notification.** Send each member its lane, its
 `Owns`, its `Never`, and one question: what do you own that this missed? The

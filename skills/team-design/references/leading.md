@@ -2,11 +2,16 @@
 
 Forming is a burst of work. Leading is everything after it, and it is mostly
 restraint: **hold the map, not the work.** The roster, the lanes and the open
-cross-lane edges are yours. Diffs, files and findings are not.
+cross-lane edges are yours. Another lane's diffs, files and findings are not.
 
-A lead that reviews the work becomes the context bottleneck the team was formed
-to remove, and it happens gradually enough that nobody notices until the lead is
-the slowest member.
+A lead that reviews the team's work becomes the context bottleneck the team was
+formed to remove, and it happens gradually enough that nobody notices until the
+lead is the slowest member.
+
+You may hold one lane of your own when it is downstream and nobody waits on it —
+integration, deployment, documentation, review. It is a lane like any other, with
+a role file at `roles/lead.md` and its name under the charter's `## Lanes`. Work
+it after the duties below, never instead of them.
 
 ## What only you do
 
@@ -30,15 +35,18 @@ the slowest member.
 
 - **Never verify a lane's `Done means` yourself.** That is what made it a
   checkable condition. Reading the work to confirm it undoes the saving.
-- **Never take a lane.** A lead carrying work cannot hold the map, and the map is
-  the only thing no one else can hold.
+- **Never take a lane another lane waits on.** A lead holding work in the
+  critical path cannot hold the map, and the map is the only thing no one else
+  can hold. A downstream lane is not that; see above.
 - **Never poll.** Run `/teamwork:status`, which reads files and `ListAgents`.
   Asking four lanes for a status costs four turns and tells you less.
 - **Never settle a rule dispute in messages.** Precedence is fixed in
   `conflicts.md`, and anything it does not settle waits for the retro.
-- **Never set `TEAMWORK_LANE` in your own session.** A teammate you spawn
-  inherits your environment, so your lane name becomes its lane name. The
-  boundary hook would then deny each teammate its own paths and allow it yours.
+- **Never set `TEAMWORK_LANE` to a member's lane.** Anything you spawn inherits
+  your environment, so that lane's name would become its name, and the hook would
+  deny it its own paths. `lead` is the one value that is safe, and it buys you
+  the same boundary every member has. You cannot set it in the session you are
+  already in, so it is set at the next launch or not at all.
 
 ## When a member goes quiet
 

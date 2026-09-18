@@ -29,8 +29,8 @@ absolute. Do not re-report any of it. Your job is the judgement those checks can
 2. **Does every rule name its failure mode?** A rule that cannot say what goes
    wrong without it is advice, and advice is not followed.
 3. **Does each `## Owns` match what the lane actually writes?** Compare against
-   the repo. A path in `Owns` that the lane never touches is noise; a path the
-   lane writes that appears in no role is the next collision.
+   the workspace. A path in `Owns` that the lane never touches is noise; a path
+   the lane writes that appears in no role is the next collision.
 4. **Does each `## Never` forbid something this lane is tempted by?** A
    prohibition restating `protocol.md` costs a line and prevents nothing.
 5. **Could someone else check each `## Done means`?** "The API is finished" is

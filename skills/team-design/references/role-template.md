@@ -2,7 +2,8 @@
 
 One per lane, at `<team root>/roles/<lane>.md`, at most 30 lines. The file is
 named for the lane, and `TEAMWORK_LANE` carries the lane, which is how a member
-finds its own role without being told which one it is.
+finds its own role without being told which one it is. A lead holding a
+downstream lane gets one too, at `roles/lead.md`.
 
 Exactly four headings, in this order. `[T2]` fails on one that is missing,
 duplicated or out of order, because a role that varies in shape cannot be read
@@ -28,6 +29,13 @@ quickly by a tired member.
 Path globs, one per line, and nothing else. No prose, no topics, no
 responsibilities — the validator reads this section to prove no two lanes own the
 same path, and a sentence here defeats that check.
+
+Globs are relative to the workspace, never absolute. Which directory that is
+comes from the charter's `Workspace:` line: the tree under one shared tree, the
+lane's own worktree under one worktree per lane, and the directory holding them
+all under separate repositories or separate directories. An absolute path and a
+relative one naming the same file look unequal to `[T5]`, which then passes a
+real collision, so `[T2]` rejects the absolute one.
 
 Every path the lane will write must appear. A path that appears in no role
 belongs to the lead, which is a fallback, not a plan.

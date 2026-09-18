@@ -20,7 +20,7 @@ CHARTER = """# Ship billing
 
 Team root: {root}
 Team name: billing
-Isolation: one worktree per lane
+Workspace: one worktree per lane
 
 ## Lanes
 - api - the billing service
@@ -268,6 +268,140 @@ class TestTeamRootResolution(HookCase):
         out, _ = run({"hook_event_name": "SessionStart", "cwd": nested},
                      env={"TEAMWORK_LANE": "api"})
         self.assertIn(root, out.get("additionalContext", ""))
+
+
+ROLE_LEAD = """# lead
+
+## Owns
+- docs/**
+
+## Never
+- Take an item another lane waits on. The lead becomes the bottleneck.
+
+## Hands off to
+- Nobody; this lane is downstream of every other.
+
+## Done means
+- `docs/` describes every shipped endpoint.
+"""
+
+
+class TestWorkspaces(HookCase):
+    """The four values of `Workspace:` decide what Owns globs are relative to."""
+
+    def plain(self, workspace, lanes=(("api", ROLE_API), ("web", ROLE_WEB))):
+        """A team root with no git anywhere, holding `lanes`."""
+        base = os.path.realpath(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, base, ignore_errors=True)
+        root = os.path.join(base, ".teamwork")
+        os.makedirs(os.path.join(root, "roles"))
+        charter = CHARTER.format(root=root).replace(
+            "Workspace: one worktree per lane", f"Workspace: {workspace}")
+        with open(os.path.join(root, "charter.md"), "w", encoding="utf-8") as fh:
+            fh.write(charter)
+        for lane, text in lanes:
+            with open(os.path.join(root, "roles", f"{lane}.md"), "w",
+                      encoding="utf-8") as fh:
+                fh.write(text)
+        return base, root
+
+    def test_separate_directories_anchor_at_the_team_roots_parent(self):
+        """No git at all, and the boundary still holds."""
+        base, root = self.plain("separate directories")
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(base, "services"),
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(base, "web/app.tsx")}},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": root})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the web lane", out["permissionDecisionReason"])
+
+    def test_a_lane_still_writes_its_own_paths_without_git(self):
+        base, root = self.plain("separate directories")
+        out, _ = run({"hook_event_name": "PreToolUse", "cwd": base,
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(base,
+                                                               "services/billing/x.py")}},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": root})
+        self.assertEqual(out, {})
+
+    def test_separate_repositories_are_read_from_the_shared_parent(self):
+        """Anchoring at the enclosing repo would make every glob match nothing."""
+        base, root = self.plain("separate repositories", lanes=(
+            ("api", ROLE_API.replace("services/billing/**", "payments/**")
+                            .replace("db/migrations/**", "payments/db/**")),
+            ("web", ROLE_WEB)))
+        for component in ("payments", "web"):
+            os.makedirs(os.path.join(base, component), exist_ok=True)
+            subprocess.run(["git", "init", "-q"],
+                           cwd=os.path.join(base, component), check=True)
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(base, "payments"),
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(base, "web/app.tsx")}},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": root})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the web lane", out["permissionDecisionReason"])
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(base, "payments"),
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(base,
+                                                               "payments/charge.py")}},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": root})
+        self.assertEqual(out, {})
+
+    def test_the_old_isolation_line_still_resolves_a_worktree_lane(self):
+        """A team formed before the rename keeps its second lane rung."""
+        self.write(".teamwork/charter.md",
+                   CHARTER.format(root=self.root).replace(
+                       "Workspace: one worktree per lane",
+                       "Isolation: one worktree per lane"))
+        worktree = os.path.join(self.repo, "web")
+        os.makedirs(worktree, exist_ok=True)
+        subprocess.run(["git", "init", "-q"], cwd=worktree, check=True)
+        out, _ = run({"hook_event_name": "PreToolUse", "cwd": worktree,
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(worktree,
+                                                               "db/migrations/1.sql")}},
+                     env={"TEAMWORK_ROOT": self.root})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("You are web", out["permissionDecisionReason"])
+
+
+class TestLeadLane(HookCase):
+    """A lead may hold a downstream lane, and it is the only one in the root."""
+
+    def setUp(self):
+        super().setUp()
+        self.write(".teamwork/charter.md",
+                   CHARTER.format(root=self.root).replace(
+                       "- web - the dashboard",
+                       "- web - the dashboard\n- lead - integration and docs"))
+        self.write(".teamwork/roles/lead.md", ROLE_LEAD)
+
+    def test_the_lead_lane_may_write_the_team_root(self):
+        out, _ = self.edit(".teamwork/friction.md", lane="lead")
+        self.assertEqual(out, {})
+
+    def test_no_other_lane_may(self):
+        out, _ = self.edit(".teamwork/friction.md", lane="api")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("rule 5", out["permissionDecisionReason"])
+
+    def test_the_lead_is_still_held_to_its_own_paths(self):
+        out, _ = self.edit("web/app.tsx", lane="lead")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the web lane", out["permissionDecisionReason"])
+
+    def test_a_member_may_not_write_the_leads_paths(self):
+        """This is what the role file buys; without it docs/ is unowned."""
+        out, _ = self.edit("docs/api.md", lane="api")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the lead lane", out["permissionDecisionReason"])
+
+    def test_the_lead_writes_its_own_lane(self):
+        out, _ = self.edit("docs/api.md", lane="lead")
+        self.assertEqual(out, {})
 
 
 class TestStartup(HookCase):

@@ -20,9 +20,8 @@ goal feels, because ambition does not parallelize — dependency structure does.
    more turns talking than working.
 6. **Fold a lane holding fewer than three items** into its nearest neighbour. A
    lane that finishes in one turn spends more on joining than on working.
-7. **Team size is lanes plus one lead.** The lead does not take a lane: it holds
-   the map, and a lead carrying work becomes the bottleneck the team was formed
-   to remove.
+7. **Team size is lanes plus one lead**, and the lead may hold one of those lanes
+   when it is downstream. See below.
 
 ## The shape of a good lane
 
@@ -34,23 +33,50 @@ A lane failing the first test is not a lane; merge it. A lane failing the second
 is a lane with a hidden dependency; either sequence it behind the lane it needs,
 or move the shared paths to one owner.
 
-## Isolation
+## When the lead holds a lane
 
-Choose one worktree per lane when lanes would share a build directory, a test
-runner, a dev server port, or a generated file. Choose one shared tree when they
-would not. Record the choice and its reason in `decisions.md`, because the next
-retro will otherwise re-litigate it.
+The lead's job is to hold the map. It may also own a lane, on one condition:
+**no other lane waits on its output.** Integration testing, deployment,
+documentation and review are downstream of everyone by definition, and a lead
+doing one of them is not in anybody's way.
 
-Worktrees remove write collisions and cost a merge at the end. A shared tree
-costs nothing and removes nothing, so it is right only when the lanes are
-genuinely disjoint on disk.
+A lead holding work that others wait on is the bottleneck the team was formed to
+remove, and it arrives gradually enough that nobody notices until the lead is the
+slowest member. That is the rule. "The lead takes no lane" was the old form of
+it, and it refused the integration-tester lead for no gain.
 
-Enforcement does not depend on this choice. Every lane is a session the human
+Give the lead's lane a role file like any other, at `roles/lead.md`, and list
+`lead` under the charter's `## Lanes`. Without one, its paths are owned by nobody
+and `[T5]` proves nothing about them, so every member may write the lead's
+integration tests and the hook allows it.
+
+Skip the lane entirely when nothing downstream needs doing. A lead inventing a
+lane to have one is the bottleneck arriving by another route.
+
+## Workspace
+
+Lanes have to be separated on disk before they can be separated by contract.
+Choose one of four, write it on the charter's `Workspace:` line, and record why in
+`decisions.md` so the next retro does not re-litigate it.
+
+- **one shared tree** — every lane works in the same directory. Costs nothing and
+  removes nothing, so it is right only when the lanes are genuinely disjoint on
+  disk.
+- **one worktree per lane** — under git, when lanes would share a build
+  directory, a test runner, a dev server port or a generated file. Removes write
+  collisions and costs a merge at the end. Name the branch convention on the same
+  line, and name each worktree directory for its lane.
+- **separate repositories** — one repository per component, already checked out
+  side by side. The lanes are separated by the checkout, so `Owns` globs are
+  written relative to the directory holding them all, as `payments/**`.
+- **separate directories** — the same, without version control. Finishing has
+  nothing to merge, because the work is already in place.
+
+Enforcement does not depend on the choice. Every lane is a session the human
 starts from the printed launch command, which sets `TEAMWORK_LANE`, so the
-boundary hook identifies the lane under either isolation. The hook's second rung,
+boundary hook identifies the lane under any of the four. The hook's second rung,
 the working directory's own name, is a backstop for a lane someone started
-without that variable, and it only works when each lane has its own worktree
-named for it.
+without that variable, and it works only under one worktree per lane.
 
 So choose worktrees for the reasons above and for the branch each lane needs at
 the end, not to buy a boundary you already have.

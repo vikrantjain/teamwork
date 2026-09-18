@@ -30,5 +30,5 @@ drifts in one of them.
 - **What the tracker already says.** It is the memory. Reading it costs one call;
   reconstructing it from your transcript costs the transcript.
 - **What your role already names.** Your `## Owns` is the answer to "where do I
-  look", and it is deliberately short. Reading the repo to find out is reading
-  the repo.
+  look", and it is deliberately short. Reading the tree to find out is reading
+  the tree.

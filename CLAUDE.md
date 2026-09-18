@@ -107,6 +107,23 @@ recorded rather than the conclusion alone.
   nothing a member can call invokes one, and a lane told to rename itself emits
   the text and stays under its old name.
 
+- **The charter's `Workspace:` line replaced `Isolation:`, and has four values.**
+  Worktree-or-shared-tree assumed one git repository: a project with a repository
+  per component formed a team that could not be landed, and a project with no
+  version control failed at the `.gitignore` step. The line also decides what
+  `Owns` globs are relative to — each lane's own tree under worktrees, the
+  directory holding them all otherwise. Anchoring at the enclosing repository
+  instead made every multi-repo glob match every file. The hook still reads
+  `Isolation:`, or a team formed under the old name loses its second lane rung
+  and is not told.
+- **The lead may hold one lane, when no other lane waits on it.** "The lead takes
+  no lane" refused the integration-tester, deployer and documenter leads for no
+  gain, and left the lead's paths owned by nobody, so `[T5]` proved nothing about
+  them and every member could write them. What survives is the failure mode: a
+  lead holding work in the critical path becomes the bottleneck. `lead` is now a
+  meaningful lane name, because it is the one lane the hook lets write the team
+  root, which `protocol.md` rule 5 already reserves to the lead.
+
 - **The plugin is required only in the lead session.** Members are bound by the
   files, which is what lets a member be a session without the plugin, or a person.
 - **The boundary hook fails open, never closed.** A hook that denied a write it
