@@ -66,7 +66,7 @@ from a fresh clone that never saw the original terminal.
 4. **Ask the user.** A guessed working directory starts a lane in the wrong tree,
    and it will edit the wrong files before anyone notices.
 
-The team name, the lanes and the team root come from the charter on every rung,
+The lanes and the team root come from the charter on every rung,
 and every relaunch carries `TEAMWORK_LANE` and `TEAMWORK_ROOT` so the boundary
 hook can still tell which lane it is watching. The human types `/rename <lane>`
 into each relaunched lane as before: a session's address is its own name, and a

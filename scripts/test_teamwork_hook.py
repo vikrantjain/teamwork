@@ -19,7 +19,6 @@ HOOK = os.path.join(HERE, "teamwork_hook.py")
 CHARTER = """# Ship billing
 
 Team root: {root}
-Team name: billing
 Workspace: one worktree per lane
 
 ## Lanes

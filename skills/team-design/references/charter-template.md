@@ -8,7 +8,6 @@ team forever.
     # <the goal, in one sentence>
 
     Team root: /absolute/path/to/.teamwork
-    Team name: <what this team is called; it names the run, not a CLI flag>
     Workspace: <one shared tree | one worktree per lane, branches <prefix>/<lane> | separate repositories | separate directories>
 
     ## Lanes

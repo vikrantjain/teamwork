@@ -79,7 +79,7 @@ recorded rather than the conclusion alone.
   procedure's job is to leave the tracker true, so resuming is an ordinary start.
 - **Launch commands are re-derived at resume, never persisted.** Persisting them
   would pin a team to the terminals that formed it. The charter already carries
-  the team name, the lanes and the isolation, and `git worktree list` carries the
+  the lanes and the workspace, and `git worktree list` carries the
   rest, so a run whose every terminal is gone can still be brought back.
 - **A lane is a terminal session a human starts, and there is no other kind.**
   Spawning lanes as in-process teammates was the easiest substrate and is
