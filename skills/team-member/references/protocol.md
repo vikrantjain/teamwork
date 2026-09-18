@@ -16,6 +16,7 @@ sees only that line until they expand it.
 - ASK <lane> — one question, answerable in one message.
 - FRICTION — what cost you time, in one line. Then keep working.
 - RELOAD — lead only, after a retro, carrying the team root's absolute path.
+  Re-read your five files from that path before you act again.
 - PARK — lead: drain and stop. Member: I have; the tracker holds my lane.
 
 A message fitting none of these belongs in a file or in the tracker.
