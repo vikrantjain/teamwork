@@ -6,14 +6,18 @@ implicitly: the work has been carved up by what each session has actually
 touched. Read that division. Do not invent a new one.
 
 The plugin is needed only in this session. Members need the files, and a member
-that wants the commands too can run `/plugin install teamwork@my-claude-plugins`
-then `/reload-plugins` without restarting.
+that wants the commands too installs it and runs `/reload-plugins` without
+restarting. Give it the marketplace this session installed from, which is
+`teamwork@teamwork` from the plugin's own repository or
+`teamwork@my-claude-plugins` from the catalog. An install command naming a
+marketplace that member never added fails with nothing to try next.
 
 ## The procedure
 
 1. **Discover.** `ListAgents` gives the other Claude sessions on this machine,
-   and `claude agents --json` gives the background ones. Adoption's usual case is
-   separate terminals, so the first is the one that finds them. Name the ones you
+   and `claude agents --json` prints the active ones, interactive and background
+   alike, as JSON. Adoption's usual case is separate terminals, so the first is
+   the one that finds them and the second is the cross-check. Name the ones you
    could not reach rather than leaving them out; an unreachable session is still
    editing files.
 2. **Observe the division that exists.** Under version control, in order of

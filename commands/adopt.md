@@ -34,9 +34,9 @@ failure this plugin exists to prevent, and this is the moment it becomes visible
 Do not pick a winner; the user may know which edit matters.
 
 With no argument, discover the sessions with `ListAgents`, which reaches the
-other Claude sessions on this machine, then `claude agents --json` for the
-background ones. Name the ones you could not reach. An unreachable session is
-still editing files.
+other Claude sessions on this machine, then `claude agents --json`, which prints
+every active session, interactive and background alike. Name the ones you could
+not reach. An unreachable session is still editing files.
 
 Close with what adoption could not settle: paths whose owner is still a guess,
 and edits already made across a boundary that cannot now be undone.
