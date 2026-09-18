@@ -52,6 +52,20 @@ itself emits the text and stays under its old name. That is why every other file
 names the person rather than the lane, and why a member that has not been renamed
 says so to the lead instead of assuming it worked.
 
+## Waiting without polling
+
+`protocol.md` rule 2 forbids polling and names the mechanism that replaces it. A
+send carries `notify_when_idle: true`, and exactly one notice comes back when
+that lane next goes idle or exits. It is one-shot, so it is subscribed again each
+time it is needed, and it reaches only sessions on this machine, which is where
+every lane already is.
+
+It is available from a session's own main conversation and not from a subagent,
+so a lane subscribes before it fans out rather than inside the fan-out. The
+lead's park drain is what it is worth most for: a lane that exits without
+answering `PARK` still fires the notice, and without it the lead waits on an
+answer that is never coming.
+
 ## A lane is a session a human starts
 
 There is one kind of member: a terminal session, started by a human from the
