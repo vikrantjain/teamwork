@@ -125,9 +125,11 @@ without contracts.
   are branches, a report of what sits where when there are not. It never merges
   and never removes a worktree, because both destroy something the next turn
   cannot undo.
-- **Lets the lead work when nothing waits on it.** A lead may hold one downstream
-  lane — integration, deployment, documentation, review — with a role file and a
-  boundary like any other. It may not hold work another lane is waiting for.
+- **Lets the lead be as involved as the work needs.** Most leads hold the map and
+  nothing else, and assign nothing, because the lanes were partitioned before
+  anyone started. A lead may also hold one downstream lane — integration,
+  deployment, documentation, review — with a role file and a boundary like any
+  other. It may not hold work another lane is waiting for.
 - **Adopts a team already running.** Sessions collaborating without contracts get
   their lanes read from what they have actually touched, overlaps reported, and a
   charter they ratify before it binds them.

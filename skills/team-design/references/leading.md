@@ -8,10 +8,16 @@ A lead that reviews the team's work becomes the context bottleneck the team was
 formed to remove, and it happens gradually enough that nobody notices until the
 lead is the slowest member.
 
-You may hold one lane of your own when it is downstream and nobody waits on it —
-integration, deployment, documentation, review. It is a lane like any other, with
-a role file at `roles/lead.md` and its name under the charter's `## Lanes`. Work
-it after the duties below, never instead of them.
+**You assign almost nothing.** The lanes were partitioned before anyone started,
+so each member takes its own next item from the tracker without being told.
+Assignment appears once below, and it is the exception that means the partition
+was wrong.
+
+Most leads hold no lane, and that is the whole job done. You may also hold one
+when it is downstream and nobody waits on it — integration, deployment,
+documentation, review. It is a lane like any other, with a role file at
+`roles/lead.md` and its name under the charter's `## Lanes`. Work it after the
+duties below, never instead of them.
 
 ## What only you do
 

@@ -33,25 +33,29 @@ A lane failing the first test is not a lane; merge it. A lane failing the second
 is a lane with a hidden dependency; either sequence it behind the lane it needs,
 or move the shared paths to one owner.
 
-## When the lead holds a lane
+## Whether the lead holds a lane
 
-The lead's job is to hold the map. It may also own a lane, on one condition:
-**no other lane waits on its output.** Integration testing, deployment,
-documentation and review are downstream of everyone by definition, and a lead
-doing one of them is not in anybody's way.
+**The default is no lane.** A lead that holds only the map is a complete lead,
+and it is what most teams want. It assigns nothing either, because the lanes were
+partitioned before anyone started and each member takes its own next item. Leave
+this section alone and the team is well formed.
+
+It may also own a lane, on one condition: **no other lane waits on its output.**
+Integration testing, deployment, documentation and review are downstream of
+everyone by definition, and a lead doing one of them is not in anybody's way.
 
 A lead holding work that others wait on is the bottleneck the team was formed to
 remove, and it arrives gradually enough that nobody notices until the lead is the
 slowest member. That is the rule. "The lead takes no lane" was the old form of
 it, and it refused the integration-tester lead for no gain.
 
-Give the lead's lane a role file like any other, at `roles/lead.md`, and list
-`lead` under the charter's `## Lanes`. Without one, its paths are owned by nobody
+Never invent a lane so that the lead has one. That is the same bottleneck
+arriving by another route.
+
+A lane the lead does hold gets a role file like any other, at `roles/lead.md`,
+and its name under the charter's `## Lanes`. Without one, its paths are owned by nobody
 and `[T5]` proves nothing about them, so every member may write the lead's
 integration tests and the hook allows it.
-
-Skip the lane entirely when nothing downstream needs doing. A lead inventing a
-lane to have one is the bottleneck arriving by another route.
 
 ## Workspace
 

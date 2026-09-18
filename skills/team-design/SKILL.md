@@ -107,10 +107,11 @@ unearned rule is a tax charged forever.
 
 ## Leading it once it runs
 
-Forming is a burst; leading is the rest, and it is mostly restraint. A lead may
-hold one lane of its own when nothing waits on it — integration, deployment,
-documentation, review — and it is a lane like any other, with a role file and a
-name under `## Lanes`.
+Forming is a burst; leading is the rest, and it is mostly restraint. Most leads
+hold no lane and assign nothing, because the lanes were partitioned before anyone
+started and each member takes its own next item. A lead may also hold one lane of
+its own when nothing waits on it, as a lane like any other, with a role file and
+a name under `## Lanes`.
 
 The duties that belong to nobody else — appending friction, writing the roster,
 assigning the contested item, owning the unowned shared path, broadcasting
