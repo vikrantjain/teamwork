@@ -143,6 +143,13 @@ recorded rather than the conclusion alone.
   session the event fires in was never observed. Shipping a write path into the
   team root on an assumption would break single-writer discipline silently, and
   the roster is wrong for everyone the moment it is wrong at all.
+- **The `member` agent lists no tools, so a lane inherits its session's.** An
+  agent's `tools:` is an allowlist with no MCP wildcard. `mcp__*` is accepted
+  there and grants nothing, verified against the installed CLI, and
+  `mcp__<server>` needs a name no plugin knows in advance. A curated list
+  therefore cuts every lane off from the project's own servers, including the one
+  its tracker runs through, and it silently dropped `Skill` the same way. A lane
+  is bounded by its role file and the hook, never by which tools exist.
 - **A team lives on one filesystem; members never span machines.** Cross-machine
   coordination was offered and is removed. It cannot hold `protocol.md` rule 4,
   because no absolute path is shared, so `[T9]` failed for every member not on the
