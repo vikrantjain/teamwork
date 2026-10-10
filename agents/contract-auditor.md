@@ -23,6 +23,11 @@ that the team root is absolute, that the charter names one workspace and the
 directory its globs are read against, and that it holds a `## Human gates` and a
 `## Done`. Do not re-report any of it. Your job is the judgement those checks cannot make.
 
+Nor anything `decisions.md` settles with its reason. That file exists so a retro
+does not reopen a settled choice without new evidence, and you are part of the
+retro. Raise one again only with evidence its reason did not have, and name that
+evidence.
+
 ## What you are checking
 
 1. **Is every line still a rule?** A rule tells a member what to do before it

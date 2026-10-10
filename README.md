@@ -85,10 +85,10 @@ to type it. A session is addressed by its own name, which defaults to its workin
 directory, so unrenamed lanes in one tree all answer to the same name and a
 message reaches whichever the platform picks first.
 
-Each lane then reads its five files, announces itself to the lead, and works its
-own paths. While the run is live the lead has `/teamwork:status` for one screen
-of state and `/teamwork:retro` to turn the friction the rules caused into better
-rules. It ends at `/teamwork:finish`, or at `/teamwork:park` when it has to stop
+Each lane then reads its five files, sends the lead `JOIN`, and works its own
+paths once the lead answers. While the run is live the lead has
+`/teamwork:status` for one screen of state and `/teamwork:retro` to turn the
+friction the rules caused into better rules. It ends at `/teamwork:finish`, or at `/teamwork:park` when it has to stop
 early and be picked up later.
 
 `/teamwork:adopt` is the other way in, for sessions already collaborating
@@ -159,7 +159,7 @@ reach, inside the project or at a location you name. Never in your home folder.
   decisions.md    settled choices, with the reasons, so retros stop reopening them.
   backlog.md      the file board, and only when the project has no tracker.
   friction.md     what the rules cost. At its cap, a retro is due.
-  roster.md       which lane is up, where, and whether it has acked.
+  roster.md       which lane is up, where, and whether it has joined.
 ```
 
 Everything down to `backlog.md` is committed when the project is under version

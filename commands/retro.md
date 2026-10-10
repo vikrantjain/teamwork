@@ -20,10 +20,14 @@ skipped.
 
 **Drop every cause that appears once.** A single occurrence is noise, and a rule
 written for noise is charged to every member on every context load, forever.
+Keep its note under `# Carried` in `friction.md` for one more retro, so a second
+occurrence meets the first instead of looking like a first.
 
 **Check the last retro's target cause before writing anything new.** If it
 recurred, that rule failed — revert it and try a different one. Stacking a second
-rule on a failed first is how a charter doubles while getting worse.
+rule on a failed first is how a charter doubles while getting worse. If it did
+not recur and no cause survived, carry the notes and stop. Nothing changed, so
+there is nothing to record, audit, commit or reload.
 
 **To add a line, remove one.** Budgets are hard. If nothing can go, the edit is
 not worth its place and the cause waits for next time.
@@ -31,8 +35,9 @@ not worth its place and the cause waits for next time.
 Then record each decision and its reason in `decisions.md` and **prune it in the
 same pass**, or it reaches its budget and `[T1]` blocks the retro that would have
 fixed it. Then run the validator, spawn `teamwork:contract-auditor` with fresh
-context for the judgement the validator cannot make, clear `friction.md`, commit,
-and broadcast `RELOAD` carrying the team root's absolute path. **A member that is not
+context for the judgement the validator cannot make, carry `friction.md` as the
+retro reference says, commit, and broadcast `RELOAD` carrying the team root's
+absolute path. **A member that is not
 told keeps running the old rules**, and the whole benefit is lost silently.
 
 With no argument, use the team root named in this session's charter.

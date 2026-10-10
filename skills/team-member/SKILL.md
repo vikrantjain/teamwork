@@ -39,10 +39,11 @@ sees it happen.
    meant for you may reach another lane, and neither of you is told. Say so to
    the lead if it does not happen: the roster has to record a lane nobody can
    address.
-5. **Announce yourself to the lead** with your lane and the paths you own, then
-   wait for the ack. The lead writes the roster; you do not. If you cannot reach
-   the lead at all, say so to your human and start anyway — a lane that waits for
-   an ack that cannot arrive is a lane that never works. `transport.md` in the
+5. **Send the lead `JOIN <your lane>`** with your working directory and the
+   paths you own, then wait for the lead's `JOIN`. The lead writes the roster
+   from it; you do not. If you cannot reach the lead at all, say so to your human
+   and start anyway — a lane that waits for an answer that cannot arrive is a
+   lane that never works. `transport.md` in the
    team root says what else that costs.
 
 ## Picking up work

@@ -9,6 +9,7 @@ own rules live in charter.md. Where the two disagree, this file wins.
 Every message opens with one, on the first line, because your teammate's human
 sees only that line until they expand it.
 
+- JOIN <lane> — member: my working directory and Owns. Lead: take an item.
 - CLAIM <id> — I have taken this item.
 - DONE <id> — what changed, and where.
 - BLOCKED <id> by <lane> — what I need. I have already moved to other work.

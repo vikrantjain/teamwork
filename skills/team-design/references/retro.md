@@ -17,11 +17,18 @@ cost more than they earn.
    three rules where one boundary was missing.
 2. **Drop every cause appearing once.** A single occurrence is noise, and a rule
    written for noise is pure cost charged to every member forever. This step is
-   skipped more than any other.
+   skipped more than any other. Dropping a cause means writing no rule for it.
+   Its note stays, because step 9 carries it.
 3. **Check the last retro's target cause first.** If it recurred, that rule
    failed: **revert it**, and try a different one. Stacking a second rule on a
    failed first is how a charter doubles while getting worse. This is the only
    step that makes the loop converge.
+
+   If it did not recur and no cause survived step 2, **carry `friction.md` as
+   step 9 says and stop.** No contract changes, so there is nothing to record,
+   audit, commit or reload. A `RELOAD` that changes nothing costs every member a
+   context load, and a decision invented to fill step 6 is a record the auditor
+   will rightly flag.
 4. **For each surviving cause, write the smallest edit that would have prevented
    it.** Usually a path moving between two lanes, a missing `Never` line, or a
    shared path gaining an owner. Rarely a new rule.
@@ -38,10 +45,20 @@ cost more than they earn.
    <team root>` must pass before anything is announced.
 8. **Spawn `teamwork:contract-auditor`** with fresh context to answer the one
    question the validator cannot: is every line still a rule, or has something
-   become a record of what happened? It flags; you decide.
-9. **Clear `friction.md`, commit, and broadcast `RELOAD`** carrying the team
+   become a record of what happened? It flags; you decide. A finding you decline
+   is a decision like any other. Record it in `decisions.md` when it is worth a
+   line there, because the auditor skips what that file settles and raises
+   everything else again.
+9. **Carry `friction.md`, commit, and broadcast `RELOAD`** carrying the team
    root's absolute path. A member that is not told keeps running the old rules,
    and the retro's whole benefit is lost silently.
+
+   Carrying means three things. Delete the notes this retro acted on. Move the
+   notes steps 2 and 5 set aside under a `# Carried` heading. Delete any note
+   that was already under that heading and is still alone. A cause seen once per
+   retro is otherwise seen once forever, because clearing its first note erases
+   it before the second arrives. The second retro is the limit, so a note that
+   never recurs cannot fill the cap.
 
 ## What a retro never does
 

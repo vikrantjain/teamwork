@@ -24,9 +24,9 @@ would run last week's rules with nothing announcing it.
 `tracker.md`, and `roles/<lane>.md`. Never another lane's role file — you cannot
 act on it, and the context budget is the reason this team exists.
 
-Then ask your human to run `/rename <lane>`, announce yourself to the lead with
-your lane and the paths you own, and wait for the ack before taking an item. You
-cannot run `/rename` yourself, and a lane that is never renamed is one nobody can
+Then ask your human to run `/rename <lane>`, send the lead `JOIN <lane>` with
+your working directory and the paths you own, and wait for the lead's `JOIN`
+before taking an item. You cannot run `/rename` yourself, and a lane that is never renamed is one nobody can
 reach under the name the charter uses. If the lead cannot be reached at all, say
 so and start anyway.
 

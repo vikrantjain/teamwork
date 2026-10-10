@@ -15,10 +15,10 @@ Gather, in this order:
 
 1. **Who is up** — `ListAgents`, matched against the charter's `## Lanes`. Name
    every lane that is not up; a missing lane is the most useful line here. Then
-   `roster.md` for where each lane is running and whether it has acked or parked.
+   `roster.md` for where each lane is running and whether it has joined or parked.
    `ListAgents` says a session exists; only the roster says which tree it is in,
    and a lane running in the wrong tree edits the wrong files. A lane the roster
-   names as acked and `ListAgents` does not show is running without messaging
+   names as joined and `ListAgents` does not show is running without messaging
    rather than stopped, which is a different problem with a different remedy in
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md`.
 2. **What each lane holds** — from the tracker named in `tracker.md`, using its

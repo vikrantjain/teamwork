@@ -111,9 +111,9 @@ What is lost is **every verb**, not only `ASK` and `READY`. Route them the way
 the charter already routes a human member: the lead relays. Three cases need
 saying, because each one silently stops the team rather than slowing it.
 
-- **The startup ack.** A member waits for it before taking an item, so with no
-  messaging every lane waits forever. The human tells the lane to start, and the
-  lead writes the roster from that instead of from an ack.
+- **The startup `JOIN`.** A member waits for the lead's answer before taking an
+  item, so with no messaging every lane waits forever. The human tells the lane
+  to start, and the lead writes the roster from that instead of from a `JOIN`.
 - **The park drain.** `PARK` is broadcast and answered. The human carries both
   halves, and the lead still names every lane it could not reach — an unparked
   lane is the thing a park exists to prevent.

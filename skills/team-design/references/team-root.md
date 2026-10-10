@@ -98,7 +98,7 @@ the same pass.
 Not committed, because it is this run's state rather than the team's law:
 
     friction.md      what the rules cost, appended by the lead only
-    roster.md        which lane is up, where, and whether it has acked
+    roster.md        which lane is up, where, and whether it has joined
 
 Add both to the project's `.gitignore` when the team root is under git.
 Committing them puts a churning file in every member's next pull, and
@@ -106,8 +106,8 @@ Committing them puts a churning file in every member's next pull, and
 control there is nothing to ignore and nothing to do.
 
 `roster.md` has no template and no budget: it is a scratch list the lead writes
-from the acks, one line per lane giving the lane, its working directory, and
-whether it has acked or parked. Nobody but the lead, `/teamwork:status` and
+from each `JOIN`, one line per lane giving the lane, its working directory, and
+whether it has joined or parked. Nobody but the lead, `/teamwork:status` and
 `/teamwork:resume` reads it. Losing it costs nothing: a resume re-derives each
 lane's working directory from the charter, and from `git worktree list` when the
 workspace is worktrees.

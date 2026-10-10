@@ -27,8 +27,9 @@ else may be waiting on any of it.
 
 - **Append `FRICTION` to `friction.md`.** Members send, you write. Two members
   appending at once lose a line and neither sees it happen.
-- **Write `roster.md` from the acks**, so there is one place that says which lane
-  is up and where it is running.
+- **Answer each `JOIN` with `JOIN`, and write `roster.md` from it**, so there is
+  one place that says which lane is up and where it is running. The member waits
+  for your answer before it takes an item.
 - **Assign the item when two members want one.** It means the partition was
   wrong, so file a friction line as well as assigning it.
 - **Own every shared path no lane owns**, until a retro gives it an owner.

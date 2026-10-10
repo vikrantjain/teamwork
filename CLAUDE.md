@@ -69,7 +69,15 @@ recorded rather than the conclusion alone.
 - **`decisions.md` is the one contract file pruned on a schedule.** Every other
   file is bounded by the remove-a-line-to-add-one rule, but this one gains a line
   at every retro. Left alone it reaches its budget and `[T1]` then blocks the
-  retro that would have fixed it.
+  retro that would have fixed it. A warning before the budget was proposed and
+  refused. A hard budget is meant to be run close to, so the warning would fire
+  on every mature team.
+- **A cause seen once keeps its note in `friction.md` for one more retro.**
+  Clearing the file at every retro erased each first occurrence before a second
+  arrived, so a cause seen once per retro was never seen twice. A separate
+  `watched.md` was proposed and refused. It would be a new file holding what
+  `friction.md` already holds. The carry ends at the second retro, so a note that
+  never recurs cannot fill the cap.
 - **A park writes no new file into the team root.** A "where we are" snapshot was
   the obvious design and is refused: it duplicates the tracker, drifts from it the
   moment either changes, and is exactly the work log `[T3]` keeps out. The park
@@ -98,6 +106,13 @@ recorded rather than the conclusion alone.
   human types `/rename <lane>` into each lane. A lane told to rename itself emits
   the text and stays under its old name, because nothing a member can call invokes
   a built-in command.
+- **`JOIN` is one verb with two halves, and `RELOAD` gets no answer.** The
+  member's announcement and the lead's reply were both called an "ack", and no
+  verb named either, so every lane invented its own opening. A separate `ACK`
+  was proposed and refused. `PARK` already shows one verb carrying both halves,
+  and `protocol.md` is at the most lines its headroom test allows. `PARK` is
+  answered because the drain waits on every answer. Nothing waits on a
+  `RELOAD`, so an answer would cost each side a turn and gate nothing.
 - **The charter's `Workspace:` line replaced `Isolation:`, and has four values.**
   Worktree-or-shared-tree assumed one git repository: a project with a repository
   per component formed a team that could not be landed, and a project with no
@@ -123,6 +138,12 @@ recorded rather than the conclusion alone.
   Members are bound by the files, which is what lets a member be a session without
   the plugin, or a person. The boundary hook ships with the plugin, so a lane
   without it is bound and unchecked, and nothing in that session says so.
+- **A resource that is not a path gets no field in a role file.** A `Binds:`
+  section for ports, services and running instances was proposed and refused.
+  Proving that no resource has two owners means knowing that "port 5432" and
+  "the database" are one thing, which is reading for meaning. The hook cannot
+  see a port being bound either. The charter names the owner, and every other
+  lane gets a `## Never` line, as for a shared path that a command writes.
 - **Nothing checks for duplicated effort; the partition is the whole mechanism.**
   Two lanes cannot write one path, so what is left is two lanes building similar
   things in their own trees, and seeing that means reading both lanes' work.
