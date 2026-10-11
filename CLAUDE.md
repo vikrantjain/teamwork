@@ -102,10 +102,20 @@ recorded rather than the conclusion alone.
   `--agent-name`.** Those flags were the launch command and never worked, verified
   against the installed CLI: with agent-teams mode off they are accepted and
   ignored, and with it on the CLI demands an `--agent-id` a human starting a lane
-  cannot supply. The launch command is `claude --agent teamwork:member`, and the
-  human types `/rename <lane>` into each lane. A lane told to rename itself emits
-  the text and stays under its old name, because nothing a member can call invokes
-  a built-in command.
+  cannot supply. The launch command names the session with `-n <lane>` and runs
+  the join as its opening prompt, both verified against the installed CLI. That
+  replaced two lines the human typed into each lane, `/rename` and the join.
+  `/rename` stays as the repair for a lane started without a name. A lane told to
+  rename itself emits the text and stays under its old name, because nothing a
+  member can call invokes a built-in command.
+- **Every lane gets two commands: a launch with `-n` and a restart with `-r`.**
+  One command that starts or resumes was wanted and does not exist, verified
+  against the installed CLI. `-r <name>` with no such session opens an empty
+  picker instead of starting one. A fixed `--session-id` per lane was refused:
+  `/clear` moves the name to a new session id, so the fixed id resumes the
+  conversation from before the clear. `-c` was refused because under one shared
+  tree it continues whichever lane ran last. `-r` follows the name across a
+  `/clear`, and the picker it then opens lists the newest first.
 - **`JOIN` is one verb with two halves, and `RELOAD` gets no answer.** The
   member's announcement and the lead's reply were both called an "ack", and no
   verb named either, so every lane invented its own opening. A separate `ACK`

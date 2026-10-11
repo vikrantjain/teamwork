@@ -66,12 +66,16 @@ unearned rule is a tax charged forever.
 8. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
 9. **Print the launch commands** for the user, one per lane, identical but for
-   the lane name, every path absolute:
+   the lane name and its working directory, every path absolute:
 
-       TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
-         claude --agent teamwork:member --add-dir <team root>
+       cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
+         claude --agent teamwork:member --add-dir <team root> -n <lane> "/teamwork:join <lane>"
 
-   Each is run from that lane's own working directory. Print the same shape for
+   The human pastes one line per terminal and types nothing after it. `-n` sets
+   the session's name, which is its address. The quoted prompt runs the join as
+   the session's first turn. The leading `cd` lets the line be pasted from any
+   directory, and resuming needs it, because a session is resumed only from the
+   directory it ran in. Print the same shape for
    every lane rather than trimming it per lane: under one shared tree the team
    root is already inside the lane's directory and `--add-dir` changes nothing,
    and under the other three it is the only thing that lets the lane read its own
@@ -90,25 +94,33 @@ unearned rule is a tax charged forever.
    name, and under one shared tree there is no such fallback, so it allows every
    write rather than blocking one it cannot attribute.
 
-   Drop `--agent teamwork:member` for a lane whose session does not have the
-   plugin. The files bind a member, and the agent definition only points at them.
-   Say what that lane gives up, because it is not visible from inside it: the
-   boundary hook ships with the plugin, so nothing checks that lane's writes and
-   nothing at startup tells it so. It cannot run `/teamwork:join` either. Hand it
-   the five files to read by absolute path in place of the join.
+   Drop `--agent teamwork:member` and the quoted join for a lane whose session
+   does not have the plugin. Keep `-n <lane>`, because the name is set by the CLI
+   and not by the plugin. The files bind a member, and the agent definition only
+   points at them. Say what that lane gives up, because it is not visible from
+   inside it: the boundary hook ships with the plugin, so nothing checks that
+   lane's writes and nothing at startup tells it so. It cannot run
+   `/teamwork:join` either. Hand it the five files to read by absolute path in
+   place of the join.
 
-10. **Print the two lines the human types into each lane** once its session is
-   open, in this order:
+10. **Print the restart command under each launch command.** It is the same line
+   with `-r <lane>` in place of `-n <lane>`:
 
-       /rename <lane>
-       /teamwork:join <lane>
+       cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
+         claude --agent teamwork:member --add-dir <team root> -r <lane> "/teamwork:join <lane>"
 
-   The person at that terminal types both, because a lane cannot rename itself
-   and is never told that it failed to.
-   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` says why,
-   and what an unrenamed lane costs the team. A lane without the plugin types
-   `/rename <lane>` as well, since that one is built in, and reads its five files
-   instead of joining.
+   It is for every start after the first: a reboot, a crash, a session stopped
+   at its token limit. `-r` resumes the conversation by its name, so the lane
+   keeps what it knew. The quoted join runs again in the resumed conversation,
+   which rereads the five files and tells the lead the lane is back. The
+   variables and `--add-dir` are repeated because they belong to the process,
+   and a resumed conversation does not bring them back.
+
+   Say that the first start must use the launch command. With no session of
+   that name, `-r` opens an empty picker rather than starting one. After a
+   `/clear`, two sessions share the name, so `-r` opens the picker with the
+   newest first. Enter twice takes it: the first Enter moves from the search box
+   into the list. The join runs once the pick is made.
 
 ## What belongs in a contract
 

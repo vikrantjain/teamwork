@@ -34,11 +34,13 @@ sees it happen.
    that reads the wrong role file owns the wrong paths and is told so by nothing.
 3. **Do not read another lane's role file.** You cannot act on it, and it is pure
    cost in the one budget the team exists to protect.
-4. **Ask your human to run `/rename <your lane>`.** You cannot run it yourself,
-   so say the line and wait to be told it is done. Until it is done a message
-   meant for you may reach another lane, and neither of you is told. Say so to
-   the lead if it does not happen: the roster has to record a lane nobody can
-   address.
+4. **Check that your session is named for your lane.** `ListAgents` opens with
+   this session's own name. The launch command sets it, and a lane started some
+   other way may not have it. When the name is wrong, ask your human to run
+   `/rename <your lane>` and wait to be told it is done. You cannot run it
+   yourself. Until it is done a message meant for you may reach another lane,
+   and neither of you is told. Say so to the lead if it does not happen: the
+   roster has to record a lane nobody can address.
 5. **Send the lead `JOIN <your lane>`** with your working directory and the
    paths you own, then wait for the lead's `JOIN`. The lead writes the roster
    from it; you do not. If you cannot reach the lead at all, say so to your human

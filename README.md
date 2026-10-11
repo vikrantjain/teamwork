@@ -59,31 +59,28 @@ In the session that will lead:
 ```
 
 It gets the breakdown, sizes the team from the dependency graph, writes the team
-root, runs the validator, and prints one launch command per lane:
+root, runs the validator, and prints two commands per lane. The first starts the
+lane:
 
 ```
-TEAMWORK_LANE=api TEAMWORK_ROOT=/repo/.teamwork \
-  claude --agent teamwork:member --add-dir /repo/.teamwork
+cd /repo && TEAMWORK_LANE=api TEAMWORK_ROOT=/repo/.teamwork \
+  claude --agent teamwork:member --add-dir /repo/.teamwork -n api "/teamwork:join api"
 ```
 
-Open a terminal per lane and run its command from that lane's own directory.
+Open a terminal per lane and paste its line. Nothing needs typing after it.
 Every lane gets the same shape, with `--add-dir` and every path written in full:
 outside one shared tree it is the only thing that lets a lane read its own five
 files, and a relative path resolves against wherever the command was pasted and
 reports nothing when it misses. The two variables are what let the boundary hook
-tell which lane the session is.
+tell which lane the session is. `-n api` names the session, and a session is
+addressed by its name. Unnamed lanes in one tree all answer to the same name, so
+a message reaches whichever the platform picks first.
 
-Then type two lines into each lane:
-
-```
-/rename api
-/teamwork:join api
-```
-
-`/rename` is what makes the lane addressable, and the person at the terminal has
-to type it. A session is addressed by its own name, which defaults to its working
-directory, so unrenamed lanes in one tree all answer to the same name and a
-message reaches whichever the platform picks first.
+The second command brings the lane back after a reboot, a crash or a token limit.
+It is the same line with `-r api` in place of `-n api`, which resumes the lane's
+own conversation instead of starting a new one. Use it for every start after the
+first. With no session of that name yet, `-r` opens an empty picker. Lost the
+lines? `/teamwork:resume` in the lead prints them again.
 
 Each lane then reads its five files, sends the lead `JOIN`, and works its own
 paths once the lead answers. While the run is live the lead has

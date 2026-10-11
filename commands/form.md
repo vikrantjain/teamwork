@@ -52,6 +52,6 @@ formed around a guessed goal partitions the wrong work.
 
 Finish by running
 `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>` and printing
-the per-lane launch commands. Close with what you did **not** decide — the
+the per-lane launch and restart commands. Close with what you did **not** decide — the
 tracker rung you skipped, the paths you could not assign an owner — so nobody
 reads silence as coverage.

@@ -71,6 +71,11 @@ from a fresh clone that never saw the original terminal.
 
 The lanes and the team root come from the charter on every rung,
 and every relaunch carries `TEAMWORK_LANE` and `TEAMWORK_ROOT` so the boundary
-hook can still tell which lane it is watching. The human types `/rename <lane>`
-into each relaunched lane as before: a session's address is its own name, and a
-resumed lane that skips it is unreachable under the name the charter uses.
+hook can still tell which lane it is watching.
+
+Print the restart command, with `-r <lane>`, for a lane whose session still
+exists on this machine. It resumes that conversation under the name the charter
+uses. Print the launch command, with `-n <lane>`, for a lane whose session is
+gone, as after a fresh clone. There, `-r` would open an empty picker instead of
+starting the lane. When you cannot tell which case a lane is in, print both and
+say which one to try first.

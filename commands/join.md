@@ -24,11 +24,17 @@ would run last week's rules with nothing announcing it.
 `tracker.md`, and `roles/<lane>.md`. Never another lane's role file — you cannot
 act on it, and the context budget is the reason this team exists.
 
-Then ask your human to run `/rename <lane>`, send the lead `JOIN <lane>` with
-your working directory and the paths you own, and wait for the lead's `JOIN`
-before taking an item. You cannot run `/rename` yourself, and a lane that is never renamed is one nobody can
-reach under the name the charter uses. If the lead cannot be reached at all, say
-so and start anyway.
+Then check this session's name: `ListAgents` opens with it. When it is not the
+lane, ask your human to run `/rename <lane>`. You cannot run `/rename` yourself,
+and a lane under the wrong name is one nobody can reach under the name the
+charter uses. Then send the lead `JOIN <lane>` with your working directory and
+the paths you own, and wait for the lead's `JOIN` before taking an item. If the
+lead cannot be reached at all, say so and start anyway.
+
+This command may run again in a conversation that already joined. The restart
+command resumes a lane and joins it in the same line. Join exactly as the first
+time: reread the five files, because a retro may have changed them, and send
+`JOIN` again, because the lead may be a fresh session with no roster.
 
 With no lane given, read the charter's `## Lanes` and ask which one this session
 is. Do not infer it from the working directory; a worktree name is a convention,

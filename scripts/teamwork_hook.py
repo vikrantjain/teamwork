@@ -335,7 +335,8 @@ def startup(payload, event):
                 "that may write the team root. Everything outside roles/lead.md's "
                 "Owns still belongs to a member: reach it with a message.")
         lines.append(
-            f"Ask your human to run /rename {lane} before you send the lead JOIN. You "
+            f"Before you send the lead JOIN, check with ListAgents that this session "
+            f"is named {lane}. If it is not, ask your human to run /rename {lane}. You "
             "cannot run it yourself, and until it is done a message meant for you may "
             "reach another lane. Tell the lead if it does not happen.")
         lines.append(

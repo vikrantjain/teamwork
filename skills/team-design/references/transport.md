@@ -37,20 +37,22 @@ that may rewrite the contracts.
 ## Making a lane addressable
 
 A session is addressed by **its own name**, and that name defaults to its working
-directory. Nothing in the launch command sets it, and neither do `--team-name`
-and `--agent-name`, which is why this plugin does not use them.
+directory. **The launch command sets it with `-n <lane>`**, and the restart
+command keeps it, because `-r <lane>` resumes the session that has the name.
+`--team-name` and `--agent-name` do not set it, which is why this plugin does not
+use them.
 
-So **the human at each lane types `/rename <lane>`** before `/teamwork:join`.
 Then `ListAgents` shows the lane names the charter uses and a `SendMessage`
-reaches exactly one lane. Skip it and one shared tree gives every lane the same
-name, so a message reaches whichever of them the platform picks first and the
-sender is never told it went to the wrong one.
+reaches exactly one lane. A lane started without a name breaks that. One shared
+tree gives every unnamed lane the same name, so a message reaches whichever of
+them the platform picks first and the sender is never told it went to the wrong
+one.
 
-The member cannot do this for itself. `/rename` is a built-in command, not a
-skill, and nothing a member can call invokes one, so a lane instructed to rename
-itself emits the text and stays under its old name. That is why every other file
-names the person rather than the lane, and why a member that has not been renamed
-says so to the lead instead of assuming it worked.
+A member checks its own name rather than assuming it. `ListAgents` opens with
+the name of the session calling it. When that is not the lane, the human types
+`/rename <lane>`. The member cannot do this for itself. `/rename` is a built-in
+command, not a skill, and nothing a member can call invokes one, so a lane
+instructed to rename itself emits the text and stays under its old name.
 
 ## Waiting without polling
 
@@ -101,7 +103,7 @@ protect.
 
 ## When a lane is unreachable anyway
 
-A lane that has renamed itself and still never appears in `ListAgents` is not
+A lane that carries its name and still never appears in `ListAgents` is not
 messaging at all. That is a degraded team rather than a broken one, and knowing
 which saves a run. `protocol.md` rule 3 puts state in the tracker before it is
 announced, so an unreachable lane still claims its items, still closes them, and

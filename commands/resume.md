@@ -8,7 +8,8 @@ argument-hint: <team root path>
 Team root: **$ARGUMENTS**
 
 A resumed team is rebuilt from the charter and the tracker, never from a saved
-session. Read the team root by its **absolute path**: it is the one thing this
+session. Each lane may resume its own conversation, but nothing here depends on
+what that conversation remembers. Read the team root by its **absolute path**: it is the one thing this
 session cannot derive, which is why the command takes it as an argument.
 
 Do four things, in this order.
@@ -47,19 +48,22 @@ using its own commands: every item blocked on another lane. These are what the
 team was in the middle of, and they are the one thing a park is supposed to have
 preserved.
 
-**4. Print the launch commands for the human**, one per lane, identical but for
-the lane name, every path absolute and `--add-dir` on all of them. A relative
-path resolves against whatever directory the command is pasted into and says
-nothing when it misses, which starts a lane that cannot read its own contracts:
+**4. Print the restart commands for the human**, one per lane, identical but for
+the lane name and its working directory, every path absolute and `--add-dir` on
+all of them. A relative path resolves against whatever directory the command is
+pasted into and says nothing when it misses, which starts a lane that cannot read
+its own contracts:
 
-    TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
-      claude --agent teamwork:member --add-dir <team root>
+    cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
+      claude --agent teamwork:member --add-dir <team root> -r <lane> "/teamwork:join <lane>"
 
-Say that the human then types `/rename <lane>` and `/teamwork:join <lane>` into
-each lane. A relaunch that drops the two variables starts a lane the boundary
-hook cannot identify, so it runs unenforced and nothing says so at the time. One
-that skips the rename starts a lane nobody can address under the name the charter
-uses.
+`-r <lane>` resumes the lane's own conversation by its name, and the quoted join
+runs in it. For a lane whose session is gone, such as after a fresh clone, print
+`-n <lane>` instead. `-r` finds no session there and opens an empty picker. The
+parking reference above says how to tell the two apart. A relaunch that drops the
+two variables starts a lane the boundary hook cannot identify, so it runs
+unenforced and nothing says so at the time. One that drops both `-r` and `-n`
+starts a lane nobody can address under the name the charter uses.
 
 **Read the tracker, never the work.** Resuming is not catching up on diffs. The
 lanes read their own items; you hold the map.
