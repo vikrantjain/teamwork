@@ -102,9 +102,9 @@ recorded rather than the conclusion alone.
   `--agent-name`.** Those flags were the launch command and never worked, verified
   against the installed CLI: with agent-teams mode off they are accepted and
   ignored, and with it on the CLI demands an `--agent-id` a human starting a lane
-  cannot supply. The launch command names the session with `-n <lane>` and runs
-  the join as its opening prompt, both verified against the installed CLI. That
-  replaced two lines the human typed into each lane, `/rename` and the join.
+  cannot supply. The launch command instead names the session with `-n <lane>`
+  and runs the join as its opening prompt, verified the same way. That replaced
+  two lines the human typed into each lane, `/rename` and the join.
   `/rename` stays as the repair for a lane started without a name. A lane told to
   rename itself emits the text and stays under its old name, because nothing a
   member can call invokes a built-in command.
