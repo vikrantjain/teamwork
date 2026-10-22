@@ -8,6 +8,5 @@
   "homepage": "https://github.com/vikrantjain/teamwork",
   "repository": "https://github.com/vikrantjain/teamwork",
   "license": "MIT",
-  "types": "./types/index.d.ts",
   "keywords": ["teamwork", "multi-agent", "orchestration", "cross-session", "teammates", "context-management", "coordination"]
 }

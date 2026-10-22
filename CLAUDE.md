@@ -178,6 +178,11 @@ recorded rather than the conclusion alone.
   `validate_team.py` from `$.plugin.root`. A separate plugin would have to pick
   among several installed teamwork versions, and a validator that does not match
   the team's copied `protocol.md` fails `[T7]` on a sound team.
+- **`plugin.json` carries no `types` key**, though the mod-authoring guide adds
+  one. Claude Code 2.1.74 and earlier check the manifest strictly and refuse the
+  whole plugin over an unknown key, verified in their published code. The engine
+  finds `types/index.d.ts` without it. `hooks.json` was never strict, so its
+  `modules` key costs an old version the board and nothing else.
 - **There is no `PostCompact` hook; `SessionStart` must keep no matcher.** The
   platform reads no output from a `PostCompact` hook, verified against the
   installed CLI's hook types. The lane is re-stated after a compaction only
