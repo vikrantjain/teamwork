@@ -105,6 +105,25 @@ class HookCase(unittest.TestCase):
                     "tool_input": {"file_path": os.path.join(self.repo, rel)}},
                    env={"TEAMWORK_LANE": lane, "TEAMWORK_ROOT": self.root})
 
+    def worktree(self, lane, parent=None):
+        """A real linked worktree carrying its own committed copy of the root.
+
+        It goes in a fresh directory, or under `parent` when given, which is
+        where `claude --worktree` puts one: inside the main checkout.
+        """
+        if subprocess.run(["git", "rev-parse", "-q", "--verify", "HEAD"],
+                          cwd=self.repo, capture_output=True).returncode != 0:
+            subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)
+            subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                            "commit", "-qm", "team"], cwd=self.repo, check=True)
+        if parent is None:
+            parent = tempfile.mkdtemp()
+            self.addCleanup(shutil.rmtree, parent, ignore_errors=True)
+        path = os.path.realpath(os.path.join(parent, lane))
+        subprocess.run(["git", "worktree", "add", "-q", "-b", lane, path],
+                       cwd=self.repo, check=True)
+        return path
+
 
 class TestBoundary(HookCase):
     def test_a_lane_may_write_its_own_path(self):
@@ -286,17 +305,6 @@ class TestLaneFromDirectoryName(HookCase):
 class TestTeamRootResolution(HookCase):
     """Which copy of the team root the hook enforces against."""
 
-    def worktree(self, lane):
-        """A real linked worktree carrying its own committed copy of the root."""
-        subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)
-        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
-                        "commit", "-qm", "team"], cwd=self.repo, check=True)
-        path = os.path.join(tempfile.mkdtemp(), lane)
-        subprocess.run(["git", "worktree", "add", "-q", "-b", lane, path],
-                       cwd=self.repo, check=True)
-        self.addCleanup(shutil.rmtree, os.path.dirname(path), ignore_errors=True)
-        return path
-
     def test_teamwork_root_wins_over_anything_on_disk(self):
         """Rung 1. The launch command sets it, and nothing overrides it."""
         out, _ = run({"hook_event_name": "SessionStart", "cwd": tempfile.gettempdir()},
@@ -361,6 +369,60 @@ ROLE_LEAD = """# lead
 ## Done means
 - `docs/` describes every shipped endpoint.
 """
+
+
+class TestWorktreeCrossing(HookCase):
+    """Under one worktree per lane, a lane writes its own checkout and no other."""
+
+    def write_from(self, tree, lane, target):
+        return run({"hook_event_name": "PreToolUse", "cwd": tree,
+                    "tool_name": "Write", "tool_input": {"file_path": target}},
+                   env={"TEAMWORK_LANE": lane, "TEAMWORK_ROOT": self.root})
+
+    def test_a_lane_may_not_write_into_another_lanes_worktree(self):
+        """The web lane is editing that tree right now."""
+        api, web = self.worktree("api"), self.worktree("web")
+        out, _ = self.write_from(api, "api", os.path.join(web, "web/app.tsx"))
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("the web lane's worktree", out["permissionDecisionReason"])
+
+    def test_not_even_at_a_path_it_owns(self):
+        """Its own path in another tree lands on another lane's branch."""
+        api, web = self.worktree("api"), self.worktree("web")
+        out, _ = self.write_from(api, "api",
+                                 os.path.join(web, "services/billing/x.py"))
+        self.assertEqual(out.get("permissionDecision"), "deny")
+
+    def test_a_lane_may_not_write_into_the_main_checkout(self):
+        api = self.worktree("api")
+        out, _ = self.write_from(api, "api",
+                                 os.path.join(self.repo, "services/billing/x.py"))
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("the main checkout", out["permissionDecisionReason"])
+
+    def test_a_worktree_inside_the_main_checkout_is_judged_by_the_nearest(self):
+        """`claude --worktree` nests worktrees inside the main checkout."""
+        nest = os.path.join(self.repo, ".claude", "worktrees")
+        os.makedirs(nest)
+        api, web = self.worktree("api", nest), self.worktree("web", nest)
+        out, _ = self.write_from(api, "api",
+                                 os.path.join(api, "services/billing/x.py"))
+        self.assertEqual(out, {})
+        out, _ = self.write_from(api, "api", os.path.join(web, "web/app.tsx"))
+        self.assertIn("the web lane's worktree", out["permissionDecisionReason"])
+        out, _ = self.write_from(web, "web", os.path.join(self.repo, "web/app.tsx"))
+        self.assertIn("the main checkout", out["permissionDecisionReason"])
+
+    def test_the_lead_lane_still_writes_the_team_root_from_its_own_tree(self):
+        """The team root sits in the main checkout, which is not the lead's."""
+        self.write(".teamwork/charter.md",
+                   CHARTER.format(root=self.root).replace(
+                       "- web - the dashboard",
+                       "- web - the dashboard\n- lead - integration and docs"))
+        self.write(".teamwork/roles/lead.md", ROLE_LEAD)
+        lead = self.worktree("lead")
+        out, _ = self.write_from(lead, "lead", os.path.join(self.root, "friction.md"))
+        self.assertEqual(out, {})
 
 
 class TestWorkspaces(HookCase):
@@ -577,10 +639,32 @@ class TestStartup(HookCase):
         self.assertIn(self.root, text)
         self.assertIn("roles/api.md", text)
 
-    def test_post_compact_says_it_again(self):
-        out, _ = run({"hook_event_name": "PostCompact", "cwd": self.repo},
+    def test_a_compaction_says_it_again(self):
+        """A compaction starts the session again, with source `compact`."""
+        out, _ = run({"hook_event_name": "SessionStart", "source": "compact",
+                      "cwd": self.repo},
                      env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root})
         self.assertIn(self.root, out.get("additionalContext", ""))
+
+    def test_a_finished_team_tells_a_new_session_nothing(self):
+        """Finishing keeps the contracts, and a later session is not on a team."""
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo})
+        self.assertEqual(out, {})
+
+    def test_a_live_run_tells_an_unnamed_session_where_its_root_is(self):
+        """roster.md is this run's state, so it is there while the run is."""
+        self.write(".teamwork/roster.md", "")
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo})
+        self.assertIn(self.root, out.get("additionalContext", ""))
+        self.assertIn("allows every write", out.get("additionalContext", ""))
+
+    def test_a_misspelled_lane_is_named(self):
+        """Otherwise the session is told to set the variable it already set."""
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo},
+                     env={"TEAMWORK_LANE": "apii", "TEAMWORK_ROOT": self.root})
+        text = out.get("additionalContext", "")
+        self.assertIn("'apii'", text)
+        self.assertIn("api, web", text)
 
     def test_a_session_with_no_lane_is_told_enforcement_is_off(self):
         out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo},

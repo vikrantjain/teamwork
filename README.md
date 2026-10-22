@@ -188,7 +188,10 @@ Declaring a boundary is not enforcing one, so a `PreToolUse` hook denies the
 write. A member reaching for a path another lane owns is refused and told to
 `ASK` its owner. A member reaching for the team root is refused and told that
 contracts change at a retro and nowhere else. The lead's own lane is the one
-exception there, because protocol rule 5 gives it that file to write.
+exception there, because protocol rule 5 gives it that file to write. Under one
+worktree per lane, a member reaching into another lane's worktree or the main
+checkout is refused too, even at a path it owns. That tree is another session's
+live work, and the edit would land on another lane's branch.
 
 Paths are read relative to the workspace: each lane's own tree under one worktree
 per lane, and under the other three the directory the charter names on its

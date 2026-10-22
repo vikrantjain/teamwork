@@ -28,7 +28,10 @@ this procedure reports and hands over.
    The four cases are below. Read the line; do not infer the shape from what you
    happen to find on disk, because a lane that never started leaves no trace and
    would silently drop out of the report.
-5. **Print the commands and stop.** The human runs them.
+5. **Delete `friction.md` and `roster.md`.** They are this run's state. While
+   `roster.md` is there, the boundary hook tells every new session in the
+   project that it is on a team.
+6. **Print the commands and stop.** The human runs them.
 
 ## Landing, by workspace
 

@@ -8,8 +8,9 @@ turns later. This hook watches the writes.
 
 Events:
     PreToolUse    deny a write to a path another lane owns, or to the team root
-    SessionStart  tell a joining session where its team root and role are
-    PostCompact   say it again, because compaction is where that is lost
+    SessionStart  tell a joining session where its team root and role are, and
+                  say it again after a compaction, which starts the session
+                  again with source `compact`
 
 It shares `validate_team`'s glob code on purpose. If the hook and the checker
 disagreed about what a glob reaches, a team would be enforced under rules it was
@@ -22,17 +23,22 @@ Resolving the lane, first match wins:
 
 Resolving the team root, first match wins, as team-root.md resolves it:
     1. $TEAMWORK_ROOT, set by the same launch command.
-    2. The MAIN worktree's .teamwork, from `git rev-parse --git-common-dir`.
+    2. The MAIN worktree's .teamwork, from the repository's common git dir.
     3. The nearest .teamwork walking up from the working directory.
 
 `Owns` globs are relative to the workspace, and which directory that is comes
 from the charter. Under one worktree per lane it is the worktree this session is
 in: each lane's globs are read against its own tree, so two lanes may name the
-same directory and still write different files. Under the other three the lanes
+same directory and still write different files. That anchor alone left every
+other checkout unwatched, so a lane could write into another lane's live tree.
+A write into any checkout but the session's own is therefore denied before a
+glob is read. Under the other three the lanes
 share one anchor and the charter declares it on its `Workspace root:` line. A
 team formed before that line existed falls back to the team root's parent, which
 is where the ladder puts it unless the user named a path of its own. Git is not
-required for any of this; only the team root's second rung uses it.
+required for any of this; only the team root's second rung uses it. The hook
+reads git's own files rather than running git, because it runs on every write
+in every project the plugin is installed in.
 
 Rung 2 is what keeps a lane off its own stale copy. Under one worktree per lane
 every worktree carries a committed .teamwork, and those copies diverge as soon
@@ -64,6 +70,17 @@ SessionEnd hook's output only when the hook reports failure. A warning had to
 pose as a crash to be seen at all, which a hook that fails open must not do. The
 condition stays where a member can act on it, in the park procedure.
 
+There is no PostCompact branch. The platform reads no `hookSpecificOutput`
+from a PostCompact hook, so its context went nowhere. SessionStart already
+fires after a compaction, with source `compact`, and that is what re-states
+the lane.
+
+The startup note is given only while a run is live. Finishing keeps the team
+root, so without that test every later session in the project would be told it
+is on a team, and pay for the note in context. A run is live when the session
+carries either variable, resolves a lane, or the team root holds `roster.md`,
+which is this run's state and goes when the run finishes.
+
 What it cannot see: a write made through Bash. Parsing a shell command to find
 the file it truncates is a losing game, and a hook that catches nine tenths of
 them would be trusted for the tenth.
@@ -71,7 +88,6 @@ them would be trusted for the tenth.
 
 import json
 import os
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -112,6 +128,47 @@ def is_team_root(path):
     return bool(path) and os.path.exists(os.path.join(path, "charter.md"))
 
 
+def enclosing_repo(here):
+    """The repository or worktree this directory is in, or None."""
+    while True:
+        if os.path.exists(os.path.join(here, ".git")):
+            return here
+        parent = os.path.dirname(here)
+        if parent == here:
+            return None
+        here = parent
+
+
+def first_line(path):
+    try:
+        lines = read_lines(path)
+    except (OSError, UnicodeDecodeError):
+        return None
+    return lines[0].strip() if lines else None
+
+
+def git_dirs(here):
+    """(this checkout, the repository's common git dir), or None.
+
+    What `git rev-parse --git-common-dir` prints, read from the files git keeps
+    instead of by running git. A main checkout's `.git` is the common dir. A
+    linked worktree's `.git` is a file naming its own git dir, and that dir's
+    `commondir` names the shared one; a submodule's has none and is its own.
+    """
+    repo = enclosing_repo(here)
+    if not repo:
+        return None
+    dotgit = os.path.join(repo, ".git")
+    if os.path.isdir(dotgit):
+        return repo, os.path.realpath(dotgit)
+    pointer = first_line(dotgit)
+    if not pointer or not pointer.startswith("gitdir:"):
+        return None
+    gitdir = os.path.join(repo, pointer[len("gitdir:"):].strip())
+    common = first_line(os.path.join(gitdir, "commondir")) or "."
+    return repo, os.path.realpath(os.path.join(gitdir, common))
+
+
 def main_worktree(cwd):
     """The repository's main worktree, which is where its `.teamwork` lives.
 
@@ -119,15 +176,38 @@ def main_worktree(cwd):
     those copies diverge the moment a retro commits on another branch. Walking
     up from the working directory finds the copy; this finds the original.
     """
-    try:
-        out = subprocess.run(
-            ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
-            cwd=cwd or ".", capture_output=True, text=True, timeout=5)
-    except (OSError, subprocess.SubprocessError):
+    dirs = git_dirs(os.path.realpath(cwd or "."))
+    return os.path.dirname(dirs[1]) if dirs else None
+
+
+def worktrees(common):
+    """Every checkout of the repository: the main one, then each linked one."""
+    out = [os.path.dirname(common)]
+    linked = os.path.join(common, "worktrees")
+    names = sorted(os.listdir(linked)) if os.path.isdir(linked) else []
+    for name in names:
+        dotgit = first_line(os.path.join(linked, name, "gitdir"))
+        if dotgit:
+            out.append(os.path.dirname(os.path.realpath(
+                os.path.join(linked, name, dotgit))))
+    return out
+
+
+def foreign_checkout(path, here):
+    """The checkout holding `path` when it is not the one `here` is in, or None.
+
+    The nearest checkout wins, because a linked worktree may sit inside the main
+    one, as `claude --worktree` puts it.
+    """
+    dirs = git_dirs(here)
+    if not dirs:
         return None
-    if out.returncode != 0 or not out.stdout.strip():
+    own, common = dirs
+    holders = [t for t in worktrees(common) if inside(path, t)]
+    if not holders:
         return None
-    return os.path.dirname(os.path.realpath(out.stdout.strip()))
+    nearest = max(holders, key=len)
+    return None if nearest == os.path.realpath(own) else nearest
 
 
 def find_team_root(cwd):
@@ -215,17 +295,6 @@ def inside(path, directory):
     return os.path.commonpath([path, directory]) == directory
 
 
-def enclosing_repo(here):
-    """The repository or worktree this directory is in, or None."""
-    while True:
-        if os.path.exists(os.path.join(here, ".git")):
-            return here
-        parent = os.path.dirname(here)
-        if parent == here:
-            return None
-        here = parent
-
-
 def workspace_root(cwd, root):
     """The directory `Owns` globs are relative to.
 
@@ -287,21 +356,35 @@ def pre_tool_use(payload):
         allow()
 
     real = os.path.realpath(os.path.join(cwd or ".", target))
+    here = os.path.realpath(cwd or ".")
     anchor = workspace_root(cwd, root)
     # A lane's own copy of the team root is guarded too. It is not the team root,
     # but it is what a member reads when it forgets rule 4, so a write that lands
     # there is a contract edit whichever copy it reached.
-    repo = enclosing_repo(os.path.realpath(cwd or "."))
+    repo = enclosing_repo(here)
     copies = {os.path.realpath(os.path.join(d, ".teamwork"))
               for d in (anchor, repo) if d}
-    if lane != LEAD_LANE:
-        for guarded in [root] + sorted(copies):
-            if inside(real, guarded):
-                deny("PreToolUse",
-                     f"{os.path.relpath(real, guarded)} is in the team root. "
-                     "protocol.md rule 5: write only the paths your role owns, and "
-                     "only the lead writes the team root. Contracts change at a retro "
-                     "and nowhere else. Send FRICTION and keep working.")
+    for guarded in [root] + sorted(copies):
+        if inside(real, guarded):
+            if lane == LEAD_LANE:
+                allow()
+            deny("PreToolUse",
+                 f"{os.path.relpath(real, guarded)} is in the team root. "
+                 "protocol.md rule 5: write only the paths your role owns, and "
+                 "only the lead writes the team root. Contracts change at a retro "
+                 "and nowhere else. Send FRICTION and keep working.")
+    if workspace_is_worktrees(root):
+        other = foreign_checkout(real, here)
+        if other:
+            name = os.path.basename(other)
+            whose = (f"the {name} lane's worktree" if name in lanes_of(root)
+                     else "the main checkout" if other == main_worktree(here)
+                     else "another lane's worktree")
+            deny("PreToolUse",
+                 f"{real} is in {whose}, {other}. Under one worktree per lane you "
+                 f"write only your own tree, {repo}. Make the change there if the "
+                 "path is yours, or ASK its owner. Two members editing one path "
+                 "lose work, and neither of them sees it happen.")
     if not inside(real, anchor):
         allow()
     rel = os.path.relpath(real, anchor)
@@ -321,9 +404,19 @@ def startup(payload, event):
     if not root:
         allow()
     lane, how = resolve_lane(root, payload.get("cwd"))
+    named = os.environ.get("TEAMWORK_LANE")
+    live = (lane or named or os.environ.get("TEAMWORK_ROOT")
+            or os.path.exists(os.path.join(root, "roster.md")))
+    if not live:
+        allow()
     lines = [f"This session is on a teamwork team. Team root: {root}",
              "Read it by that absolute path. A relative .teamwork/ may be this "
              "worktree's own stale copy."]
+    lanes = lanes_of(root)
+    if named and named not in lanes:
+        lines.append(
+            f"TEAMWORK_LANE is {named!r}, which is not a lane of this team "
+            f"({', '.join(sorted(lanes))}), so the boundary hook ignores it.")
     if lane:
         lines.append(
             f"Your lane is {lane} (resolved from {how}). Load exactly five files: "
@@ -362,7 +455,7 @@ def main():
     try:
         if event == "PreToolUse":
             pre_tool_use(payload)
-        elif event in ("SessionStart", "PostCompact"):
+        elif event == "SessionStart":
             startup(payload, event)
     except SystemExit:
         raise

@@ -124,7 +124,7 @@ why every `RELOAD` repeats that path, and why `[T9]` fails when the charter's
 `Team root:` is not the directory being validated.
 
 The boundary hook resolves the root by this same ladder: `$TEAMWORK_ROOT`, then
-the main worktree's `.teamwork` from `git rev-parse --git-common-dir`, then the
+the main worktree's `.teamwork` from the common git directory, then the
 nearest one walking up. A hook that read a lane's own copy would enforce last
 week's ownership, which is worse than not enforcing at all.
 

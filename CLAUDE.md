@@ -168,6 +168,10 @@ recorded rather than the conclusion alone.
   output only when it reports failure, so an exit-zero warning goes nowhere and
   the only way to be seen was to pose as a crash, which a hook that fails open
   must not do. The condition stays in the park procedure.
+- **There is no `PostCompact` hook; `SessionStart` must keep no matcher.** The
+  platform reads no output from a `PostCompact` hook, verified against the
+  installed CLI's hook types. The lane is re-stated after a compaction only
+  because `SessionStart` also fires then, with source `compact`.
 - **There is no `TeammateIdle` hook, because it could not be verified.** The event
   exists and carries `teammate_name` and `team_name`, which is what a roster
   needs. `Agent({name: ...})` was not available in a headless session, so which
