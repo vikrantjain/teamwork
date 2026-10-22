@@ -221,6 +221,46 @@ manager, a schema by a migration tool. So the charter gives every shared path an
 owner and every other lane a `Never` line for it, and on that one class of path
 the `Never` line is the whole of the enforcement.
 
+## The lead's board
+
+In the lead's session, one line under the prompt says how the team is doing:
+
+```
+team: 3/3 up · friction 7/25 · contracts ok
+```
+
+When something is wrong, the line names only that:
+
+```
+team: web not up · retro due (25/25)
+```
+
+The line reads the charter's lanes, `ListAgents`, `roster.md`, `friction.md` and
+the validator. It refreshes every twenty seconds, and the validator runs only
+when a file in the team root has changed. None of this costs the lead any
+context, because the model never sees it.
+
+An alert fires once when something starts that the lead must act on: a lane
+that was up drops out, a retro falls due, or the contracts start failing. A lane
+that has never been up raises no alert. Every lane is down until its human
+starts it, and the lead already knows that. A dropped lane that comes back gets
+one more toast.
+
+`/team-board` opens the detail in a pane, with what is wrong listed first. Esc
+closes it.
+
+The board runs in the lead's session alone, meaning a session with no
+`TEAMWORK_LANE` or with `lead`. In every member it would raise the same alert in
+every terminal. It shows only while a run is live, by the test the boundary hook
+uses for its startup note.
+
+Nothing depends on the board. It is a hooks module, an early-access part of
+Claude Code, and no command, skill or check in the method uses it. The board
+only reads: it never writes the team root, never messages a lane, and
+keeps no record beside the tracker. `/teamwork:status` remains the way to see
+what each lane holds, because the tracker has no command the board could list
+items with.
+
 ## What's in it
 
 | File | Role |
@@ -239,12 +279,17 @@ the `Never` line is the whole of the enforcement.
 | `agents/contract-auditor.md` | Fresh-context check that the contracts are still rules |
 | `scripts/validate_team.py` | Fifteen structural checks over a team root |
 | `scripts/teamwork_hook.py` | Denies an out-of-lane write; re-states the lane after a compaction |
-| `hooks/hooks.json` | Which events that script runs on |
+| `hooks/hooks.json` | Which events that script runs on, and the board's module |
+| `hooks/board.tsx` | The lead's board: the status line, the alerts and `/team-board` |
+| `hooks/board-model.ts` | What the board shows, computed from the team root's files |
+| `types/index.d.ts` | The board's state, as the engine checks it |
 | `docs/intent.md` | What the plugin is built for, in its author's words |
 
 ## Requirements
 
 Python 3 for the validator and the hook, standard library only, no build step.
+The board is TypeScript that Claude Code runs itself, so it needs no build step
+either.
 
 Nothing else is required. `git` is used when the project has it — for one
 worktree per lane, for resolving the team root from the main worktree, and for
@@ -259,6 +304,7 @@ python3 scripts/test_validate_team.py          # the validator
 python3 scripts/test_teamwork_hook.py          # the hook
 claude plugin validate .                       # the marketplace manifest
 claude plugin validate .claude-plugin/plugin.json      # the plugin itself
+claude plugin test .                           # the board
 ```
 
 Both manifests sit at this repository's root, and validating the directory finds

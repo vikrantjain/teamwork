@@ -20,6 +20,12 @@ improvement loop are this plugin's.
   existing team on its next validation, so change them deliberately.
 - **Python 3 standard library only, no build step**, so the validator runs on a
   bare interpreter. Its module docstring is the spec, with numbered check IDs.
+  The board (`hooks/board.tsx`) is the one exception: a hooks module the engine
+  runs.
+- **Nothing may depend on the board.** Its API is early access, and a member can
+  be a session without the plugin, or a person. The board only reads, and runs
+  only in the lead's session. In members it would raise every alert once per
+  terminal.
 - **The validator checks shape; the auditor agent checks judgement.** Never add a
   check to `validate_team.py` that needs to read for meaning, and never ask the
   auditor to re-report what a check already proved.
@@ -168,6 +174,10 @@ recorded rather than the conclusion alone.
   output only when it reports failure, so an exit-zero warning goes nowhere and
   the only way to be seen was to pose as a crash, which a hook that fails open
   must not do. The condition stays in the park procedure.
+- **The board lives inside this plugin, not in a companion one.** It runs
+  `validate_team.py` from `$.plugin.root`. A separate plugin would have to pick
+  among several installed teamwork versions, and a validator that does not match
+  the team's copied `protocol.md` fails `[T7]` on a sound team.
 - **There is no `PostCompact` hook; `SessionStart` must keep no matcher.** The
   platform reads no output from a `PostCompact` hook, verified against the
   installed CLI's hook types. The lane is re-stated after a compaction only
