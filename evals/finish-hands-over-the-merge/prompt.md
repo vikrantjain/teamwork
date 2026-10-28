@@ -3,6 +3,9 @@ max_turns: 12
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
+/teamwork:finish The team root is not on disk in this session, so this is
+everything it would tell you.
+
 You are the lead of a teamwork team. The charter says:
 
     Workspace: one worktree per lane, branches team/<lane>

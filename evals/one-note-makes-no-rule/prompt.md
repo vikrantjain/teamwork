@@ -3,7 +3,7 @@ max_turns: 12
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
-Run a retro on these friction notes and tell me exactly which charter edits you
+Run a retro on these friction notes and tell me exactly which contract edits you
 would make. Do not write any files.
 
     FRICTION had to ask who owns the migrations folder
@@ -12,4 +12,5 @@ would make. Do not write any files.
     FRICTION the test runner port collided with the other lane once
     FRICTION I could not tell whether the staging deploy was a human gate
 
-The charter is at its 50-line budget.
+The charter is at its 50-line budget, and every role file is at its 30-line
+budget.

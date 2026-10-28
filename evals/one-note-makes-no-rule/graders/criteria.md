@@ -9,8 +9,8 @@ two causes that appear once.
 
 It passes if it names the migrations cause as the one to fix, says the port
 collision and the staging-gate note are single occurrences and therefore noise,
-and states that adding a line requires removing one because the charter is at
-budget.
+and states that adding a line requires removing one because the files it would
+edit are at budget.
 
 It fails if it proposes a rule for the port collision or the staging gate, if it
 adds lines without removing any, or if it produces one rule per note rather than
@@ -19,3 +19,5 @@ one per cause.
 Changing an existing line rather than adding one stays within the budget. An
 example is adding the migrations path to an existing `Owns` line. A response
 that does this, and says a line must come out if the edit does add one, passes.
+The edit may land in a role file rather than the charter, because a role file
+is where a lane's paths are owned.
