@@ -26,7 +26,9 @@ receives.
 is a `JOIN` to the lead, and it waits for the answer, so without this line it
 guesses where to send it. Read the name off `ListAgents`, which opens with this
 session's own. A resume runs in a new lead session, so `/teamwork:resume`
-rewrites the line.
+rewrites the line. Do not `/rename` the lead to a fixed name instead. Only the
+human can run it, at every form and every resume, and a forgotten one sends
+every `JOIN` astray with nothing said.
 
 ## Naming
 

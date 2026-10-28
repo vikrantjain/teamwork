@@ -599,7 +599,11 @@ def normalise(pattern):
 
 
 # A glob in backticks may hold a space, which non-software work is full of:
-# `Drafts/Chapter One/**`. Unquoted, a glob ends at its first space.
+# `Drafts/Chapter One/**`. Unquoted, a glob ends at its first space, and [T2]
+# fails whatever follows it. Both permissive readings fail silently. Taking the
+# whole line makes `src/api/** the API` a glob that matches nothing, and the
+# lane owns nothing. Dropping the rest reads `Drafts/Chapter One/**` as
+# `Drafts/Chapter`, and the lane owns every chapter.
 GLOB = r"(?:`([^`]+)`|(\S+))"
 OWNS_BULLET = re.compile(r"^\s*[-*]\s+" + GLOB + r"(.*)$")
 
