@@ -73,9 +73,9 @@ The lanes and the team root come from the charter on every rung,
 and every relaunch carries `TEAMWORK_LANE` and `TEAMWORK_ROOT` so the boundary
 hook can still tell which lane it is watching.
 
-Write each lane's settings file again before printing anything, by step 9 of
-`${CLAUDE_PLUGIN_ROOT}/skills/team-design/SKILL.md`. A fresh clone has none, and
-a team root that moved has changed `TEAMWORK_ROOT`. The file is derived from the
+Write each lane's settings file again before printing anything, as
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/launching.md` says. A
+fresh clone has none, and a team root that moved has changed `TEAMWORK_ROOT`. The file is derived from the
 charter like the commands are, so rewriting it loses nothing.
 
 Print the restart command, with `-r <lane>`, for a lane whose session still
@@ -85,6 +85,6 @@ gone, as after a fresh clone. There, `-r` would open an empty picker instead of
 starting the lane. When you cannot tell which case a lane is in, print both and
 say which one to try first.
 
-A lane that ran in the background restarts by its session id, as step 11 of
-that skill shows. `claude agents --json --all` says which lanes those are.
+A lane that ran in the background restarts by its session id, as that
+reference shows. `claude agents --json --all` says which lanes those are.
 `-r` there starts a copy that loses the lane's name.

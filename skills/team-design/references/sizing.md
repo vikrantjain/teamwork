@@ -20,7 +20,7 @@ goal feels, because ambition does not parallelize — dependency structure does.
    team spends more turns talking than working. Go past it only when the human
    asks and the graph is genuinely that wide, and write the reason in
    `decisions.md`, or the next retro folds lanes it cannot see the point of.
-6. **Fold a lane holding fewer than three items** into its nearest neighbour. A
+6. **Fold a lane too small to earn its join** into its nearest neighbour. A
    lane that finishes in one turn spends more on joining than on working.
 7. **Team size is lanes plus one lead**, and the lead may hold one of those lanes
    when it is downstream. See below.

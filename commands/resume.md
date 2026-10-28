@@ -74,7 +74,7 @@ unenforced and nothing says so at the time. One that drops both `-r` and `-n`
 starts a lane nobody can address under the name the charter uses.
 
 A lane that ran in the background restarts by its session id, never by `-r`.
-Step 11 of `${CLAUDE_PLUGIN_ROOT}/skills/team-design/SKILL.md` shows the
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/launching.md` shows the
 command. `-r` there starts a copy of the conversation that has lost the lane's
 name.
 
