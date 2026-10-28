@@ -35,6 +35,9 @@ command, an agent or a copied file. Written here, it reaches no team.
   auditor to re-report what a check already proved.
 - **Nothing this plugin authors goes in the user's home folder.** Team roots live
   in the project, at a shared location, or at a path the user gave.
+  `~/.claude/teams/` was the obvious home and is refused: contracts outside the
+  repo are not versioned with the code, not reviewable in a pull request, and do
+  not travel with the project.
 - **`version` lives only in `.claude-plugin/plugin.json`.** Never bump it without
   explicit approval: say what bump the change warrants and wait.
 - **`plugin.json` owns the description; the two marketplace manifests copy it.**
@@ -50,147 +53,49 @@ command, an agent or a copied file. Written here, it reaches no team.
 Reopening one of these without new evidence wastes a session, so the reason is
 recorded rather than the conclusion alone.
 
-- **`~/.claude/teams/` was the obvious home for a team root and is refused.**
-  Contracts that live outside the repo are not versioned with the code, not
-  reviewable in a pull request, and do not travel with the project.
-- **The platform's `~/.claude/tasks/` board is not a tracker rung.** It offers
-  atomic claiming and reassignment on death, which no file board does. It is
-  still refused: it lives in the home folder, it is deleted as items complete,
-  and it is scoped to one team, so it is coordination rather than a record.
-  Losing the atomic claim costs nothing, because lanes are partitioned before
-  anyone starts.
-- **Only the lead writes the team root.** Single-writer discipline: contract files
-  having one author is what the retro assumes, and two members appending to
-  `friction.md` at once would silently lose a line.
-- **`conflicts.md` is a separate file from `protocol.md`.** Both are verbatim, but
-  the conflict table is read when a conflict happens and the protocol is read at
-  every startup. Merging them would put the rarely-needed half in the budget that
-  is paid every turn.
+Most refusals are recorded where the change would be made: the docstrings of
+`scripts/teamwork_hook.py` and `scripts/validate_team.py`, and the references
+under `skills/`. Read the file you are about to change before reopening a choice
+in it. Only the refusals with no such home are listed here.
+
+- **`conflicts.md` is a separate file from `protocol.md`.** The conflict table is
+  read when a conflict happens and the protocol at every startup. Merging them
+  would put the rarely-needed half in the budget that is paid every turn.
 - **One `member` agent serves every lane**, because the role file is looked up
-  from `TEAMWORK_LANE` rather than from the agent's name. Generating an agent per
-  lane would put a copy of the role in a second place.
-- **`[T5]` turns each glob into a regex, then builds a witness from both at
-  once.** Truncating a glob at its first wildcard collapsed every leading-wildcard
-  pattern to the empty prefix, failing valid teams and missing real overlaps.
-  Drawing a path from one glob and testing the other against it proves containment
-  and nothing else: `src/a*.py` and `src/*b.py` collide on every `src/a…b.py` and
-  passed. The witness is checked back against the same `glob_regex` the boundary
-  hook enforces with, so a reported collision can actually happen.
-- **`decisions.md` is the one contract file pruned on a schedule.** Every other
-  file is bounded by the remove-a-line-to-add-one rule, but this one gains a line
-  at every retro. Left alone it reaches its budget and `[T1]` then blocks the
-  retro that would have fixed it. A warning before the budget was proposed and
-  refused. A hard budget is meant to be run close to, so the warning would fire
-  on every mature team.
-- **A cause seen once keeps its note in `friction.md` for one more retro.**
-  Clearing the file at every retro erased each first occurrence before a second
-  arrived, so a cause seen once per retro was never seen twice. A separate
-  `watched.md` was proposed and refused. It would be a new file holding what
-  `friction.md` already holds. The carry ends at the second retro, so a note that
-  never recurs cannot fill the cap.
-- **A park writes no new file into the team root.** A "where we are" snapshot was
-  the obvious design and is refused: it duplicates the tracker, drifts from it the
-  moment either changes, and is exactly the work log `[T3]` keeps out. The park
-  procedure's job is to leave the tracker true, so resuming is an ordinary start.
-- **Launch commands are re-derived at resume, never persisted.** Persisting them
-  would pin a team to the terminals that formed it. The charter carries the lanes
-  and the workspace and `git worktree list` carries the rest, so a run whose every
-  terminal is gone can still be brought back. A lane's settings file is no
-  exception: it is written from the charter and rewritten at every resume.
-- **A lane with a directory of its own carries its variables in that directory's
-  `.claude/settings.local.json`.** The launch command's variables live only as
-  long as its process, so a lane restarted any other way ran unwatched. Claude
-  Code applies the file's `env` at every start there, and the hook sees it,
-  verified against the installed CLI. It cannot serve one shared tree, where one
-  file would make every session in the tree one lane. The session name was the
-  other candidate, and a hook's input does not carry it.
-- **A lane is a session in a process of its own, and there is no other kind.** It
-  may run in a terminal or under `--bg`. A background session keeps the
-  environment and directory it was launched with, verified against the installed
-  CLI, so it is identified exactly as a terminal one is.
-  Spawning lanes as in-process teammates was the easiest substrate and is removed.
-  Such a lane inherits the lead's environment, which carries no lane name, and the
-  lead's working directory, so the boundary hook identifies neither and allows
-  every write. It also has no worktree and no branch, which is what a park
-  re-derives a launch command from and what a finish merges. One kind of member is
-  what makes enforcement, parking, resuming and finishing hold.
-- **What a lane does inside itself is not the team's business.** A member may fan
-  out to subagents, spawn teammates, or run a workflow. The hook reads the
-  environment and the working directory, and a member passes both to everything it
-  spawns, so its own agents are held to its own lane at no cost. Governing that
-  too would cost the fan-out the context budget depends on.
-- **A lane is addressed by its session name, not by `--team-name` and
-  `--agent-name`.** Those flags were the launch command and never worked, verified
+  from `TEAMWORK_LANE`. An agent per lane would put a copy of the role in a
+  second place.
+- **`decisions.md` gets no warning before its budget.** A hard budget is meant to
+  be run close to, so the warning would fire on every mature team. The retro
+  prunes the file instead.
+- **A `watched.md` for causes seen once is refused.** It would be a new file
+  holding what `friction.md` already carries under `# Carried`.
+- **A lane is identified on restart by its directory's
+  `.claude/settings.local.json`.** Claude Code applies the file's `env` at every
+  start there, and the hook sees it, verified against the installed CLI. The
+  session name was the other candidate, and a hook's input does not carry it.
+- **`--team-name` and `--agent-name` are not the launch command.** Verified
   against the installed CLI: with agent-teams mode off they are accepted and
   ignored, and with it on the CLI demands an `--agent-id` a human starting a lane
-  cannot supply. The launch command instead names the session with `-n <lane>`
-  and runs the join as its opening prompt, verified the same way. That replaced
-  two lines the human typed into each lane, `/rename` and the join.
-  `/rename` stays as the repair for a lane started without a name. A lane told to
-  rename itself emits the text and stays under its old name, because nothing a
-  member can call invokes a built-in command.
-- **Every lane gets two commands: a launch with `-n` and a restart with `-r`.**
-  One command that starts or resumes was wanted and does not exist, verified
-  against the installed CLI. `-r <name>` with no such session opens an empty
-  picker instead of starting one. A fixed `--session-id` per lane was refused:
-  `/clear` moves the name to a new session id, so the fixed id resumes the
-  conversation from before the clear. `-c` was refused because under one shared
-  tree it continues whichever lane ran last. `-r` follows the name across a
-  `/clear`, and the picker it then opens lists the newest first. A background
-  lane restarts by session id instead. `--bg -r` starts a copy that loses the
-  lane's name, and a name two sessions share opens a picker nobody can see.
-- **`JOIN` is one verb with two halves, and `RELOAD` gets no answer.** The
-  member's announcement and the lead's reply were both called an "ack", and no
-  verb named either, so every lane invented its own opening. A separate `ACK`
-  was proposed and refused. `PARK` already shows one verb carrying both halves,
-  and `protocol.md` is at the most lines its headroom test allows. `PARK` is
-  answered because the drain waits on every answer. Nothing waits on a
-  `RELOAD`, so an answer would cost each side a turn and gate nothing.
-- **The charter's `Workspace:` line replaced `Isolation:`, and has four values.**
-  Worktree-or-shared-tree assumed one git repository: a project with a repository
-  per component formed a team that could not be landed, and a project with no
-  version control failed at the `.gitignore` step. The hook still reads
-  `Isolation:`, or a team formed under the old name loses its second lane rung
-  silently.
-- **`Workspace root:` is declared, never derived from where the team root sits.**
-  Deriving it as the team root's parent held until the user gave the root a path
-  of its own, which the ladder's last rung invites. Every glob then missed: every
-  out-of-lane write was allowed, and the member was still told at startup that its
-  writes were enforced. `[T14]` requires the line, and refuses it under worktrees
-  where each lane reads its globs against its own tree.
-- **The lead may hold one lane, when no other lane waits on it.** "The lead takes
-  no lane" refused the integration-tester, deployer and documenter leads for no
-  gain, and left the lead's paths owned by nobody, so `[T5]` proved nothing about
-  them and every member could write them. The failure mode that survives is a lead
-  holding work in the critical path, which becomes the bottleneck. That one lane
-  may carry several downstream duties, because a lane is a set of paths and
-  `roles/lead.md` owns their union. `lead` is a meaningful lane name: it is the one
-  lane the hook lets write the team root, which `protocol.md` rule 5 already
-  reserves to the lead.
-- **The plugin is required in the lead session and wanted in every member.**
-  Members are bound by the files, which is what lets a member be a session without
-  the plugin, or a person. The boundary hook ships with the plugin, so a lane
-  without it is bound and unchecked, and nothing in that session says so.
+  cannot supply. `-n <lane>` names the session instead.
+- **A lane has no single start-or-resume command, and no fixed session id.** No
+  command that does both exists, verified against the installed CLI. A fixed
+  `--session-id` resumes the conversation from before a `/clear`, because
+  `/clear` moves the name to a new session id. `-c` is refused because under one
+  shared tree it continues whichever lane ran last.
+- **`JOIN` is one verb with two halves, and `RELOAD` gets no answer.** A separate
+  `ACK` was refused. `PARK` already shows one verb carrying both halves, and
+  `protocol.md` is at the most lines its headroom test allows. `PARK` is answered
+  because the drain waits on every answer. Nothing waits on a `RELOAD`, so an
+  answer would cost each side a turn and gate nothing.
 - **A resource that is not a path gets no field in a role file.** A `Binds:`
-  section for ports, services and running instances was proposed and refused.
-  Proving that no resource has two owners means knowing that "port 5432" and
-  "the database" are one thing, which is reading for meaning. The hook cannot
-  see a port being bound either. The charter names the owner, and every other
-  lane gets a `## Never` line, as for a shared path that a command writes.
+  section for ports, services and running instances was refused. Proving that no
+  resource has two owners means knowing that "port 5432" and "the database" are
+  one thing, which is reading for meaning. The hook cannot see a port being bound
+  either. The charter names the owner, and every other lane gets a `## Never`
+  line, as for a shared path that a command writes.
 - **Nothing checks for duplicated effort; the partition is the whole mechanism.**
   Two lanes cannot write one path, so what is left is two lanes building similar
   things in their own trees, and seeing that means reading both lanes' work.
-- **The boundary hook fails open, never closed.** A hook that denied a write it
-  could not attribute would stop the lead, stop every session that is not on a
-  team, and break the plugin the first time lane resolution missed. An
-  unidentified lane is an unprotected lane, and that is the price of never being
-  the reason someone's unrelated session cannot write a file.
-- **There is no `SessionEnd` branch in the hook.** Naming a lane's uncommitted
-  work as the session exits is the obvious way to catch the third park condition,
-  and it was shipped and then removed. The platform writes a `SessionEnd` hook's
-  output only when it reports failure, so an exit-zero warning goes nowhere and
-  the only way to be seen was to pose as a crash, which a hook that fails open
-  must not do. The condition stays in the park procedure.
 - **The board lives inside this plugin, not in a companion one.** It runs
   `validate_team.py` from `$.plugin.root`. A separate plugin would have to pick
   among several installed teamwork versions, and a validator that does not match
@@ -200,26 +105,15 @@ recorded rather than the conclusion alone.
   whole plugin over an unknown key, verified in their published code. The engine
   finds `types/index.d.ts` without it. `hooks.json` was never strict, so its
   `modules` key costs an old version the board and nothing else.
-- **There is no `PostCompact` hook; `SessionStart` must keep no matcher.** The
-  platform reads no output from a `PostCompact` hook, verified against the
-  installed CLI's hook types. The lane is re-stated after a compaction only
-  because `SessionStart` also fires then, with source `compact`.
+- **`SessionStart` keeps no matcher.** It is what re-states the lane after a
+  compaction, because it also fires then, with source `compact`.
 - **There is no `TeammateIdle` hook, because it could not be verified.** The event
-  exists and carries `teammate_name` and `team_name`, which is what a roster
-  needs. `Agent({name: ...})` was not available in a headless session, so which
-  session the event fires in was never observed. Shipping a write path into the
-  team root on an assumption would break single-writer discipline silently, and
-  the roster is wrong for everyone the moment it is wrong at all.
+  carries `teammate_name` and `team_name`, which is what a roster needs. Which
+  session it fires in was never observed. A write path into the team root built
+  on an assumption would break single-writer discipline silently.
 - **The `member` agent lists no tools, so a lane inherits its session's.** An
   agent's `tools:` is an allowlist with no MCP wildcard. `mcp__*` is accepted
   there and grants nothing, verified against the installed CLI, and
   `mcp__<server>` needs a name no plugin knows in advance. A curated list
   therefore cuts every lane off from the project's own servers, including the one
-  its tracker runs through, and it silently dropped `Skill` the same way. A lane
-  is bounded by its role file and the hook, never by which tools exist.
-- **A team lives on one filesystem; members never span machines.** Cross-machine
-  coordination was offered and is removed. It cannot hold `protocol.md` rule 4,
-  because no absolute path is shared, so `[T9]` failed for every member not on the
-  machine that formed the team. Its transport was a second plugin, which broke the
-  property that a member is bound by the files alone. Resuming from a fresh clone
-  is a different feature and it stays.
+  its tracker runs through.
