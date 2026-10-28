@@ -76,9 +76,10 @@ async function findRoot($: $): Promise<string | undefined> {
 }
 
 /**
- * Whether a run is live, as the boundary hook decides it for its startup note.
+ * Whether a run is live: TEAMWORK_ROOT is set, or the team root holds roster.md.
  * Finishing keeps the team root, and a board for a finished team would report
- * every lane missing forever.
+ * every lane missing forever. The boundary hook's test also counts a resolved
+ * lane, which the board skips: a lead's TEAMWORK_LANE=lead outlives the run.
  */
 async function isLive($: $, root: string): Promise<boolean> {
   return !!(await $.env.get('TEAMWORK_ROOT')) || exists($, `${root}/roster.md`)

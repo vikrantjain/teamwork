@@ -267,7 +267,7 @@ class TestT3NoLog(TeamRootCase):
                 self.assertEqual(code, 0, out)
 
     def test_a_rule_may_say_a_lane_is_not_finished(self):
-        """A future condition is a rule. It was read as a record."""
+        """A future condition is a rule, not a record of a status."""
         append(self.root, "charter.md",
                "\n- A lane is not finished until its own tests pass.\n")
         code, out = self.run_validator()
@@ -292,7 +292,7 @@ class TestT3NoLog(TeamRootCase):
         self.assertEqual(code, 0, out)
 
     def test_a_backtick_cannot_launder_the_rest_of_the_line(self):
-        """One backticked word used to exempt the whole line from every tell."""
+        """A backticked word exempts its own span, never the line around it."""
         append(self.root, "charter.md",
                "\nThe api lane `shipped` the endpoint on 2026-09-01.\n")
         code, out = self.run_validator()
@@ -348,8 +348,8 @@ class TestT5LaneDisjoint(TeamRootCase):
     def test_globs_with_no_literal_prefix_do_not_collide(self):
         """Two lanes owning `**/*.sql` and `**/*.css` are disjoint.
 
-        Truncating each glob at its first wildcard made both of them the empty
-        prefix, which failed a valid team and named no path to fix.
+        Truncated at their first wildcard, both would be the empty prefix, and a
+        valid team would fail with no path named to fix.
 
         The lanes own nothing else, because a lane that also owned a directory
         would reach the other lane's extension inside it, and that is a real
@@ -657,7 +657,7 @@ class TestPathsWithSpaces(TeamRootCase):
         self.assertEqual(code, 0, out)
 
     def test_an_unquoted_glob_with_a_space_fails(self):
-        """Read to its first space, it owned `Drafts/Chapter` and every chapter."""
+        """Read to its first space, the glob would own every chapter."""
         write(self.root, "roles/ui.md", ROLE_UI.replace(
             "- src/ui/**", "- Drafts/Chapter Two/**"))
         code, out = self.run_validator()
@@ -699,7 +699,7 @@ class TestT2Owns(TeamRootCase):
 
 
 class TestT5Spelling(TeamRootCase):
-    """One tree, two spellings, passed [T5] and lost work anyway."""
+    """One tree under two spellings is still one tree to [T5]."""
 
     def test_leading_dot_slash_does_not_hide_an_overlap(self):
         write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- ./src/api/**"))
@@ -766,9 +766,10 @@ class TestT11SharedPaths(TeamRootCase):
         self.assertEqual(code, 0, out)
 
     def test_a_narrower_claim_does_not_own_the_shared_path(self):
-        """One probe, `docs/__any__`, made `docs/_*` look like it held `docs/*`.
+        """`docs/_*` matches the probe `docs/__any__` without containing `docs/*`.
 
-        The hook then gave `docs/readme.md` to nobody, and every lane wrote it.
+        Read as containing it, the hook would give `docs/readme.md` to nobody,
+        and every lane could write it.
         """
         write(self.root, "roles/api.md", ROLE_API.replace(
             "- migrations/**", "- migrations/**\n- docs/_*"))

@@ -102,7 +102,8 @@ ISSUE_TELL = (re.compile(
 ), "an issue id")
 
 # Backticked text is an illustration of a command, not a record of one. Only the
-# span is exempt: skipping the whole line let one backtick launder a log entry.
+# span is exempt: skipping the whole line would let one backtick launder a log
+# entry.
 CODE_SPAN = re.compile(r"`[^`]*`")
 
 
@@ -131,8 +132,8 @@ class Report:
 
 # The validator ships inside the plugin, so it finds the files it compares
 # against without being told where they are. CLAUDE_PLUGIN_ROOT is substituted
-# into command text and never exported to the shell, so depending on it made
-# [T7] a warning in every documented invocation instead of a check.
+# into command text and never exported to the shell, so a validator depending on
+# it would turn [T7] into a warning in every documented invocation.
 PLUGIN_REFS = os.path.normpath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     os.pardir, "skills", "team-member", "references"))
@@ -146,8 +147,8 @@ def read_lines(path):
 def charter_field(root, name):
     """The value on the charter's `<name>:` line, or None when there is none.
 
-    The boundary hook reads these lines with this same function. A charter line
-    one of them honours and the other ignores is a rule that holds in the
+    The boundary hook reads `Workspace root:` with this same function. A charter
+    line one of them honours and the other ignores is a rule that holds in the
     contracts and not on disk.
     """
     charter = os.path.join(root, "charter.md")
@@ -393,11 +394,11 @@ def probe_path(pattern, fill=("__any__", "__any__", "__any__/")):
 def probes(other, pattern):
     """Paths `other` matches, filled so that a narrower `pattern` misses one.
 
-    One probe proved nothing. `__any__` starts with an underscore, so `docs/_*`
-    matched the probe drawn from `docs/*` and was read as containing it. Each
-    wildcard is therefore also filled with nothing, with a character `pattern`
-    never names, and with a directory, so a glob that demands a character or
-    stops at a slash misses one of them.
+    One filler cannot test containment. `__any__` starts with an underscore, so
+    `docs/_*` matches `docs/__any__` without containing `docs/*`. Each wildcard
+    is also filled with nothing, with a character `pattern` never names, and
+    with a directory, so a glob that demands a character or stops at a slash
+    misses one of them.
     """
     c = next((ch for ch in "zqkjw" if ch not in pattern), "z")
     fills = [("__any__", "__any__", "__any__/"), ("", "", ""),
@@ -589,8 +590,8 @@ def overlap(a, b):
 def normalise(pattern):
     """One spelling per path.
 
-    `./src/**` and `src/**` reach the same files and compared as unequal, so two
-    lanes owning one tree passed [T5] whenever they spelled it differently.
+    `./src/**` and `src/**` reach the same files. Compared as written they are
+    unequal, and two lanes owning one tree under two spellings would pass [T5].
     """
     p = re.sub(r"/{2,}", "/", pattern.strip().strip("`"))
     while p.startswith("./"):
@@ -825,9 +826,8 @@ def check_team_root(root, rep):
     charter = os.path.join(root, "charter.md")
     if not os.path.exists(charter):
         return
-    # charter_field, and not a pattern of its own: one that stopped at a space
-    # read "/Users/me/My Project/.teamwork" as "/Users/me/My" and failed a sound
-    # team.
+    # charter_field keeps a space in the path. "/Users/me/My Project/.teamwork"
+    # cut at its first space names a directory that is not this one.
     declared = charter_field(root, "Team root")
     if not declared:
         rep.fail("T9", "charter.md", 0,
@@ -925,13 +925,10 @@ WORKSPACE_ROOT_HELP = (
 def check_workspace_root(root, rep):
     """The anchor for `Owns` globs is declared, never derived.
 
-    The hook used to take it to be the team root's parent. That is right when the
-    team root sits in the directory holding the lanes, and wrong whenever the
-    user named a path somewhere else, which team-root.md's last rung invites. The
-    wrong anchor makes every glob miss, so every out-of-lane write is allowed and
-    the member is still told at startup that its writes are enforced. Declaring
-    the anchor is also what lets a member read its own globs' meaning off the
-    charter instead of re-deriving the ladder.
+    Without the line the hook falls back to the team root's parent. That is
+    wrong whenever the team root is not in the directory holding the lanes, and
+    the wrong anchor makes every glob miss: every out-of-lane write is allowed,
+    and the member is still told at startup that its writes are enforced.
 
     Under one worktree per lane there is nothing to declare: each lane's globs
     are relative to its own tree, which the hook reads from the session itself.
@@ -989,10 +986,8 @@ REQUIRED_SECTIONS = {
 def check_charter_shape(root, rep):
     """The charter says where to stop, and what stopping for good looks like.
 
-    Both sections were gathered by one question in one branch of discovery, so a
-    team formed from a plan the project already had could reach a charter holding
-    neither. Nothing reported it, because every other check reads lines that were
-    there.
+    Every other check reads lines that are there, so a charter missing both
+    sections passes them all. Each one says why it is required.
     """
     charter = os.path.join(root, "charter.md")
     if not os.path.exists(charter):

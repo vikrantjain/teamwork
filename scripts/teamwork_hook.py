@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Runtime enforcement of the boundary the contracts only declared.
 
-`validate_team.py` proves the lanes are disjoint before anyone starts. Nothing
-watched what a member actually wrote, so the one failure this plugin exists to
-prevent was left to a rule a member reads at startup and may deprioritise twenty
-turns later. This hook watches the writes.
+`validate_team.py` proves the lanes are disjoint before anyone starts. It cannot
+see what a member writes afterwards, and a rule read at startup may be
+deprioritised twenty turns later. This hook watches the writes.
 
 Events:
     PreToolUse    deny a write to a path another lane owns, or to the team root
@@ -67,16 +66,15 @@ allowed the lead's. `lead` is the one safe value: it is the lane a lead holds
 when its work is downstream of everyone, and it is the only lane allowed to
 write the team root, which protocol.md rule 5 already reserves to the lead.
 
-There is no SessionEnd branch. Naming a lane's uncommitted work as it exits was
-the obvious place to catch the third park condition, and the platform prints a
-SessionEnd hook's output only when the hook reports failure. A warning had to
-pose as a crash to be seen at all, which a hook that fails open must not do. The
-condition stays where a member can act on it, in the park procedure.
+There is no SessionEnd branch. The platform prints a SessionEnd hook's output
+only when the hook reports failure, so a warning naming a lane's uncommitted
+work would have to pose as a crash to be seen, which a hook that fails open must
+not do. The park procedure carries that condition instead.
 
 There is no PostCompact branch. The platform reads no `hookSpecificOutput`
-from a PostCompact hook, so its context went nowhere. SessionStart already
-fires after a compaction, with source `compact`, and that is what re-states
-the lane.
+from a PostCompact hook, so context returned from one goes nowhere.
+SessionStart already fires after a compaction, with source `compact`, and that
+is what re-states the lane.
 
 The startup note is given only while a run is live. Finishing keeps the team
 root, so without that test every later session in the project would be told it
@@ -303,18 +301,17 @@ def workspace_root(cwd, root):
 
     Under one worktree per lane each lane has its own tree, so the anchor is the
     tree this session is in and each lane's globs are read against it. Under the
-    other three the lanes share one anchor and the charter names it, because
-    deriving it was wrong whenever the team root was not the directory holding
-    the lanes: every glob then missed, every out-of-lane write was allowed, and
-    the member was still told at startup that its writes were enforced.
+    other three the lanes share one anchor and the charter names it. A derived
+    anchor is wrong whenever the team root is not in the directory holding the
+    lanes, and then every glob misses and every out-of-lane write is allowed.
 
-    The derivation stays as the fallback, for a team formed before the line
-    existed. It is the team root's parent, which is the tree itself under one
-    shared tree and the directory holding every repository or lane directory
-    under the other two, where a lane owns `payments/**` and is only disjoint
-    from one owning `web/**` when both are read from there. Anchoring at the
-    enclosing repository instead makes both of those `**`, so every glob matches
-    every file and the team looks unowned.
+    The derivation stays as the fallback, for a charter without the line. It is
+    the team root's parent, which is the tree itself under one shared tree and
+    the directory holding every repository or lane directory under the other
+    two, where a lane owns `payments/**` and is only disjoint from one owning
+    `web/**` when both are read from there. The enclosing repository is not the
+    fallback: read against `payments/` itself, `payments/**` matches nothing, and
+    the team looks unowned.
     """
     here = os.path.realpath(cwd or ".")
     repo = enclosing_repo(here)

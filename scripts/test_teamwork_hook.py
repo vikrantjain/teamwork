@@ -571,7 +571,7 @@ class TestWorkspaceRootDeclared(HookCase):
         self.assertEqual(out.get("permissionDecision"), "deny")
 
     def test_without_the_line_it_falls_back_and_cannot_anchor_off_parent(self):
-        """The pre-0.5 derivation, kept so an old team keeps enforcing in place.
+        """The fallback derivation, kept so a charter without the line still enforces.
 
         It cannot reach this team, which is why [T14] refuses to validate one
         formed without the line rather than leaving it to be discovered here.
@@ -631,7 +631,7 @@ class TestLeadLane(HookCase):
         self.assertEqual(out, {})
 
     def test_the_lead_lane_is_not_told_to_join_itself(self):
-        """The member's JOIN line sent the lead to message, and rename, itself."""
+        """The member's JOIN line would have the lead message, and rename, itself."""
         out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo},
                      env={"TEAMWORK_LANE": "lead", "TEAMWORK_ROOT": self.root})
         text = out.get("additionalContext", "")
