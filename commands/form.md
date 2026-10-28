@@ -7,6 +7,17 @@ argument-hint: <the goal, or a path to a plan the project already has>
 
 Goal: **$ARGUMENTS**
 
+**Refuse when this session is a member of a team already.** Check
+`echo "$TEAMWORK_LANE"` first. A value other than empty or `lead` means this
+session works a lane of another team. Stop and say so. A team formed here would
+launch its lanes with their own `TEAMWORK_LANE` and `TEAMWORK_ROOT`, and those
+replace the outer team's values. The boundary hook checks one team root, so
+those lanes could write into any outer lane's paths with nothing said. Point the
+member to fanning out inside its lane instead, as
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` describes.
+Whatever it spawns inherits its lane, so the hook keeps that work inside the
+lane's paths. A separate team is formed from a session that is on no team.
+
 Run the `team-design` skill's procedure on it, without shortcuts. Read it if it
 is not already loaded, because a command that fires without the procedure invents
 a roster instead of deriving one:
