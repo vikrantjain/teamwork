@@ -4,6 +4,10 @@ This plugin supplies the method for running several Claude Code sessions as one
 team. The team mechanism is the platform's; the contracts, the sizing and the
 improvement loop are this plugin's.
 
+This file briefs whoever works on the plugin. A project that installs it never
+loads it, so guidance a lead or a member needs at runtime goes in a skill, a
+command, an agent or a copied file. Written here, it reaches no team.
+
 ## Rules
 
 - **`docs/intent.md` is the human's statement of what the plugin is for.**
