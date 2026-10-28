@@ -16,6 +16,13 @@ command, an agent or a copied file. Written here, it reaches no team.
   charter, which are where the real method lives.
 - **Every rule names its failure mode.** Say what goes wrong without it. A rule
   that cannot name one is advice, and advice is not followed.
+- **A new line in a skill must show that the skill's opening principle could
+  not decide its case.** Otherwise sharpen the principle, or the reason on the
+  nearest rule. `docs/intent.md` assumes a capable model, and each skill tells it
+  to decide uncovered cases from its first sentence. A line added for each case
+  someone observed turns the skill into a checklist for a model the plugin is
+  not written for. A fact the model cannot derive, such as how the CLI behaves,
+  is exempt. It goes in a reference under `skills/`, not in a skill's body.
 - **Write every plugin path as `${CLAUDE_PLUGIN_ROOT}/...`, in full, every time.**
   The working directory at runtime is the user's project, not this plugin, so a
   relative path silently resolves somewhere else.

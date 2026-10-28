@@ -9,6 +9,11 @@ The plugin is lean in size, highly abstract, simple and flexible. Lean is
 measured on what a member reloads every turn, not on what the lead reads once
 when forming a team.
 
+It is written for a capable model. It states principles and the reasons behind
+them, and the model decides the steps from the situation in front of it. It
+spells out only facts the model cannot derive, such as how the CLI behaves. A
+model that needs step-by-step direction is not its audience.
+
 It supports multiple separate agent sessions that interact with each other
 through Claude's messaging.
 
