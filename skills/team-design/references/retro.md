@@ -42,7 +42,7 @@ cost more than they earn.
    one that needs pruning on a schedule rather than when it hurts. Left alone it
    reaches its budget and then `[T1]` blocks the retro that would have fixed it.
 7. **Run the validator.** `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py
-   <team root>` must pass before anything is announced.
+   "<team root>"` must pass before anything is announced.
 8. **Spawn `teamwork:contract-auditor`** with fresh context to answer the one
    question the validator cannot: is every line still a rule, or has something
    become a record of what happened? It flags; you decide. A finding you decline

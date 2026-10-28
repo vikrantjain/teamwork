@@ -7,10 +7,13 @@ description: >
   items and bugs will be recorded, how members address each other, and how the
   rules get better as the work exposes their gaps. Also use to adopt sessions
   that are already collaborating without contracts, to lead one while it runs,
-  to run a retro, to park one so a fresh set of sessions can resume it, and to
-  audit a team root that has grown. The rule it exists to enforce is that
+  to run a retro, to park one so a fresh set of sessions can resume it, to
+  finish one by landing its branches or worktrees when its work is done, and
+  to audit a team root that has grown. The rule it exists to enforce is that
   every lane, boundary and rule traces to something in the work, and that a
-  contract never becomes a log or a task board. NOT for working inside a lane
+  contract never becomes a log or a task board. Finishing never merges and
+  never removes a worktree: it reports what will not land cleanly and hands
+  the commands to the human. NOT for working inside a lane
   once the team exists, which is team-member's job.
 ---
 
@@ -50,8 +53,9 @@ unearned rule is a tax charged forever.
 5. **Record the substrate**, following
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md`. A lane is a
    session of its own on this machine, so this is rarely a choice; write it into
-   `transport.md` with how to discover a lane and how to send to it. Every member
-   loads this file, so a team without it is a list of strangers.
+   `transport.md` with how to discover a lane, how to send to it, and this
+   session's own name as the `Lead:`. Every member loads this file, so a team
+   without it is a list of strangers.
 6. **Write the contracts** from
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/charter-template.md` and
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/role-template.md`. Copy
@@ -64,7 +68,7 @@ unearned rule is a tax charged forever.
    is not. `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` says
    why they are not committed.
 8. **Run the validator** before telling anyone the team exists:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py "<team root>"`.
 9. **Write each lane's settings file**, so the lane is identified however it is
    next started. In every directory that exactly one member lane works in, write
    `.claude/settings.local.json` carrying both variables:
@@ -88,9 +92,9 @@ unearned rule is a tax charged forever.
    that costs.
 
    Keep it out of version control. When
-   `git -C <dir> check-ignore -q .claude/settings.local.json` says it is not
+   `git -C "<dir>" check-ignore -q .claude/settings.local.json` says it is not
    ignored, append that path to the file named by
-   `git -C <dir> rev-parse --path-format=absolute --git-path info/exclude`. That
+   `git -C "<dir>" rev-parse --path-format=absolute --git-path info/exclude`. That
    one file covers every worktree of the repository and is never committed. A
    committed copy would merge into the base branch at the finish, and every
    later session in the main checkout would then be that lane.
@@ -101,8 +105,8 @@ unearned rule is a tax charged forever.
 10. **Print the launch commands** for the user, one per lane, identical but for
    the lane name and its working directory, every path absolute:
 
-       cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
-         claude --agent teamwork:member --add-dir <team root> -n <lane> "/teamwork:join <lane>"
+       cd "<lane's working directory>" && TEAMWORK_LANE=<lane> TEAMWORK_ROOT="<team root>" \
+         claude --agent teamwork:member --add-dir "<team root>" -n <lane> "/teamwork:join <lane>"
 
    The human pastes one line per terminal and types nothing after it. `-n` sets
    the session's name, which is its address. The quoted prompt runs the join as
@@ -136,6 +140,10 @@ unearned rule is a tax charged forever.
    itself rather than through the tool that `--add-dir` governs, which is why a
    lane can be bound and blind at the same time.
 
+   **Keep every path in quotes.** A path with a space in it splits into two
+   arguments without them. The `cd` then fails, and the lane starts wherever the
+   human pasted the line.
+
    The two variables are what let the boundary hook deny a write to a path
    another lane owns. The lane's settings file sets the same two at every later
    start. Without either, the hook falls back to the lane's directory name.
@@ -154,8 +162,8 @@ unearned rule is a tax charged forever.
 11. **Print the restart command under each launch command.** It is the same line
    with `-r <lane>` in place of `-n <lane>`:
 
-       cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
-         claude --agent teamwork:member --add-dir <team root> -r <lane> "/teamwork:join <lane>"
+       cd "<lane's working directory>" && TEAMWORK_LANE=<lane> TEAMWORK_ROOT="<team root>" \
+         claude --agent teamwork:member --add-dir "<team root>" -r <lane> "/teamwork:join <lane>"
 
    It is for every start after the first: a reboot, a crash, a session stopped
    at its token limit. `-r` resumes the conversation by its name, so the lane
@@ -172,7 +180,7 @@ unearned rule is a tax charged forever.
 
    **A lane started with `--bg` restarts by its session id, never by its name:**
 
-       cd <lane's working directory> && claude --bg --resume <session id> "/teamwork:join <lane>"
+       cd "<lane's working directory>" && claude --bg --resume <session id> "/teamwork:join <lane>"
 
    `claude agents --json --all` lists the id as `sessionId`, beside the lane's
    `name` and `cwd`. Take the newest session that matches both. Pass no flag but

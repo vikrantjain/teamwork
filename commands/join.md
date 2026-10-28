@@ -27,8 +27,8 @@ act on it, and the context budget is the reason this team exists.
 Then check this session's name: `ListAgents` opens with it. When it is not the
 lane, ask your human to run `/rename <lane>`. You cannot run `/rename` yourself,
 and a lane under the wrong name is one nobody can reach under the name the
-charter uses. Then send the lead `JOIN <lane>` with your working directory and
-the paths you own, and wait for the lead's `JOIN` before taking an item. If the
+charter uses. Then send `JOIN <lane>` to the lead, at the name on
+`transport.md`'s `Lead:` line, with your working directory and the paths you own, and wait for the lead's `JOIN` before taking an item. If the
 lead cannot be reached at all, say so and start anyway.
 
 This command may run again in a conversation that already joined. The restart

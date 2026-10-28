@@ -87,6 +87,7 @@ TRANSPORT = """# How members reach each other
 Substrate: cross-session
 Discover: ListAgents
 Send: SendMessage to the lane name
+Lead: the session named on this line
 """
 
 
@@ -253,6 +254,17 @@ class TestT3NoLog(TeamRootCase):
                 code, out = self.run_validator()
                 self.assertEqual(code, 1, out)
                 self.assertIn("an issue id", out)
+
+    def test_wording_shaped_like_a_ticket_is_not_an_issue_id(self):
+        """A contract cites protocol.md by rule number, and names standards."""
+        for text in ("Follow protocol rule #5 even when the fix is one line.",
+                     "Lint to PEP-8 before DONE, or the review lane bounces it.",
+                     "Summaries name the GPT-4 baseline they beat."):
+            with self.subTest(text=text):
+                write(self.root, "charter.md", charter(self.root))
+                append(self.root, "charter.md", f"\n- {text}\n")
+                code, out = self.run_validator()
+                self.assertEqual(code, 0, out)
 
     def test_a_rule_may_say_a_lane_is_not_finished(self):
         """A future condition is a rule. It was read as a record."""
@@ -558,6 +570,15 @@ class TestT10TransportNamed(TeamRootCase):
         self.assertEqual(code, 1)
         self.assertIn("Send:", out)
 
+    def test_missing_lead_line_fails(self):
+        """No launch command names the lead, so this line is a member's only way."""
+        write(self.root, "transport.md",
+              TRANSPORT.replace("Lead: the session named on this line\n", ""))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("Lead:", out)
+        self.assertIn("JOIN", out)
+
     def test_two_substrates_fail(self):
         append(self.root, "transport.md", "Substrate: separate terminals\n")
         code, out = self.run_validator()
@@ -608,6 +629,56 @@ class TestT9TeamRoot(TeamRootCase):
             self.assertIn("editing a copy", out)
         finally:
             shutil.rmtree(other, ignore_errors=True)
+
+
+class TestPathsWithSpaces(TeamRootCase):
+    """Non-software work is full of spaces, and so is a macOS home folder."""
+
+    def setUp(self):
+        self.parent = tempfile.mkdtemp(prefix="My Project ")
+        self.root = os.path.join(self.parent, ".teamwork")
+        os.makedirs(self.root)
+        os.rmdir(self.root)
+        self.refs = build(self.root)
+
+    def tearDown(self):
+        shutil.rmtree(self.parent, ignore_errors=True)
+
+    def test_a_team_root_with_a_space_passes(self):
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+    def test_backticked_globs_with_spaces_are_read_whole(self):
+        write(self.root, "roles/api.md", ROLE_API.replace(
+            "- migrations/**", "- `Drafts/Chapter One/**`"))
+        write(self.root, "roles/ui.md", ROLE_UI.replace(
+            "- src/ui/**", "- `Drafts/Chapter Two/**`"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+    def test_an_unquoted_glob_with_a_space_fails(self):
+        """Read to its first space, it owned `Drafts/Chapter` and every chapter."""
+        write(self.root, "roles/ui.md", ROLE_UI.replace(
+            "- src/ui/**", "- Drafts/Chapter Two/**"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[T2]", out)
+        self.assertIn("backticks", out)
+
+    def test_prose_after_a_glob_fails(self):
+        write(self.root, "roles/ui.md", ROLE_UI.replace(
+            "- src/ui/**", "- src/ui/** the console"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("nothing else", out)
+
+    def test_a_backticked_shared_path_with_a_space_is_owned(self):
+        write(self.root, "roles/api.md", ROLE_API.replace(
+            "- migrations/**", "- migrations/**\n- `Style Guide.md`"))
+        append(self.root, "charter.md",
+               SHARED.format(line="`Style Guide.md` - owned by api"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
 
 
 PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -693,6 +764,18 @@ class TestT11SharedPaths(TeamRootCase):
         append(self.root, "charter.md", SHARED.format(line="package-lock.json - owned by api"))
         code, out = self.run_validator()
         self.assertEqual(code, 0, out)
+
+    def test_a_narrower_claim_does_not_own_the_shared_path(self):
+        """One probe, `docs/__any__`, made `docs/_*` look like it held `docs/*`.
+
+        The hook then gave `docs/readme.md` to nobody, and every lane wrote it.
+        """
+        write(self.root, "roles/api.md", ROLE_API.replace(
+            "- migrations/**", "- migrations/**\n- docs/_*"))
+        append(self.root, "charter.md", SHARED.format(line="docs/* - owned by api"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("does not claim it", out)
 
 
 class TestT12LaneNames(TeamRootCase):

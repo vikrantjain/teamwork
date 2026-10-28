@@ -34,7 +34,7 @@ A lane is parked when all four hold. Anything less is a stop, not a park.
 2. Do not poll. Each lane answers `PARK` when it is drained, and a broadcast
    sent with `notify_when_idle` also tells you when one exits without answering.
 3. Append the friction that arrives, and refresh `roster.md` from the answers.
-4. Run `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
+4. Run `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py "<team root>"`.
 5. Commit the team root only when it is under version control and the tracker is
    a file inside it. The contracts are already committed, and nothing else in a
    park is new.

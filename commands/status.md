@@ -26,7 +26,7 @@ Gather, in this order:
 3. **Open cross-lane edges** — every `BLOCKED` that has not been answered with a
    `READY`. These are where the team is actually losing time.
 4. **Whether a retro is due** — run
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>` and
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py "<team root>"` and
    report its warnings and failures verbatim.
 
 The rest of the lead's duties, and the ones it is tempted into and should not do,

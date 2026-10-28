@@ -630,6 +630,22 @@ class TestLeadLane(HookCase):
         out, _ = self.edit("docs/api.md", lane="lead")
         self.assertEqual(out, {})
 
+    def test_the_lead_lane_is_not_told_to_join_itself(self):
+        """The member's JOIN line sent the lead to message, and rename, itself."""
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo},
+                     env={"TEAMWORK_LANE": "lead", "TEAMWORK_ROOT": self.root})
+        text = out.get("additionalContext", "")
+        self.assertIn("Lead: line", text)
+        self.assertNotIn("Before you send JOIN", text)
+        self.assertNotIn("/rename", text)
+
+    def test_a_member_is_told_where_its_join_goes(self):
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root})
+        text = out.get("additionalContext", "")
+        self.assertIn("Lead: line", text)
+        self.assertIn("/rename api", text)
+
 
 class TestStartup(HookCase):
     def test_session_start_names_the_root_and_the_lane(self):

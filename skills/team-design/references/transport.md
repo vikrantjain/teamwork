@@ -8,17 +8,25 @@ applies.
 
 ## What `transport.md` must contain
 
-Three lines, each something a member can act on without asking. `[T1]` budgets
+Four lines, each something a member can act on without asking. `[T1]` budgets
 the whole file at 15 lines, so the reasoning for the choice goes in
 `decisions.md` instead:
 
     Substrate: <the one substrate>
     Discover: <how to see who is up>
     Send: <how to address one lane>
+    Lead: <the lead session's name, as ListAgents shows it>
 
 `[T10]` fails without them. The failure it prevents is a member that knows what
 it owes another lane and has no way to say so, which ends as a `DONE` nobody
 receives.
+
+`Lead:` is the one address no launch command sets. Every lane is named by its
+`-n`, and the lead is whatever session ran `/teamwork:form`. A member's first act
+is a `JOIN` to the lead, and it waits for the answer, so without this line it
+guesses where to send it. Read the name off `ListAgents`, which opens with this
+session's own. A resume runs in a new lead session, so `/teamwork:resume`
+rewrites the line.
 
 ## Naming
 

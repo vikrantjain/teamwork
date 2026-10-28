@@ -15,7 +15,7 @@ session cannot derive, which is why the command takes it as an argument.
 Do four things, in this order.
 
 **1. Validate before relaunching anyone.** Run
-`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>` and report
+`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py "<team root>"` and report
 warnings and failures verbatim. A `[T7]` failure on `protocol.md` or
 `conflicts.md` means the team root predates the current plugin. Re-copy both from
 `${CLAUDE_PLUGIN_ROOT}/skills/team-member/references/` byte for byte, then say so
@@ -31,6 +31,11 @@ moved, by a clone or a rename or a new machine. Rewrite `Team root:` and
 are the lead, so those two lines are yours to write, and a charter left naming
 the old ones points the boundary hook at a tree nobody is editing, where every
 glob misses and every write is allowed.
+
+Then rewrite `transport.md`'s `Lead:` line to this session's name, which
+`ListAgents` opens with. This session is a new lead, and every lane you relaunch
+sends its `JOIN` to that line and waits for the answer. A team formed before the
+line existed fails `[T10]` until you add it.
 
 **2. Re-derive each lane's launch command**, by the ladder in:
 
@@ -57,8 +62,8 @@ all of them. A relative path resolves against whatever directory the command is
 pasted into and says nothing when it misses, which starts a lane that cannot read
 its own contracts:
 
-    cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
-      claude --agent teamwork:member --add-dir <team root> -r <lane> "/teamwork:join <lane>"
+    cd "<lane's working directory>" && TEAMWORK_LANE=<lane> TEAMWORK_ROOT="<team root>" \
+      claude --agent teamwork:member --add-dir "<team root>" -r <lane> "/teamwork:join <lane>"
 
 `-r <lane>` resumes the lane's own conversation by its name, and the quoted join
 runs in it. For a lane whose session is gone, such as after a fresh clone, print

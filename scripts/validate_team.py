@@ -26,7 +26,8 @@ Checks:
     [T7] verbatim         protocol.md and conflicts.md still match the plugin
     [T8] friction-cap     warn that a retro is due
     [T9] team-root        the charter names this directory as an absolute path
-    [T10] transport-named transport.md names one substrate and how to address it
+    [T10] transport-named transport.md names one substrate, how to address a lane,
+                          and the lead's own address
     [T11] shared-paths    every charter shared path names a lane, that lane's role
                           claims it, and no other lane's role reaches it
     [T12] lane-names      every lane name is usable as an address
@@ -89,12 +90,14 @@ LOG_TELLS = [
 # the backstop for an id this cannot tell from a standard.
 NOT_A_TICKET = ("UTF", "SHA", "ISO", "RFC", "AES", "RSA", "PKCS", "IEEE",
                 "ANSI", "NIST", "CVE", "JPEG", "MPEG", "ECMA", "ETSI",
-                "ASCII", "HTTP", "HTTPS", "TLS", "SSL", "CRC", "MD", "EN")
+                "ASCII", "HTTP", "HTTPS", "TLS", "SSL", "CRC", "MD", "EN",
+                "PEP", "GPT")
 # A six-digit "#336699" is a colour, not an issue. A three-digit "#123" is
 # ambiguous and is read as an issue, because a charter naming a colour is
-# rarer than one citing a ticket.
+# rarer than one citing a ticket. "rule #5" is not an issue either: it is how a
+# contract cites protocol.md, whose rules are numbered.
 ISSUE_TELL = (re.compile(
-    r"(?<![\w#])#\d{1,5}(?![\da-fA-F])"
+    r"(?<![\w#])(?<![Rr]ule )#\d{1,5}(?![\da-fA-F])"
     r"|\b(?!(?:" + "|".join(NOT_A_TICKET) + r")-)[A-Z][A-Z0-9]{1,9}-\d+\b"
 ), "an issue id")
 
@@ -237,6 +240,14 @@ def check_role_shape(root, rep):
                      "'## Owns' is empty. A lane claiming no path is a lane [T5] can "
                      "prove nothing about, so nothing stops it writing where another "
                      "lane works.")
+        for entry, rest in owns_bullets(lines):
+            if rest.strip():
+                rep.fail("T2", rel, 0,
+                         f"'## Owns' entry {entry!r} is followed by {rest.strip()!r}. "
+                         "Owns holds one glob per line and nothing else, and a glob "
+                         "is read up to its first space. Put a path containing a "
+                         "space in backticks, and anything else in another section, "
+                         "or the lane owns a path nobody meant.")
         for entry in entries:
             if entry.startswith("/"):
                 rep.fail("T2", rel, 0,
@@ -339,18 +350,22 @@ def glob_regex(pattern):
     return re.compile("^" + body + "$")
 
 
-def probe_path(pattern):
-    """One concrete path the glob matches, for testing another glob against it."""
+def probe_path(pattern, fill=("__any__", "__any__", "__any__/")):
+    """One concrete path the glob matches, for testing another glob against it.
+
+    `fill` is what a `*`, a `**` and a `**/` become, in that order.
+    """
+    star, dstar, dstar_slash = fill
     out, i = [], 0
     while i < len(pattern):
         if pattern.startswith("**/", i):
-            out.append("__any__/")
+            out.append(dstar_slash)
             i += 3
         elif pattern.startswith("**", i):
-            out.append("__any__")
+            out.append(dstar)
             i += 2
         elif pattern[i] == "*":
-            out.append("__any__")
+            out.append(star)
             i += 1
         elif pattern[i] == "?":
             out.append("x")
@@ -375,9 +390,30 @@ def probe_path(pattern):
     return probe.rstrip("/") if not has_wildcard(pattern) else probe
 
 
+def probes(other, pattern):
+    """Paths `other` matches, filled so that a narrower `pattern` misses one.
+
+    One probe proved nothing. `__any__` starts with an underscore, so `docs/_*`
+    matched the probe drawn from `docs/*` and was read as containing it. Each
+    wildcard is therefore also filled with nothing, with a character `pattern`
+    never names, and with a directory, so a glob that demands a character or
+    stops at a slash misses one of them.
+    """
+    c = next((ch for ch in "zqkjw" if ch not in pattern), "z")
+    fills = [("__any__", "__any__", "__any__/"), ("", "", ""),
+             (c, c, c + "/"), (c, f"{c}/{c}", f"{c}/{c}/")]
+    return {probe_path(other, fill) for fill in fills}
+
+
 def covers(pattern, other):
-    """True when `pattern` reaches the paths `other` names."""
-    return bool(glob_regex(pattern).match(probe_path(other)))
+    """True when `pattern` reaches every probe drawn from `other`.
+
+    A sample, not a proof. It errs toward False, and [T5] and [T11] both read a
+    False as the stricter answer: [T5] then looks for a witness, and [T11] says
+    the owner does not claim the path.
+    """
+    regex = glob_regex(pattern)
+    return all(regex.match(p) for p in probes(other, pattern))
 
 
 # Characters a witness may be built from. Short on purpose: it only has to
@@ -562,14 +598,25 @@ def normalise(pattern):
     return p.rstrip("/") or p
 
 
-def owns_entries(lines):
-    """The raw text of each bullet under `## Owns`, before normalisation."""
+# A glob in backticks may hold a space, which non-software work is full of:
+# `Drafts/Chapter One/**`. Unquoted, a glob ends at its first space.
+GLOB = r"(?:`([^`]+)`|(\S+))"
+OWNS_BULLET = re.compile(r"^\s*[-*]\s+" + GLOB + r"(.*)$")
+
+
+def owns_bullets(lines):
+    """(glob, the rest of the line) for each bullet under `## Owns`."""
     out = []
     for line in section(lines, "## Owns"):
-        m = re.match(r"^\s*[-*]\s+(\S+)", line)
+        m = OWNS_BULLET.match(line)
         if m:
-            out.append(m.group(1).strip("`"))
+            out.append(((m.group(1) or m.group(2)).strip("`"), m.group(3)))
     return out
+
+
+def owns_entries(lines):
+    """The raw text of each bullet under `## Owns`, before normalisation."""
+    return [entry for entry, _ in owns_bullets(lines)]
 
 
 def owned_paths(path):
@@ -610,7 +657,7 @@ def check_lane_disjoint(root, rep):
 
 
 SHARED_OWNER = re.compile(
-    r"^\s*[-*]\s+(\S+).*?\bowned by\s+([A-Za-z0-9][A-Za-z0-9_-]*)", re.I)
+    r"^\s*[-*]\s+(`[^`]+`|\S+).*?\bowned by\s+([A-Za-z0-9][A-Za-z0-9_-]*)", re.I)
 
 
 def check_shared_paths(root, rep):
@@ -661,8 +708,10 @@ def check_shared_paths(root, rep):
                              + LOST_WORK)
 
 
-# Verified against the platform: it refuses these two as teammate names, and it
-# does so at spawn time, hours after the team was declared valid.
+# SendMessage already gives both of these a meaning, so a lane holding one is
+# reached by nobody who means it. `main` is how a background subagent addresses
+# its own main conversation. `team-lead` is the lead of any agent team a member
+# runs inside its lane, and an in-process name wins over a session's name.
 RESERVED_LANES = {"main", "team-lead"}
 LANE_NAME = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
@@ -673,9 +722,11 @@ def check_lane_names(root, rep):
     for lane in sorted(lanes):
         if lane in RESERVED_LANES:
             rep.fail("T12", "charter.md", 0,
-                     f"lane {lane!r} is reserved by the platform and cannot be a "
-                     "teammate name. The spawn fails, and the member cannot diagnose "
-                     "it from the contracts.")
+                     f"lane {lane!r} is reserved by the platform: SendMessage "
+                     "already reads 'main' as a subagent's own main conversation "
+                     "and 'team-lead' as the lead of an agent team a member runs. "
+                     "A message meant for this lane reaches that instead, and the "
+                     "sender is not told.")
         elif not LANE_NAME.match(lane):
             rep.fail("T12", "charter.md", 0,
                      f"lane {lane!r} is not usable as an address. Lane names are "
@@ -700,6 +751,20 @@ def check_tracker_named(root, rep):
                  "more than one 'Backend:'. One store, or there are two places to look.")
 
 
+ADDRESS_WHY = ("A member that cannot address the others will write prose instead "
+               "of a message.")
+TRANSPORT_FIELDS = {
+    "Substrate:": ADDRESS_WHY,
+    "Discover:": ADDRESS_WHY,
+    "Send:": ADDRESS_WHY,
+    # Every lane is named by its launch command and the lead is named by nothing,
+    # so this line is the only place a member learns where its JOIN goes.
+    "Lead:": ("A member's first act is a JOIN to the lead, and it waits for the "
+              "answer. The lead's session is named by no launch command, so "
+              "without this line the member guesses where to send it."),
+}
+
+
 def check_transport_named(root, rep):
     path = os.path.join(root, "transport.md")
     if not os.path.exists(path):
@@ -708,11 +773,10 @@ def check_transport_named(root, rep):
                  "the others, so without it the team is a list of strangers.")
         return
     text = "\n".join(read_lines(path))
-    for field in ("Substrate:", "Discover:", "Send:"):
+    for field, why in TRANSPORT_FIELDS.items():
         if not re.search(rf"^[ \t]*{re.escape(field)}[ \t]*\S", text, re.M):
             rep.fail("T10", "transport.md", 0,
-                     f"no {field!r} line carrying a value. A member that cannot "
-                     "address the others will write prose instead of a message.")
+                     f"no {field!r} line carrying a value. {why}")
     if len(re.findall(r"^[ \t]*Substrate:", text, re.M)) > 1:
         rep.fail("T10", "transport.md", 0,
                  "more than one 'Substrate:'. One substrate, or the members that "
@@ -757,13 +821,14 @@ def check_team_root(root, rep):
     charter = os.path.join(root, "charter.md")
     if not os.path.exists(charter):
         return
-    text = "\n".join(read_lines(charter))
-    m = re.search(r"^\s*Team root:\s*(\S+)", text, re.M)
-    if not m:
+    # charter_field, and not a pattern of its own: one that stopped at a space
+    # read "/Users/me/My Project/.teamwork" as "/Users/me/My" and failed a sound
+    # team.
+    declared = charter_field(root, "Team root")
+    if not declared:
         rep.fail("T9", "charter.md", 0,
                  "no 'Team root:' line. Members in other folders need an absolute path.")
         return
-    declared = m.group(1).strip("`")
     if not os.path.isabs(declared):
         rep.fail("T9", "charter.md", 0,
                  f"team root {declared!r} is relative. A relative path resolves "

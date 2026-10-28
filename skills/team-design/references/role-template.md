@@ -28,7 +28,13 @@ quickly by a tired member.
 
 Path globs, one per line, and nothing else. No prose, no topics, no
 responsibilities — the validator reads this section to prove no two lanes own the
-same path, and a sentence here defeats that check.
+same path, and a sentence here defeats that check. `[T2]` fails a bullet carrying
+anything after its glob.
+
+A glob is read up to its first space, so put one containing a space in
+backticks: `` `Drafts/Chapter One/**` ``. Unquoted, it is read as
+`Drafts/Chapter`, which owns every chapter. A shared path in the charter is
+written the same way.
 
 Globs are relative to the workspace, never absolute. Which directory that is
 comes from the charter. Under one worktree per lane it is the lane's own

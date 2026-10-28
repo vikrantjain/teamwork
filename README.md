@@ -159,12 +159,12 @@ reach, inside the project or at a location you name. Never in your home folder.
 
 ```
 .teamwork/
-  protocol.md     the constitution: eight verbs, nine rules. Copied, never edited.
+  protocol.md     the constitution: nine verbs, nine rules. Copied, never edited.
   conflicts.md    what to do when a conflict happens. Read then, not at startup.
   charter.md      this team's own law: lanes, shared paths, human gates, done.
   roles/<lane>.md Owns / Never / Hands off to / Done means.
   tracker.md      the one backend, with its create, claim and close commands.
-  transport.md    the one substrate, and how to address a lane.
+  transport.md    the one substrate, how to address a lane, and the lead.
   decisions.md    settled choices, with the reasons, so retros stop reopening them.
   backlog.md      the file board, and only when the project has no tracker.
   friction.md     what the rules cost. At its cap, a retro is due.
@@ -312,7 +312,7 @@ without it. `gh` only if you want GitHub issues as the tracker.
 ## Checks
 
 ```
-python3 scripts/validate_team.py <team root>   # one team root
+python3 scripts/validate_team.py "<team root>"   # one team root
 python3 scripts/test_validate_team.py          # the validator
 python3 scripts/test_teamwork_hook.py          # the hook
 claude plugin validate .                       # the marketplace manifest
@@ -329,12 +329,13 @@ Leave `--strict` off that second command. It flags `CLAUDE.md` at the repository
 root as plugin context that will not load, which is true and is not a problem:
 the file is this repository's conventions for people working on the plugin.
 
-The behaviour that is prose rather than code has its own suite. These six cases
+The behaviour that is prose rather than code has its own suite. These seven cases
 are read-only, and they cover the claims no unit test can reach: that a serial
 goal is refused, that lanes come from the dependency graph, that a goal with no
 plan and no version control is asked about rather than guessed at, that a plan
 shortens the interview instead of replacing it, that a member routes a cross-lane
-fix instead of making it, and that a cause appearing once produces no rule.
+fix instead of making it, that a cause appearing once produces no rule, and that
+finishing hands the merges to the human instead of running them.
 
 ```
 claude plugin eval .

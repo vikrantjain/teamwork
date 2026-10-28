@@ -425,16 +425,23 @@ def startup(payload, event):
             f"Your lane is {lane} (resolved from {how}). Load exactly five files: "
             f"protocol.md, charter.md, transport.md, tracker.md and roles/{lane}.md. "
             "Never another lane's role file.")
-        if lane == "lead":
+        if lane == LEAD_LANE:
+            # The member's JOIN instruction would have the lead join itself. What
+            # the lead must check instead is that members can reach it.
             lines.append(
                 "You are the lead holding the lead lane, so you are the one session "
                 "that may write the team root. Everything outside roles/lead.md's "
-                "Owns still belongs to a member: reach it with a message.")
-        lines.append(
-            f"Before you send the lead JOIN, check with ListAgents that this session "
-            f"is named {lane}. If it is not, ask your human to run /rename {lane}. You "
-            "cannot run it yourself, and until it is done a message meant for you may "
-            "reach another lane. Tell the lead if it does not happen.")
+                "Owns still belongs to a member: reach it with a message. Members "
+                "send their JOIN to the name on transport.md's Lead: line, so check "
+                "with ListAgents that it is this session's name, and rewrite the "
+                "line if it is not.")
+        else:
+            lines.append(
+                f"Before you send JOIN to the name on transport.md's Lead: line, "
+                f"check with ListAgents that this session is named {lane}. If it is "
+                f"not, ask your human to run /rename {lane}. You cannot run it "
+                "yourself, and until it is done a message meant for you may reach "
+                "another lane. Tell the lead if it does not happen.")
         lines.append(
             "Writes to a path another lane owns are denied by a hook, so a boundary "
             "crossing fails rather than silently losing someone's work.")
