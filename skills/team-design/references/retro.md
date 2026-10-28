@@ -50,8 +50,10 @@ cost more than they earn.
    line there, because the auditor skips what that file settles and raises
    everything else again.
 9. **Carry `friction.md`, commit, and broadcast `RELOAD`** carrying the team
-   root's absolute path. A member that is not told keeps running the old rules,
-   and the retro's whole benefit is lost silently.
+   root's absolute path. Commit only when the team root is under version
+   control; a team root outside any repository has nothing to commit, and the
+   `RELOAD` still goes out. A member that is not told keeps running the old
+   rules, and the retro's whole benefit is lost silently.
 
    Carrying means three things. Delete the notes this retro acted on. Move the
    notes steps 2 and 5 set aside under a `# Carried` heading. Delete any note

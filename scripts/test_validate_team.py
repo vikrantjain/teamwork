@@ -432,6 +432,39 @@ class TestT5LaneDisjoint(TeamRootCase):
         code, out = self.run_validator()
         self.assertEqual(code, 0, out)
 
+    def test_a_double_star_slash_also_matches_no_directory(self):
+        """`src/**/*.ts` and `src/*` both reach `src/m.ts`.
+
+        The witness read the `/` after `**` as one that must appear, so it never
+        built a path directly under `src/`, and the two lanes passed.
+        """
+        write(self.root, "roles/api.md",
+              ROLE_API.replace("- src/api/**\n- migrations/**", "- src/**/*.ts"))
+        write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src/*"))
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T5]", out)
+
+    def test_a_class_character_outside_the_witness_alphabet_still_collides(self):
+        """`a[!b]c` and `a[bd]c` both reach `adc`, and `d` is not in ALPHABET."""
+        from validate_team import overlap, witness
+        self.assertEqual(overlap("a[!b]c", "a[bd]c"), "partial")
+        self.assertEqual(witness("a[!b]c", "a[bd]c"), "adc")
+
+    def test_a_negated_class_never_matches_a_separator(self):
+        """A class matches one character of a name, so `a[!b]c` is not `a/c`."""
+        from validate_team import glob_regex
+        self.assertIsNone(glob_regex("a[!b]c").match("a/c"))
+        self.assertIsNotNone(glob_regex("a[!b]c").match("adc"))
+
+    def test_containment_is_not_claimed_over_a_path_that_escapes(self):
+        """A probe that never tried `a` called `[!a]*` a superset of `*b` and `??`."""
+        from validate_team import overlap
+        self.assertEqual(overlap("src/[!a]*.py", "src/??.py"), "partial")
+        self.assertEqual(overlap("src/*b.py", "src/[!a]*.py"), "partial")
+        self.assertEqual(overlap("src/[a]*.py", "src/[ab]*.py"), "b")
+        self.assertEqual(overlap("src/[ab]*", "src/a*"), "a")
+
     def test_a_bare_directory_contains_a_glob_beneath_it(self):
         write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- src"))
         code, out = self.run_validator()

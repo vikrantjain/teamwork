@@ -18,9 +18,9 @@ this procedure reports and hands over.
    This is the team's stop condition, not a lane's `Done means`. Never verify
    those yourself, for the same reason a park does not.
 2. **Park every lane first.** Follow the drain in
-   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md`. A lane that has
-   not parked still holds a claim, and landing around it integrates work whose
-   owner thinks it is still in progress.
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md`. A lane that
+   has not parked still holds a claim, and landing around it integrates work
+   whose owner thinks it is still in progress.
 3. **Read `friction.md`.** If it holds notes, a retro's worth of evidence is
    about to be deleted with the run. Either run `/teamwork:retro` or report what
    is in it, so the next team does not rediscover the same costs.

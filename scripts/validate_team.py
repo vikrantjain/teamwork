@@ -41,6 +41,7 @@ log, and [T5] is what stops two members editing one file.
 """
 
 import argparse
+import itertools
 import os
 import re
 import sys
@@ -310,6 +311,18 @@ def has_wildcard(pattern):
     return any(ch in pattern for ch in "*?[")
 
 
+def char_class(body):
+    """The regex for a glob's bracket class.
+
+    glob negates a class with `!`, and some globs and regex with `^`. A class
+    matches one character of a name and never the separator, so `a[!b]c` does
+    not reach `a/c`; regex's `[^b]` alone would.
+    """
+    if body.startswith(("!", "^")):
+        return re.compile("[^/" + body[1:] + "]")
+    return re.compile("[" + body + "]")
+
+
 def glob_regex(pattern):
     """A regex matching the paths a glob reaches.
 
@@ -336,11 +349,7 @@ def glob_regex(pattern):
                 out.append(re.escape(pattern[i]))
                 i += 1
             else:
-                # glob negates a class with `!`; regex negates it with `^`.
-                body = pattern[i + 1:close]
-                if body.startswith("!"):
-                    body = "^" + body[1:]
-                out.append("[" + body + "]")
+                out.append(char_class(pattern[i + 1:close]).pattern)
                 i = close + 1
         else:
             out.append(re.escape(pattern[i]))
@@ -351,10 +360,11 @@ def glob_regex(pattern):
     return re.compile("^" + body + "$")
 
 
-def probe_path(pattern, fill=("__any__", "__any__", "__any__/")):
+def probe_path(pattern, fill=("__any__", "__any__", "__any__/"), one="x"):
     """One concrete path the glob matches, for testing another glob against it.
 
-    `fill` is what a `*`, a `**` and a `**/` become, in that order.
+    `fill` is what a `*`, a `**` and a `**/` become, in that order. `one` is
+    what a `?` becomes, and what a bracket class becomes when it accepts it.
     """
     star, dstar, dstar_slash = fill
     out, i = [], 0
@@ -369,7 +379,7 @@ def probe_path(pattern, fill=("__any__", "__any__", "__any__/")):
             out.append(star)
             i += 1
         elif pattern[i] == "?":
-            out.append("x")
+            out.append(one)
             i += 1
         elif pattern[i] == "[":
             close = pattern.find("]", i)
@@ -378,11 +388,9 @@ def probe_path(pattern, fill=("__any__", "__any__", "__any__/")):
                 i += 1
             else:
                 inner = pattern[i + 1:close]
-                if inner.startswith(("!", "^")):
-                    excluded = inner[1:]
-                    out.append("x" if "x" not in excluded else "y")
-                else:
-                    out.append(inner[0] if inner else "x")
+                cls = char_class(inner)
+                out.append(next((ch for ch in one + ALPHABET + inner
+                                 if cls.match(ch)), "x"))
                 i = close + 1
         else:
             out.append(pattern[i])
@@ -398,12 +406,17 @@ def probes(other, pattern):
     `docs/_*` matches `docs/__any__` without containing `docs/*`. Each wildcard
     is also filled with nothing, with a character `pattern` never names, and
     with a directory, so a glob that demands a character or stops at a slash
-    misses one of them.
+    misses one of them. Every wildcard is then filled with each character
+    either glob names, so `[!a]*` does not contain `*b` or `??` merely because
+    no probe began with `a`.
     """
     c = next((ch for ch in "zqkjw" if ch not in pattern), "z")
     fills = [("__any__", "__any__", "__any__/"), ("", "", ""),
              (c, c, c + "/"), (c, f"{c}/{c}", f"{c}/{c}/")]
-    return {probe_path(other, fill) for fill in fills}
+    out = {probe_path(other, fill) for fill in fills}
+    named = {ch for ch in ALPHABET + c + pattern + other if ch not in "/*?[]!^"}
+    out |= {probe_path(other, (ch, ch, ch + "/"), one=ch) for ch in named}
+    return out
 
 
 def covers(pattern, other):
@@ -417,8 +430,9 @@ def covers(pattern, other):
     return all(regex.match(p) for p in probes(other, pattern))
 
 
-# Characters a witness may be built from. Short on purpose: it only has to
-# produce one path both globs match, never every path either of them matches.
+# Characters a witness may be built from, beside those a class names. Short on
+# purpose: it only has to produce one path both globs match, never every path
+# either of them matches.
 ALPHABET = "abcxyz01._-"
 
 
@@ -441,10 +455,7 @@ def _tokens(pattern):
                 out.append(("lit", "["))
                 i += 1
             else:
-                body = pattern[i + 1:close]
-                if body.startswith("!"):
-                    body = "^" + body[1:]
-                out.append(("cls", re.compile("[" + body + "]")))
+                out.append(("cls", char_class(pattern[i + 1:close])))
                 i = close + 1
         else:
             out.append(("lit", pattern[i]))
@@ -457,8 +468,8 @@ def _one_char(token, allow_slash):
     kind, value = token
     if kind == "lit":
         return value if (allow_slash or value != "/") else None
-    for ch in ALPHABET:
-        if value.match(ch):
+    for ch in ALPHABET + value.pattern:
+        if ch != "/" and value.match(ch):
             return ch
     return None
 
@@ -471,8 +482,8 @@ def _shared_char(ta, tb):
         return ta[1] if tb[1].match(ta[1]) else None
     if tb[0] == "lit":
         return tb[1] if ta[1].match(tb[1]) else None
-    for ch in ALPHABET:
-        if ta[1].match(ch) and tb[1].match(ch):
+    for ch in ALPHABET + ta[1].pattern + tb[1].pattern:
+        if ch != "/" and ta[1].match(ch) and tb[1].match(ch):
             return ch
     return None
 
@@ -543,11 +554,23 @@ def _unify(a, b):
 
 
 def _forms(pattern):
-    """The spellings a pattern reaches, so a bare directory reaches its subtree."""
-    if has_wildcard(pattern):
-        return [pattern]
-    bare = pattern.rstrip("/")
-    return [bare, bare + "/**"]
+    """The spellings a pattern reaches, so a bare directory reaches its subtree.
+
+    `**/` matches no directory at all as well as some, but `_tokens` reads its
+    `/` as a literal that must appear. Each `**/` is therefore also tried
+    deleted, or `src/**/*.ts` would never meet `src/*` at `src/m.ts`.
+    """
+    if not has_wildcard(pattern):
+        bare = pattern.rstrip("/")
+        return [bare, bare + "/**"]
+    parts = pattern.split("**/")
+    forms = []
+    for keep in itertools.product((True, False), repeat=len(parts) - 1):
+        form = parts[0]
+        for kept, part in zip(keep, parts[1:]):
+            form += ("**/" if kept else "") + part
+        forms.append(form)
+    return forms
 
 
 def witness(a, b):

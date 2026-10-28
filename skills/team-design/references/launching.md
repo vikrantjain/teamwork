@@ -77,6 +77,21 @@ Without either, the hook falls back to the lane's directory name. Under one
 shared tree there is no such fallback, so it allows every write rather than
 blocking one it cannot attribute.
 
+## Permission mode
+
+Every lane runs in the lead's permission mode. SendMessage's own description in
+the installed CLI says what happens otherwise. A session in a different mode
+from the sender holds that sender's messages for its human's approval, and may
+let them expire. The sender is sent a delivery notice when that happens. A
+member whose `JOIN` the lead never approves waits for an answer that is not
+coming. A lane that never approves `PARK` never answers it.
+
+Ask the human which mode the team runs in rather than choosing it. A mode
+decides what a lane may do without asking its human, and that is the human's
+decision. When it is not the mode a plain `claude` starts in, put
+`--permission-mode <mode>` after `claude` in every launch and restart command.
+Say that the lead's own session must run in that mode too.
+
 ## A lane in the background
 
 Add `--bg` after `claude` and the lane needs no terminal. It keeps the name, the
