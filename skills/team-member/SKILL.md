@@ -43,11 +43,10 @@ it happen. A person is an editor as much as a session is.
    roster has to record a lane nobody can address.
 5. **Send the lead `JOIN <your lane>`** with your working directory and the
    paths you own, then wait for the lead's `JOIN`. The lead is the session that
-   `transport.md` names on its `Lead:` line. The lead writes the roster
-   from it; you do not. If you cannot reach the lead at all, say so to your human
-   and start anyway — a lane that waits for an answer that cannot arrive is a
-   lane that never works. `transport.md` in the
-   team root says what else that costs.
+   `transport.md` names on its `Lead:` line. The lead writes the roster from it;
+   you do not. If you cannot reach the lead at all, say so to your human and
+   start anyway — a lane that waits for an answer that cannot arrive is a lane
+   that never works. `transport.md` in the team root says what else that costs.
 
 ## Picking up work
 

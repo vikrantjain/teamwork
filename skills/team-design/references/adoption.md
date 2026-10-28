@@ -43,11 +43,14 @@ marketplace that member never added fails with nothing to try next.
    ladder keys on that answer. Sessions in different folders is the normal case
    here, not the exception.
 5. **Draft the team root at minimum size** — `protocol.md` and `conflicts.md`
-   copied verbatim, a charter, one role per session, `tracker.md`, `transport.md`.
-   Two charter sections cannot be read off running sessions and have to be asked
-   for: **what should stop and ask you, every time**, and **what finishing looks
-   like**. `[T15]` fails a charter without them, and a team adopted mid-flight is
-   the case where nobody has ever said either out loud.
+   copied verbatim, a charter, one role per session, `tracker.md`, `transport.md`,
+   then `decisions.md`, an empty `friction.md` and an empty `roster.md` as forming
+   creates them. The boundary hook reads `roster.md` as the sign that a run is
+   live, and without it a session started with no lane is never told it is on
+   a team. Two charter sections cannot be read off running sessions and have to
+   be asked for: **what should stop and ask you, every time**, and **what
+   finishing looks like**. `[T15]` fails a charter without them, and a team
+   adopted mid-flight is the case where nobody has ever said either out loud.
 6. **Record open work only.** Do not back-fill what is already finished.
    Reconstructing a history into the tracker is the same mistake as putting a log
    in the charter, one file over.
@@ -56,8 +59,21 @@ marketplace that member never added fails with nothing to try next.
    not in force until every reachable member has acked.** Boundaries imposed on
    work in flight invalidate that work, and a member that never agreed to a
    boundary will cross it.
-8. **Amend from the replies, validate, commit.** Then the team is adopted, and
-   `/teamwork:retro` works exactly as it does on a formed team.
+8. **Amend from the replies, validate, commit.**
+9. **Make every lane's next start identified.** These sessions started before
+   the team existed, so none carries `TEAMWORK_LANE`. Under one shared tree the
+   hook has no other way to tell them apart, and it allows their every write.
+   Write each lane's settings file and print its restart command, as
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/launching.md` says. The
+   restart command resumes a session by its lane's name, so ask the human to run
+   `/rename <lane>` first in any session not already named for its lane. Its
+   quoted `/teamwork:join` sends the `JOIN` that the roster is written from. Say
+   which sessions are not yet restarted. The settings file was verified to be
+   read when a session starts, and nothing verified that a running session reads
+   it, so count a session as held to its lane only from that restart.
+
+Then the team is adopted, and `/teamwork:retro` works exactly as it does on a
+formed team.
 
 ## What adoption cannot do
 

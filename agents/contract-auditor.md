@@ -18,11 +18,13 @@ you are reading them the way a new member does.
 
 `validate_team.py` already proved shape: line budgets, the four role headings in
 order with nothing empty under them and one glob per `Owns` line, dates and
-checkboxes, lane disjointness, the tracker's four lines and the transport's
-four, that the verbatim files match,
-that the team root is absolute, that the charter names one workspace and the
-directory its globs are read against, and that it holds a `## Human gates` and a
-`## Done`. Do not re-report any of it. Your job is the judgement those checks cannot make.
+checkboxes, that the charter's lanes and the role files agree, lane
+disjointness, that each shared path has one owner whose role claims it, that
+lane names are usable as addresses, the tracker's four lines and the transport's
+four, that the verbatim files match, that the team root is absolute, that the
+charter names one workspace and the directory its globs are read against, and
+that it holds a `## Human gates` and a `## Done`. Do not re-report any of it.
+Your job is the judgement those checks cannot make.
 
 Nor anything `decisions.md` settles with its reason. That file exists so a retro
 does not reopen a settled choice without new evidence, and you are part of the

@@ -61,9 +61,9 @@ Never invent a lane so that the lead has one. That is the same bottleneck
 arriving by another route.
 
 A lane the lead does hold gets a role file like any other, at `roles/lead.md`,
-and its name under the charter's `## Lanes`. Without one, its paths are owned by nobody
-and `[T5]` proves nothing about them, so every member may write the lead's
-integration tests and the hook allows it.
+and its name under the charter's `## Lanes`. Without one, its paths are owned by
+nobody and `[T5]` proves nothing about them, so every member may write the
+lead's integration tests and the hook allows it.
 
 ## Workspace
 

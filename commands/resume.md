@@ -9,8 +9,9 @@ Team root: **$ARGUMENTS**
 
 A resumed team is rebuilt from the charter and the tracker, never from a saved
 session. Each lane may resume its own conversation, but nothing here depends on
-what that conversation remembers. Read the team root by its **absolute path**: it is the one thing this
-session cannot derive, which is why the command takes it as an argument.
+what that conversation remembers. Read the team root by its **absolute path**:
+it is the one thing this session cannot derive, which is why the command takes
+it as an argument.
 
 Do four things, in this order.
 
@@ -26,11 +27,13 @@ A `[T9]` failure says the charter names a different directory from the one you
 are validating, and its two causes need opposite answers. When the directory it
 names is still a team root, you are in a stale copy: resume from the one the
 charter names and change nothing. When it is not there, this team root has
-moved, by a clone or a rename or a new machine. Rewrite `Team root:` and
-`Workspace root:` to the paths this copy and this workspace actually have. You
-are the lead, so those two lines are yours to write, and a charter left naming
-the old ones points the boundary hook at a tree nobody is editing, where every
-glob misses and every write is allowed.
+moved, by a clone or a rename or a new machine. Rewrite `Team root:`, and
+`Workspace root:` when the charter has one, to the paths this copy and this
+workspace actually have. Under one worktree per lane there is no `Workspace
+root:` to rewrite, and `[T14]` fails a charter that gains one. You are the lead,
+so those lines are yours to write, and a charter left naming the old ones points
+the boundary hook at a tree nobody is editing, where every glob misses and every
+write is allowed.
 
 Then rewrite `transport.md`'s `Lead:` line to this session's name, which
 `ListAgents` opens with. This session is a new lead, and every lane you relaunch

@@ -15,7 +15,7 @@ ${CLAUDE_PLUGIN_ROOT}/skills/team-design/SKILL.md
 ${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/adoption.md
 ```
 
-Two steps carry the whole command, and both are easy to skip.
+Three steps carry the whole command, and all three are easy to skip.
 
 **Read the division that already exists; do not invent one.** The work has been
 carved up by what each session has actually touched. Under version control that
@@ -28,6 +28,12 @@ instead would cut across work in flight.
 `Owns`, its `Never`, and one question: what do you own that this missed? The
 charter is not in force until every reachable member has acked. A member that
 never agreed to a boundary will cross it.
+
+**Count an adopted session as unenforced until it restarts.** It started before
+the team existed, so it carries no lane, and the boundary hook allows every write
+it cannot attribute to a lane. Write each lane's settings file and print its
+restart command, as the adoption reference's last step says. Name the sessions
+not yet restarted.
 
 Lead your report with **overlapping paths**. Two sessions writing one path is the
 failure this plugin exists to prevent, and this is the moment it becomes visible.

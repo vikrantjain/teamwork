@@ -39,10 +39,10 @@ written the same way.
 Globs are relative to the workspace, never absolute. Which directory that is
 comes from the charter. Under one worktree per lane it is the lane's own
 worktree, so two lanes may name one directory and still write different files;
-they must still be disjoint, because `[T5]` compares the globs and not the trees.
-Under the other three the charter's `Workspace root:` line names it. An absolute path and a
-relative one naming the same file look unequal to `[T5]`, which then passes a
-real collision, so `[T2]` rejects the absolute one.
+they must still be disjoint, because `[T5]` compares the globs and not the
+trees. Under the other three the charter's `Workspace root:` line names it. An
+absolute path and a relative one naming the same file look unequal to `[T5]`,
+which then passes a real collision, so `[T2]` rejects the absolute one.
 
 Every path the lane will write must appear. A path that appears in no role
 belongs to the lead, which is a fallback, not a plan.

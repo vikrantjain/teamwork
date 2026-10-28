@@ -64,8 +64,9 @@ from a fresh clone that never saw the original terminal.
    lane matching no worktree is rung 4, not a guess.
 3. **The charter alone**, for the other three workspaces. Under one shared tree
    every lane's working directory is the tree. Under separate repositories or
-   separate directories it is the directory that lane owns, which is the leading
-   segment of its `Owns` globs. Either way there is nothing to look up.
+   separate directories it is the directory that lane owns: the leading segment
+   of its `Owns` globs, under the charter's `Workspace root:`. Either way there
+   is nothing to look up.
 4. **Ask the user.** A guessed working directory starts a lane in the wrong tree,
    and it will edit the wrong files before anyone notices.
 
@@ -74,9 +75,10 @@ and every relaunch carries `TEAMWORK_LANE` and `TEAMWORK_ROOT` so the boundary
 hook can still tell which lane it is watching.
 
 Write each lane's settings file again before printing anything, as
-`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/launching.md` says. A
-fresh clone has none, and a team root that moved has changed `TEAMWORK_ROOT`. The file is derived from the
-charter like the commands are, so rewriting it loses nothing.
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/launching.md` says. A fresh
+clone has none, and a team root that moved has changed `TEAMWORK_ROOT`. The file
+is derived from the charter like the commands are, so rewriting it loses
+nothing.
 
 Print the restart command, with `-r <lane>`, for a lane whose session still
 exists on this machine. It resumes that conversation under the name the charter

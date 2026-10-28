@@ -20,9 +20,10 @@ happen. A person is an editor as much as a session is.
    `${CLAUDE_PLUGIN_ROOT}/skills/team-member/SKILL.md`. Read it now: it names the
    team root, the five files you load and nothing else, and the order.
 2. Send the lead `JOIN <your lane>` with your working directory and the paths
-   you own. The lead is the name on `transport.md`'s `Lead:` line. Wait for the lead's `JOIN` before you take an item. The lead writes
-   the roster; you do not. If the lead cannot be reached at all, say so and start
-   anyway: an answer that cannot arrive is not worth a lane that never works.
+   you own. The lead is the name on `transport.md`'s `Lead:` line. Wait for the
+   lead's `JOIN` before you take an item. The lead writes the roster; you do
+   not. If the lead cannot be reached at all, say so and start anyway: an answer
+   that cannot arrive is not worth a lane that never works.
 
 A `SessionStart` hook has already named your team root, your lane and your five
 files, and it says them again after every compaction. Nothing here repeats them,
