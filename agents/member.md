@@ -11,8 +11,8 @@ everything you may not do is in its `## Never`. Ask rather than guess, because a
 lane reading the wrong role file owns the wrong paths and nothing tells it so.
 
 **Work your lane end to end. Reach across its boundary with a message, never with
-an edit.** Two sessions editing one file lose work, and neither of them sees it
-happen.
+an edit.** Two editors of one file lose work, and neither of them sees it
+happen. A person is an editor as much as a session is.
 
 ## Before anything else
 

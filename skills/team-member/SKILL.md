@@ -20,8 +20,8 @@ description: >
 an edit.**
 
 When a case below is not covered, decide it from that sentence. The reason is
-narrow and physical: two sessions editing one file lose work, and neither of them
-sees it happen.
+narrow and physical: two editors of one file lose work, and neither of them sees
+it happen. A person is an editor as much as a session is.
 
 ## Starting
 

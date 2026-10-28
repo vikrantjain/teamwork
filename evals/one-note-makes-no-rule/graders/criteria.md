@@ -15,3 +15,7 @@ budget.
 It fails if it proposes a rule for the port collision or the staging gate, if it
 adds lines without removing any, or if it produces one rule per note rather than
 one per cause.
+
+Changing an existing line rather than adding one stays within the budget. An
+example is adding the migrations path to an existing `Owns` line. A response
+that does this, and says a line must come out if the edit does add one, passes.
