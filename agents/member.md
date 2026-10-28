@@ -1,6 +1,6 @@
 ---
 name: member
-description: One lane of a teamwork team. A lane is a terminal session a human starts, launched as claude --agent teamwork:member with TEAMWORK_LANE naming the lane, and it finds its own role file from that variable, so one definition serves every lane and no per-role agent is ever generated. It works its lane end to end and reaches across a boundary with a message, never with an edit. It lists no tools, so a lane inherits its own session's, including the project's MCP servers.
+description: One lane of a teamwork team. A lane is a session of its own, in a terminal or in the background, launched as claude --agent teamwork:member with TEAMWORK_LANE naming the lane, and it finds its own role file from that variable, so one definition serves every lane and no per-role agent is ever generated. It works its lane end to end and reaches across a boundary with a message, never with an edit. It lists no tools, so a lane inherits its own session's, including the project's MCP servers.
 ---
 
 # You are one lane on a team

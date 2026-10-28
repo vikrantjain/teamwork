@@ -31,7 +31,16 @@ this procedure reports and hands over.
 5. **Delete `friction.md` and `roster.md`.** They are this run's state. While
    `roster.md` is there, the boundary hook tells every new session in the
    project that it is on a team.
-6. **Print the commands and stop.** The human runs them.
+6. **Ask before clearing each lane's settings file.** Name every lane directory
+   whose `.claude/settings.local.json` carries `TEAMWORK_LANE` and
+   `TEAMWORK_ROOT`, and ask the human whether to remove them. The file is in the
+   user's own directory, and the human may want a lane directory to stay
+   identified for a next run. On a yes, take the two variables out, and delete
+   the file only when nothing else is left in it. On a no, leave the file as it
+   is and say what it costs. Every later session in that directory is a lane of
+   a finished team: the hook tells it so at startup and denies it paths by the
+   last run's ownership.
+7. **Print the commands and stop.** The human runs them.
 
 ## Landing, by workspace
 

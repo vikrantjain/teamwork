@@ -17,7 +17,10 @@ disagreed about what a glob reaches, a team would be enforced under rules it was
 never validated against.
 
 Resolving the lane, first match wins:
-    1. $TEAMWORK_LANE, set by the launch command the lead prints.
+    1. $TEAMWORK_LANE, set by the launch command the lead prints, and at every
+       later start by the `env` of the lane directory's .claude/settings.local.json.
+       Claude Code applies that `env` to the session, so it reaches this hook as
+       an ordinary variable and nothing here reads the file.
     2. The working directory's own name, wherever a lane has a tree of its own.
     3. Nothing, and then it allows every write and says so once.
 

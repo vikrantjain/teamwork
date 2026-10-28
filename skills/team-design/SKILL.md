@@ -49,7 +49,7 @@ unearned rule is a tax charged forever.
    written into `tracker.md` with its create, claim and close commands.
 5. **Record the substrate**, following
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md`. A lane is a
-   terminal session a human starts, so this is rarely a choice; write it into
+   session of its own on this machine, so this is rarely a choice; write it into
    `transport.md` with how to discover a lane and how to send to it. Every member
    loads this file, so a team without it is a list of strangers.
 6. **Write the contracts** from
@@ -65,7 +65,40 @@ unearned rule is a tax charged forever.
    why they are not committed.
 8. **Run the validator** before telling anyone the team exists:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate_team.py <team root>`.
-9. **Print the launch commands** for the user, one per lane, identical but for
+9. **Write each lane's settings file**, so the lane is identified however it is
+   next started. In every directory that exactly one member lane works in, write
+   `.claude/settings.local.json` carrying both variables:
+
+       {"env": {"TEAMWORK_LANE": "<lane>", "TEAMWORK_ROOT": "<team root>"}}
+
+   Claude Code reads that file at every start in the directory: a terminal,
+   `--bg`, `-r`, or a human typing plain `claude`. The launch command sets the
+   same two variables only for the process it starts. Without the file, a lane
+   started any other way is unidentified, and the boundary hook allows its every
+   write.
+
+   Merge into a file that already exists. Add the two keys under `env` and leave
+   every other key as it was, because the file was the user's first.
+
+   Write it under worktrees, separate repositories and separate directories.
+   Never write it under one shared tree, or into the lead's own working
+   directory. Every session started in that directory would claim the lane, the
+   lead included, and
+   `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/leading.md` says what
+   that costs.
+
+   Keep it out of version control. When
+   `git -C <dir> check-ignore -q .claude/settings.local.json` says it is not
+   ignored, append that path to the file named by
+   `git -C <dir> rev-parse --path-format=absolute --git-path info/exclude`. That
+   one file covers every worktree of the repository and is never committed. A
+   committed copy would merge into the base branch at the finish, and every
+   later session in the main checkout would then be that lane.
+
+   A lane whose directory does not exist yet gets its file when its `JOIN`
+   arrives, which names the directory. Its launch command identifies its first
+   start until then.
+10. **Print the launch commands** for the user, one per lane, identical but for
    the lane name and its working directory, every path absolute:
 
        cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
@@ -81,6 +114,20 @@ unearned rule is a tax charged forever.
    and under the other three it is the only thing that lets the lane read its own
    five files. One shape is one thing for the human to get wrong.
 
+   **A lane may run in the background.** Add `--bg` after `claude` and the lane
+   needs no terminal. It keeps the name, the environment and the working
+   directory the command gives it, and `SendMessage` reaches it by name like any
+   other lane. `claude agents` lists it, and `claude attach <lane>` opens it in a
+   terminal. With `--bg` the lead may run the commands itself through Bash. Do
+   that only when the human asks, because each command starts a session that
+   spends the human's usage.
+
+   Say two things a background lane changes. It will not start in a folder
+   Claude Code has not trusted, and it prints which folder. A worktree inherits
+   its repository's trust, and a separate repository needs `claude` run in it
+   once. A background lane waiting on input shows as `blocked` in
+   `claude agents`, and nobody sees what it is asking until someone attaches.
+
    **Write every path in full.** `--add-dir` accepts a relative path, resolves it
    against whatever directory the command was pasted into, and reports nothing
    when it lands somewhere else. That lane then starts, is told its lane and its
@@ -90,9 +137,10 @@ unearned rule is a tax charged forever.
    lane can be bound and blind at the same time.
 
    The two variables are what let the boundary hook deny a write to a path
-   another lane owns. Without them the hook falls back to the lane's directory
-   name, and under one shared tree there is no such fallback, so it allows every
-   write rather than blocking one it cannot attribute.
+   another lane owns. The lane's settings file sets the same two at every later
+   start. Without either, the hook falls back to the lane's directory name.
+   Under one shared tree there is no such fallback, so it allows every write
+   rather than blocking one it cannot attribute.
 
    Drop `--agent teamwork:member` and the quoted join for a lane whose session
    does not have the plugin. Keep `-n <lane>`, because the name is set by the CLI
@@ -103,7 +151,7 @@ unearned rule is a tax charged forever.
    `/teamwork:join` either. Hand it the five files to read by absolute path in
    place of the join.
 
-10. **Print the restart command under each launch command.** It is the same line
+11. **Print the restart command under each launch command.** It is the same line
    with `-r <lane>` in place of `-n <lane>`:
 
        cd <lane's working directory> && TEAMWORK_LANE=<lane> TEAMWORK_ROOT=<team root> \
@@ -121,6 +169,18 @@ unearned rule is a tax charged forever.
    `/clear`, two sessions share the name, so `-r` opens the picker with the
    newest first. Enter twice takes it: the first Enter moves from the search box
    into the list. The join runs once the pick is made.
+
+   **A lane started with `--bg` restarts by its session id, never by its name:**
+
+       cd <lane's working directory> && claude --bg --resume <session id> "/teamwork:join <lane>"
+
+   `claude agents --json --all` lists the id as `sessionId`, beside the lane's
+   `name` and `cwd`. Take the newest session that matches both. Pass no flag but
+   `--bg` and `--resume`. A background session keeps the flags and environment
+   it was started with, and any flag passed again starts a copy instead.
+   `--bg -r <lane>` also starts a copy, and the copy loses the lane's name. When
+   two sessions share the name, as after a `/clear`, it opens the picker where
+   nobody can see it, and the lane sits `blocked`.
 
 ## What belongs in a contract
 

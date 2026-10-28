@@ -91,8 +91,19 @@ recorded rather than the conclusion alone.
 - **Launch commands are re-derived at resume, never persisted.** Persisting them
   would pin a team to the terminals that formed it. The charter carries the lanes
   and the workspace and `git worktree list` carries the rest, so a run whose every
-  terminal is gone can still be brought back.
-- **A lane is a terminal session a human starts, and there is no other kind.**
+  terminal is gone can still be brought back. A lane's settings file is no
+  exception: it is written from the charter and rewritten at every resume.
+- **A lane with a directory of its own carries its variables in that directory's
+  `.claude/settings.local.json`.** The launch command's variables live only as
+  long as its process, so a lane restarted any other way ran unwatched. Claude
+  Code applies the file's `env` at every start there, and the hook sees it,
+  verified against the installed CLI. It cannot serve one shared tree, where one
+  file would make every session in the tree one lane. The session name was the
+  other candidate, and a hook's input does not carry it.
+- **A lane is a session in a process of its own, and there is no other kind.** It
+  may run in a terminal or under `--bg`. A background session keeps the
+  environment and directory it was launched with, verified against the installed
+  CLI, so it is identified exactly as a terminal one is.
   Spawning lanes as in-process teammates was the easiest substrate and is removed.
   Such a lane inherits the lead's environment, which carries no lane name, and the
   lead's working directory, so the boundary hook identifies neither and allows
@@ -121,7 +132,9 @@ recorded rather than the conclusion alone.
   `/clear` moves the name to a new session id, so the fixed id resumes the
   conversation from before the clear. `-c` was refused because under one shared
   tree it continues whichever lane ran last. `-r` follows the name across a
-  `/clear`, and the picker it then opens lists the newest first.
+  `/clear`, and the picker it then opens lists the newest first. A background
+  lane restarts by session id instead. `--bg -r` starts a copy that loses the
+  lane's name, and a name two sessions share opens a picker nobody can see.
 - **`JOIN` is one verb with two halves, and `RELOAD` gets no answer.** The
   member's announcement and the lead's reply were both called an "ack", and no
   verb named either, so every lane invented its own opening. A separate `ACK`

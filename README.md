@@ -76,11 +76,23 @@ tell which lane the session is. `-n api` names the session, and a session is
 addressed by its name. Unnamed lanes in one tree all answer to the same name, so
 a message reaches whichever the platform picks first.
 
+To run a lane without a terminal, add `--bg` after `claude`. The lane starts in
+the background with the same name, variables and directory, and messages reach
+it the same way. `claude agents` lists it and `claude attach api` opens it.
+
 The second command brings the lane back after a reboot, a crash or a token limit.
 It is the same line with `-r api` in place of `-n api`, which resumes the lane's
 own conversation instead of starting a new one. Use it for every start after the
-first. With no session of that name yet, `-r` opens an empty picker. Lost the
-lines? `/teamwork:resume` in the lead prints them again.
+first. With no session of that name yet, `-r` opens an empty picker. A lane that
+ran in the background comes back by its session id instead, because `-r` there
+starts a copy that has lost the lane's name. Lost the lines? `/teamwork:resume`
+in the lead prints them again.
+
+Where a lane has a directory of its own, the lead also writes the two variables
+into that directory's `.claude/settings.local.json`. Any session started there
+is then identified as the lane, however it was started. Under one shared tree
+every lane shares the directory, so a lane there is identified only while it is
+started from its printed command.
 
 Each lane then reads its five files, sends the lead `JOIN`, and works its own
 paths once the lead answers. While the run is live the lead has
@@ -199,8 +211,9 @@ per lane, and under the other three the directory the charter names on its
 from the team root's parent was right until you put the team root somewhere else,
 and then every glob missed, every write was allowed, and the member was still
 told at startup that its writes were enforced. The hook
-identifies the lane from `TEAMWORK_LANE`, which every launch command sets, and
-failing that from the working directory's own name, wherever a lane has a
+identifies the lane from `TEAMWORK_LANE`, which every launch command sets, as
+does the settings file in a lane's own directory. Failing that, it identifies the
+lane from the working directory's own name, wherever a lane has a
 directory of its own.
 A session it cannot identify is allowed every write, because a hook that blocked
 what it could not attribute would stop the lead and every session not on a team

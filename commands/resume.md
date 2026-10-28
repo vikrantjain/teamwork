@@ -43,6 +43,9 @@ ${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md
 workspaces, then ask. **Never guess a working directory.** A lane started in the
 wrong tree edits the wrong files, and the first sign of it is lost work.
 
+Then write each lane's settings file again, as that reference says. A fresh
+clone has none, and a team root that moved has changed what it must name.
+
 **3. Report the open cross-lane edges** from the tracker named in `tracker.md`,
 using its own commands: every item blocked on another lane. These are what the
 team was in the middle of, and they are the one thing a park is supposed to have
@@ -64,6 +67,11 @@ parking reference above says how to tell the two apart. A relaunch that drops th
 two variables starts a lane the boundary hook cannot identify, so it runs
 unenforced and nothing says so at the time. One that drops both `-r` and `-n`
 starts a lane nobody can address under the name the charter uses.
+
+A lane that ran in the background restarts by its session id, never by `-r`.
+Step 11 of `${CLAUDE_PLUGIN_ROOT}/skills/team-design/SKILL.md` shows the
+command. `-r` there starts a copy of the conversation that has lost the lane's
+name.
 
 **Read the tracker, never the work.** Resuming is not catching up on diffs. The
 lanes read their own items; you hold the map.

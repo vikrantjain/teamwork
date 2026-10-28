@@ -38,7 +38,9 @@ that may rewrite the contracts.
 
 A session is addressed by **its own name**, and that name defaults to its working
 directory. **The launch command sets it with `-n <lane>`**, and the restart
-command keeps it, because `-r <lane>` resumes the session that has the name.
+command keeps it, because `-r <lane>` resumes the session that has the name. A
+lane in the background restarts by its session id instead, which keeps the
+name it was started with.
 `--team-name` and `--agent-name` do not set it, which is why this plugin does not
 use them.
 
@@ -68,15 +70,18 @@ lead's park drain is what it is worth most for: a lane that exits without
 answering `PARK` still fires the notice, and without it the lead waits on an
 answer that is never coming.
 
-## A lane is a session a human starts
+## A lane is a session of its own
 
-There is one kind of member: a terminal session, started by a human from the
-launch command the lead prints, on the same machine as every other lane. The
-boundary hook identifies a lane from `TEAMWORK_LANE`, which that command sets,
-and failing that from the working directory's own name. A lane spawned inside the
-lead's process has neither, so every write it makes is allowed. It also has no
-worktree and no branch, which is what a park re-derives a launch command from and
-what a finish merges.
+There is one kind of member: a Claude Code session in a process of its own,
+started from the launch command the lead prints, on the same machine as every
+other lane. It runs in a terminal, or in the background when the command carries
+`--bg`. The two differ only in where a human sees the lane. The boundary hook
+identifies a lane from `TEAMWORK_LANE`, and failing that from the working
+directory's own name. The launch command sets the variable. A lane with a
+directory of its own also has a settings file there that sets it at every later
+start. A lane spawned inside the lead's process has neither, so every write it
+makes is allowed. It also has no worktree and no branch, which is what a park
+re-derives a launch command from and what a finish merges.
 
 The one case that is not a session is **a human member**. There is no transport
 at all. The lead relays, and the charter names that lane as relayed so nobody
@@ -89,11 +94,11 @@ or run a workflow, and none of that is the team's business. The hook reads the
 environment and the working directory, and a member passes both to everything it
 spawns, so a lane's own agents are held to that lane's paths at no cost.
 
-A workflow is safe for that reason and one more: it starts only when the human at
-that terminal asks for it, so a lane cannot drift into one. What it does change
-is stopping. A workflow reports when it finishes rather than within the turn, so
+A workflow is safe for that reason and one more: it starts only when the lane's
+human asks for it, so a lane cannot drift into one. What it does change is
+stopping. A workflow reports when it finishes rather than within the turn, so
 a lane that answers `PARK` with one still running has work held nowhere, and
-closing the terminal takes it. That is the third park condition, and
+stopping the session takes it. That is the third park condition, and
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md` names it.
 
 Say this plainly in the charter when a lane is likely to want it. A member that

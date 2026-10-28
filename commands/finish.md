@@ -13,7 +13,7 @@ Read the team root by its absolute path first, then follow:
 ${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/finishing.md
 ```
 
-Five things carry this command, and three of them are refusals.
+Six things carry this command, and four of them are refusals.
 
 **Check the charter's `## Done` before anything else.** It is the team's stop
 condition and it was written to be checkable by someone who was not here. If it
@@ -37,6 +37,12 @@ branch>` reports conflicts and writes nothing. Run it for every lane before
 proposing an order, because the first merge changes what the second conflicts
 with. Under one shared tree or separate directories there is nothing to merge;
 report what is uncommitted or unsaved and where each lane's work sits.
+
+**Ask before clearing any lane's settings file.** Name each lane directory whose
+`.claude/settings.local.json` still carries `TEAMWORK_LANE` and `TEAMWORK_ROOT`,
+and remove the two only on the human's yes. The file is in the user's own
+directory. One left in place makes every later session there a lane of this
+finished team, so say that when the answer is no.
 
 **Print the commands and stop.** The merges, the `git worktree remove` calls and
 the branch deletions are the human's to run. Merging changes the product and

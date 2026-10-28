@@ -92,14 +92,16 @@ read against, `[T14]` fails a charter without it, and
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` says what a
 derived anchor cost.
 
-Enforcement does not depend on the choice. Every lane is a session the human
+Enforcement on a lane's first start does not depend on the choice. Every lane
 starts from the printed launch command, which sets `TEAMWORK_LANE`, so the
-boundary hook identifies the lane under any of the four. The hook's second rung,
-the working directory's own name, is a backstop for a lane someone started
-without that variable. It works under the three that give a lane a directory of
-its own, so name each of those directories for its lane. It cannot work under one
-shared tree, where every lane's directory is the same one and its name would
-answer for all of them.
+boundary hook identifies the lane under any of the four. Later starts differ.
+Under the three that give a lane a directory of its own, a settings file in that
+directory sets the variable again at every start. The directory's own name is
+the hook's backstop behind it, so name each of those directories for its lane.
+Neither works under one shared tree, where every lane's directory is the same
+one and would answer for all of them. A shared-tree lane is identified only
+while it is started from its printed command.
 
 So choose worktrees for the reasons above and for the branch each lane needs at
-the end, not to buy a boundary you already have.
+the end, not to buy a boundary you already have. Choose one shared tree knowing
+that a lane restarted any other way is a lane the hook does not watch.
