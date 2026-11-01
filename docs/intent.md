@@ -17,6 +17,16 @@ model that needs step-by-step direction is not its audience.
 It supports multiple separate agent sessions that interact with each other
 through Claude's messaging.
 
+A session left to itself usually does all of its work in its main agent. That
+agent's context fills up. The agent that did the work is the only one that
+checks it.
+
+The plugin gives every session a way to split its own work among agents, in
+roles with clear boundaries. A lane decides its own roles and how it keeps them
+apart. The lead does not see them. They do not change how the lead allocated
+the work. The same method serves a single session working without a team,
+because the same failures happen there.
+
 The work assigned can be anything. It is not limited to software development.
 
 On a fresh project, the rules of work are decided when the team forms. On work
@@ -33,5 +43,6 @@ session with the human about the expected team structure. It can do more than
 one of these.
 
 The ultimate goal is complete collaboration to achieve the final goal: minimum
-conflicts, minimum duplication of effort, parallel work, and context that is
-optimized and isolated.
+conflicts, minimum duplication of effort, parallel work, context that is
+optimized and isolated, and work checked by an agent other than the one that
+did it.
