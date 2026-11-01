@@ -169,6 +169,16 @@ class TestBoundary(HookCase):
         self.assertEqual(out, {})
 
 
+class TestUnreadableGlob(HookCase):
+    def test_one_unreadable_glob_leaves_every_other_lane_enforced(self):
+        """[T2] fails the glob. The hook skips it rather than give up on the team."""
+        self.write(".teamwork/roles/api.md",
+                   ROLE_API.replace("db/migrations/**", "db/[]x"))
+        out, _ = self.edit("web/app.tsx", lane="api")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the web lane", out["permissionDecisionReason"])
+
+
 class TestFailsOpen(HookCase):
     def test_a_session_with_no_lane_is_never_blocked(self):
         """The lead, and any session not on a team, must not be stopped."""
@@ -490,6 +500,37 @@ class TestWorkspaces(HookCase):
                      env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": root})
         self.assertEqual(out, {})
 
+    def test_the_lead_writes_a_lanes_launch_files_inside_its_owned_directory(self):
+        """`payments/**` reaches the settings file and the repository's exclude."""
+        base, root = self.plain("separate repositories", lanes=(
+            ("api", ROLE_API.replace("services/billing/**", "payments/**")
+                            .replace("db/migrations/**", "payments/db/**")),
+            ("web", ROLE_WEB), ("lead", ROLE_LEAD)))
+        charter = os.path.join(root, "charter.md")
+        with open(charter, encoding="utf-8") as fh:
+            text = fh.read()
+        with open(charter, "w", encoding="utf-8") as fh:
+            fh.write(text.replace("- web - the dashboard",
+                                  "- web - the dashboard\n- lead - integration and docs"))
+        payments = os.path.join(base, "payments")
+        os.makedirs(payments)
+        subprocess.run(["git", "init", "-q"], cwd=payments, check=True)
+        for target in ("payments/.claude/settings.local.json",
+                       "payments/.git/info/exclude"):
+            with self.subTest(target=target):
+                out, _ = run({"hook_event_name": "PreToolUse",
+                              "cwd": os.path.join(base, "docs"),
+                              "tool_name": "Write",
+                              "tool_input": {"file_path": os.path.join(base, target)}},
+                             env={"TEAMWORK_LANE": "lead", "TEAMWORK_ROOT": root})
+                self.assertEqual(out, {})
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(base, "docs"),
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(base, "payments/x.py")}},
+                     env={"TEAMWORK_LANE": "lead", "TEAMWORK_ROOT": root})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+
     def test_the_old_isolation_line_still_resolves_a_worktree_lane(self):
         """A team formed before the rename keeps its second lane rung."""
         self.write(".teamwork/charter.md",
@@ -630,6 +671,40 @@ class TestLeadLane(HookCase):
     def test_the_lead_writes_its_own_lane(self):
         out, _ = self.edit("docs/api.md", lane="lead")
         self.assertEqual(out, {})
+
+    def test_the_lead_may_not_write_a_stale_copy_of_the_team_root(self):
+        """Its own worktree carries a committed copy that no member reads."""
+        lead = self.worktree("lead")
+        out, _ = run({"hook_event_name": "PreToolUse", "cwd": lead,
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(
+                          lead, ".teamwork", "charter.md")}},
+                     env={"TEAMWORK_LANE": "lead", "TEAMWORK_ROOT": self.root})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("a copy of the team root", out["permissionDecisionReason"])
+        self.assertIn(self.root, out["permissionDecisionReason"])
+
+    def test_the_lead_writes_the_files_that_launch_a_lane(self):
+        """A resume rewrites them while the lane they belong to is not up to ask."""
+        api, lead = self.worktree("api"), self.worktree("lead")
+        for target in (os.path.join(api, ".claude", "settings.local.json"),
+                       os.path.join(self.repo, ".git", "info", "exclude")):
+            with self.subTest(target=target):
+                out, _ = run({"hook_event_name": "PreToolUse", "cwd": lead,
+                              "tool_name": "Write",
+                              "tool_input": {"file_path": target}},
+                             env={"TEAMWORK_LANE": "lead", "TEAMWORK_ROOT": self.root})
+                self.assertEqual(out, {})
+
+    def test_a_member_may_not_write_another_lanes_settings_file(self):
+        """It would decide which lane that directory starts as."""
+        api, web = self.worktree("api"), self.worktree("web")
+        out, _ = run({"hook_event_name": "PreToolUse", "cwd": api,
+                      "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(
+                          web, ".claude", "settings.local.json")}},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root})
+        self.assertEqual(out.get("permissionDecision"), "deny")
 
     def test_the_lead_lane_is_not_told_to_join_itself(self):
         """The member's JOIN line would have the lead message, and rename, itself."""

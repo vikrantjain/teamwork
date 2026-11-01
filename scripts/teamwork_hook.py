@@ -68,7 +68,10 @@ the lead's own process inherits its environment, so that lane's name would be
 handed to the spawned session, which would then be denied its own paths and
 allowed the lead's. `lead` is the one safe value: it is the lane a lead holds
 when its work is downstream of everyone, and it is the only lane allowed to
-write the team root, which protocol.md rule 5 already reserves to the lead.
+write the team root, which protocol.md rule 5 already reserves to the lead. It
+is also the only lane allowed to write the files that identify a lane at its
+next start. The lead writes those into every lane's directory, and a lead
+denied them could not relaunch the team it leads.
 
 There is no SessionEnd branch. The platform prints a SessionEnd hook's output
 only when the hook reports failure, so a warning naming a lane's uncommitted
@@ -141,6 +144,19 @@ LEAD_LANE = "lead"
 
 def is_team_root(path):
     return bool(path) and os.path.exists(os.path.join(path, "charter.md"))
+
+
+def is_launch_file(path):
+    """Whether `path` is a file launching.md has the lead write for a lane.
+
+    Those are a lane's `.claude/settings.local.json` and git's `info/exclude`,
+    which keeps that file out of commits. Each sits in a directory the lane owns,
+    or in another checkout, and the lead writes it at a resume or a finish, when
+    the lane is not running to be asked.
+    """
+    parts = path.split(os.sep)
+    return (parts[-2:] == [".claude", "settings.local.json"]
+            or (parts[-2:] == ["info", "exclude"] and ".git" in parts))
 
 
 def enclosing_repo(here):
@@ -374,19 +390,29 @@ def pre_tool_use(payload):
     anchor = workspace_root(cwd, root)
     # A lane's own copy of the team root is guarded too. It is not the team root,
     # but it is what a member reads when it forgets rule 4, so a write that lands
-    # there is a contract edit whichever copy it reached.
+    # there is a contract edit whichever copy it reached. The lead writes the
+    # team root itself and never a copy: an edit to a copy changes nothing any
+    # member reads, and on a lane's branch it collides with the real one at the
+    # finish.
     repo = enclosing_repo(here)
     copies = {os.path.realpath(os.path.join(d, ".teamwork"))
               for d in (anchor, repo) if d}
     for guarded in [root] + sorted(copies):
         if inside(real, guarded):
-            if lane == LEAD_LANE:
+            if lane == LEAD_LANE and guarded == root:
                 allow()
+            if lane == LEAD_LANE:
+                deny("PreToolUse",
+                     f"{real} is in a copy of the team root. The team root is {root}, "
+                     "so make the edit there. protocol.md rule 4: a copy goes stale "
+                     "silently, and no member reads an edit made to one.")
             deny("PreToolUse",
                  f"{os.path.relpath(real, guarded)} is in the team root. "
                  "protocol.md rule 5: write only the paths your role owns, and "
                  "only the lead writes the team root. Contracts change at a retro "
                  "and nowhere else. Send FRICTION and keep working.")
+    if lane == LEAD_LANE and is_launch_file(real):
+        allow()
     if workspace_is_worktrees(root):
         other = foreign_checkout(real, here)
         if other:

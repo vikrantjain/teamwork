@@ -24,7 +24,7 @@ export type Board = {
   friction: number
   /** validate_team.FRICTION_CAP, when it could be read. */
   frictionCap?: number
-  /** The validator's verdict; absent when it could not run. */
+  /** The validator's verdict; absent when it could not run or crashed. */
   contracts?: BoardCheck
   isRetroDue: boolean
 }

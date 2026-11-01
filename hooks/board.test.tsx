@@ -141,6 +141,12 @@ test('the validator verdict keeps its failures and warnings', async () => {
   expect(parseValidator(2, '')).toBeUndefined()
 })
 
+test('a validator that crashed gives no verdict', async () => {
+  const traceback = 'Traceback (most recent call last):\n  File "validate_team.py"\nre.error: x\n'
+  expect(parseValidator(1, traceback)).toBeUndefined()
+  expect(parseValidator(1, '')).toBeUndefined()
+})
+
 test('a lane never seen up is shown but never alerted', async () => {
   const board = {
     root: ROOT, lanes: lanesOf(CHARTER, ROSTER, ['api']), friction: 0, isRetroDue: false,

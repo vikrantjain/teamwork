@@ -724,11 +724,53 @@ class TestT2Owns(TeamRootCase):
         self.assertEqual(code, 1)
         self.assertIn("'## Owns' is empty", out)
 
+    def test_owns_climbing_out_of_the_workspace_fails(self):
+        """The hook never compares a path spelled with `..`, so it owns nothing."""
+        for glob in ("../web/**", "src/../../web/**"):
+            with self.subTest(glob=glob):
+                write(self.root, "roles/ui.md", ROLE_UI.replace("src/ui/**", glob))
+                code, out = self.run_validator()
+                self.assertEqual(code, 1, out)
+                self.assertIn("[T2]", out)
+                self.assertIn("climbs out", out)
+
     def test_absolute_owns_fails(self):
         write(self.root, "roles/ui.md", ROLE_UI.replace("- src/ui/**", "- /srv/app/ui/**"))
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("is absolute", out)
+
+
+class TestBracketClasses(TeamRootCase):
+    """A bracket is a class, as in any glob, and some classes are no regex."""
+
+    def test_an_unreadable_class_fails_t2_rather_than_crashing(self):
+        for glob in ("src/[]x", "src/[z-a]x"):
+            with self.subTest(glob=glob):
+                write(self.root, "roles/ui.md", ROLE_UI.replace("src/ui/**", glob))
+                code, out = self.run_validator()
+                self.assertEqual(code, 1, out)
+                self.assertIn("[T2]", out)
+                self.assertIn("matches nothing", out)
+
+    def test_an_unreadable_shared_path_fails_t11_rather_than_crashing(self):
+        append(self.root, "charter.md", "\n## Shared paths\n- src/[]x — owned by ui\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[T11]", out)
+        self.assertIn("matches nothing", out)
+
+    def test_an_escaped_bracket_is_a_literal_directory_and_raises_no_warning(self):
+        """`app/[[]id]/**` is how a lane owns a route directory named `[id]`."""
+        import warnings
+        write(self.root, "roles/ui.md", ROLE_UI.replace("src/ui/**", "src/ui/[[]id]/**"))
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            code, out = self.run_validator()
+            regex = validate_team.glob_regex("src/ui/[[]id]/**")
+        self.assertEqual(code, 0, out)
+        self.assertRegex("src/ui/[id]/page.tsx", regex)
+        self.assertNotRegex("src/ui/i/page.tsx", regex)
 
 
 class TestT5Spelling(TeamRootCase):

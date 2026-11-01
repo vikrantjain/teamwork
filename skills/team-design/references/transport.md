@@ -42,7 +42,9 @@ otherwise arrive hours later when the lane tries to take its name.
 
 `lead` means the lane the lead holds and nothing else. It is the one lane the
 boundary hook lets write the team root, so a member given that name is a member
-that may rewrite the contracts.
+that may rewrite the contracts. It is also the one lane the hook lets write
+another lane's settings file, so that member could change which lane a directory
+starts as.
 
 ## Making a lane addressable
 

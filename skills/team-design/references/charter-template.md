@@ -1,7 +1,7 @@
 # The charter
 
-At most 50 lines, at `<team root>/charter.md`. It is the team's own law, and the
-only contract file a retro may edit. Every member re-reads it on every context
+At most 50 lines, at `<team root>/charter.md`. It is the team's own law, which a
+retro may edit. Every member re-reads it on every context
 load, so a line that does not change what someone does is a line that costs the
 team forever.
 

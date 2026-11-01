@@ -56,13 +56,21 @@ export function rosterLine(roster: string, lane: string): string | undefined {
   return lines.find(l => opens.test(l)) ?? lines.find(l => names.test(l))
 }
 
-/** The validator's verdict from its exit code and stderr; undefined when it did not run. */
+/**
+ * The validator's verdict from its exit code and stderr; undefined when it gave none.
+ *
+ * Exit 1 is a verdict only with a FAIL line beside it. A traceback, and a run
+ * ended by a signal, exit 1 too, and read as a verdict they would report
+ * contracts failing with no check named.
+ */
 export function parseValidator(exitCode: number, stderr: string): BoardCheck | undefined {
   if (exitCode !== 0 && exitCode !== 1) return undefined
   const lines = stderr.split('\n')
   const after = (prefix: string) =>
     lines.filter(l => l.startsWith(prefix)).map(l => l.slice(prefix.length).trim())
-  return { isOk: exitCode === 0, failures: after('FAIL'), warnings: after('warning') }
+  const failures = after('FAIL')
+  if (exitCode === 1 && !failures.length) return undefined
+  return { isOk: exitCode === 0, failures, warnings: after('warning') }
 }
 
 /** Whether the validator says a retro is due. Its [T8] owns the cap. */

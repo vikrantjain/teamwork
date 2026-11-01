@@ -36,6 +36,10 @@ backticks: `` `Drafts/Chapter One/**` ``. Unquoted, it is read as
 `Drafts/Chapter`, which owns every chapter. A shared path in the charter is
 written the same way.
 
+A bracket is a character class, as in any glob. `app/[id]/**` therefore reaches
+`app/i/` and `app/d/`, and a directory named `[id]` is owned by nobody. Write a
+literal `[` as `[[]`, so that directory is `app/[[]id]/**`.
+
 Globs are relative to the workspace, never absolute. Which directory that is
 comes from the charter. Under one worktree per lane it is the lane's own
 worktree, so two lanes may name one directory and still write different files;

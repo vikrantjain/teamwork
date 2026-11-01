@@ -17,7 +17,8 @@ Exit codes:
 Checks:
     [T1] budgets          every contract file is within its line budget
     [T2] role-shape       each role file has the four headings, no empty section
-                          under any of them, and workspace-relative Owns globs
+                          under any of them, and Owns globs inside the workspace
+                          that the hook can read
     [T3] no-log           no date, checkbox, issue id or status marker in a contract
     [T4] roster-closure   lanes named in the charter and role files on disk agree
     [T5] lane-disjoint    no path is owned by two roles, whether one role's glob
@@ -257,6 +258,19 @@ def check_role_shape(root, rep):
                          "to the workspace named on the charter's 'Workspace:' line; "
                          "an absolute path and a relative one naming the same file "
                          "look unequal to [T5], which then passes a real collision.")
+            elif ".." in normalise(entry).split("/"):
+                rep.fail("T2", rel, 0,
+                         f"'## Owns' entry {entry!r} climbs out with '..'. The boundary "
+                         "hook compares only paths inside the workspace, spelled from "
+                         "it with no '..', so this glob matches nothing and the lane "
+                         "owns nothing there. Write it from the charter's workspace.")
+            elif not readable(normalise(entry)):
+                rep.fail("T2", rel, 0,
+                         f"'## Owns' entry {entry!r} has a bracket class that matches "
+                         "nothing: an empty '[]', or a range running backwards. The "
+                         "boundary hook skips a glob it cannot read, so no lane owns "
+                         "these paths and every lane may write them. A literal '[' "
+                         "is written '[[]'.")
 
 
 def check_no_log(root, rep):
@@ -317,10 +331,29 @@ def char_class(body):
     glob negates a class with `!`, and some globs and regex with `^`. A class
     matches one character of a name and never the separator, so `a[!b]c` does
     not reach `a/c`; regex's `[^b]` alone would.
+
+    `\\` and `[` are literal in a glob class and special in a regex one, so they
+    are escaped, or `[[]`, the usual way to write a literal bracket, would warn.
+    A class that is still no regex, `[]` or a range running backwards, raises.
     """
-    if body.startswith(("!", "^")):
-        return re.compile("[^/" + body[1:] + "]")
-    return re.compile("[" + body + "]")
+    negated = body.startswith(("!", "^"))
+    if negated:
+        body = body[1:]
+    body = re.sub(r"([\\\[&~|])", r"\\\1", body)
+    return re.compile(("[^/" if negated else "[") + body + "]")
+
+
+def readable(pattern):
+    """Whether `glob_regex` can read `pattern`.
+
+    [T2] and [T11] report a glob it cannot, so every other check skips one
+    rather than crash on it.
+    """
+    try:
+        glob_regex(pattern)
+    except re.error:
+        return False
+    return True
 
 
 def glob_regex(pattern):
@@ -648,7 +681,9 @@ def owns_entries(lines):
 
 
 def owned_paths(path):
-    return [normalise(e) for e in owns_entries(read_lines(path))]
+    """The lane's globs, one spelling each, leaving out any [T2] fails as unreadable."""
+    return [p for p in (normalise(e) for e in owns_entries(read_lines(path)))
+            if readable(p)]
 
 
 LOST_WORK = "Two members editing one path lose work silently."
@@ -714,6 +749,12 @@ def check_shared_paths(root, rep):
                      "two lanes collide first.")
             continue
         pattern, owner = normalise(m.group(1)), m.group(2)
+        if not readable(pattern):
+            rep.fail("T11", "charter.md", 0,
+                     f"shared path {pattern!r} has a bracket class that matches "
+                     "nothing: an empty '[]', or a range running backwards. No role "
+                     "can claim a path nobody can read. A literal '[' is written '[[]'.")
+            continue
         if owner not in lanes:
             rep.fail("T11", "charter.md", 0,
                      f"shared path {pattern!r} is owned by {owner!r}, which is not a "
