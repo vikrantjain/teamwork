@@ -9,7 +9,8 @@ Events:
     PreToolUse    deny a write to a path another lane owns, or to the team root
     SessionStart  tell a joining session where its team root and role are, and
                   say it again after a compaction, which starts the session
-                  again with source `compact`
+                  again with source `compact`. Name the session's crew file
+                  too, when it has one, on a team or not
 
 It shares `validate_team`'s glob code on purpose. If the hook and the checker
 disagreed about what a glob reaches, a team would be enforced under rules it was
@@ -57,7 +58,10 @@ identify is a lane it cannot protect, which is why rung 1 is worth setting.
 A member's own agents inherit its lane. Resolution reads the environment and the
 working directory, and a session passes both to everything it spawns, so a lane
 can fan out as widely as its work needs and each agent is held to that lane's
-paths. That is why nothing here governs what happens inside a lane.
+paths. That is why nothing here governs what happens inside a lane. It could
+tell a lane's agents apart, because a subagent's tool call carries `agent_id`
+and `agent_type`. It deliberately does not. How a crew keeps its roles apart is
+the lane's own choice, and a hook that enforced one way would take it away.
 
 The lead must never set $TEAMWORK_LANE to a member's lane. Anything spawned in
 the lead's own process inherits its environment, so that lane's name would be
@@ -82,6 +86,13 @@ is on a team, and pay for the note in context. A run is live when the session
 carries either variable, resolves a lane, or the team root holds `roster.md`,
 which is this run's state and goes when the run finishes.
 
+The crew note is the one exception. A session on no team has nothing else that
+gives its crew back after a compaction. The file exists only once a human
+approved a crew, so every session started in that directory is told, and no
+other session is. On a live run, only a resolved lane is told, and of its own
+file. A session with no lane there is the lead holding the map or a member the
+hook cannot identify, and neither has a crew.
+
 What it cannot see: a write made through Bash. Parsing a shell command to find
 the file it truncates is a losing game, and a hook that catches nine tenths of
 them would be trusted for the tenth.
@@ -97,6 +108,9 @@ from validate_team import (  # noqa: E402
 
 # Write tools name their target in one of these. Bash is deliberately absent.
 TARGET_FIELDS = ("file_path", "notebook_path", "path")
+
+CREW_SKILL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                          "skills", "crew", "SKILL.md")
 
 
 def emit(payload):
@@ -399,15 +413,37 @@ def pre_tool_use(payload):
          "of them sees it happen.")
 
 
+def crew_file(lane):
+    """The crew file a lane, or a session on no team when `lane` is None, saved.
+
+    None when there is none. It is looked up under $CLAUDE_PROJECT_DIR, the
+    directory the session started in. The payload's `cwd` follows the shell's
+    `cd`, so after one it would look in the wrong directory.
+    """
+    project = os.environ.get("CLAUDE_PROJECT_DIR")
+    if not project:
+        return None
+    path = os.path.join(project, ".claude",
+                        f"crew-{lane}.md" if lane else "crew.md")
+    return path if os.path.isfile(path) else None
+
+
+def crew_note(path):
+    return (f"This session's crew is in {path}. Read it before you start an agent. "
+            "It holds the roles your human approved, and they change only with "
+            f"that human. {CREW_SKILL} says how a crew runs.")
+
+
 def startup(payload, event):
     root = find_team_root(payload.get("cwd"))
-    if not root:
-        allow()
-    lane, how = resolve_lane(root, payload.get("cwd"))
+    lane, how = resolve_lane(root, payload.get("cwd")) if root else (None, None)
     named = os.environ.get("TEAMWORK_LANE")
-    live = (lane or named or os.environ.get("TEAMWORK_ROOT")
-            or os.path.exists(os.path.join(root, "roster.md")))
+    live = root and (lane or named or os.environ.get("TEAMWORK_ROOT")
+                     or os.path.exists(os.path.join(root, "roster.md")))
     if not live:
+        crew = crew_file(None)
+        if crew:
+            context(event, crew_note(crew))
         allow()
     lines = [f"This session is on a teamwork team. Team root: {root}",
              "Read it by that absolute path. A relative .teamwork/ may be this "
@@ -442,6 +478,9 @@ def startup(payload, event):
         lines.append(
             "Writes to a path another lane owns are denied by a hook, so a boundary "
             "crossing fails rather than silently losing someone's work.")
+        crew = crew_file(lane)
+        if crew:
+            lines.append(crew_note(crew))
     else:
         lines.append(
             "No lane resolved for this session, so the boundary hook allows every "

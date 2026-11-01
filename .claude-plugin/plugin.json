@@ -1,7 +1,7 @@
 {
   "name": "teamwork",
   "version": "0.8.1",
-  "description": "Run several Claude Code sessions as a team on one goal. Sizes the team from the work's dependency graph rather than the goal's ambition, gives each member a lane it owns and a boundary enforced by a hook that denies an out-of-lane write, keeps work items in whatever tracker the project already has, parks the run at a point a fresh set of sessions resumes from, and improves its own rules from the friction they caused. Refuses to form a team when one session is the right answer, and keeps the contracts small enough to reload every turn by forbidding them to become a work log.",
+  "description": "Run several Claude Code sessions as a team on one goal. Sizes the team from the work's dependency graph rather than the goal's ambition, gives each member a lane it owns and a boundary enforced by a hook that denies an out-of-lane write, keeps work items in whatever tracker the project already has, parks the run at a point a fresh set of sessions resumes from, and improves its own rules from the friction they caused. Refuses to form a team when one session is the right answer, and keeps the contracts small enough to reload every turn by forbidding them to become a work log. Inside every session, on a team or not, runs the work as a crew of agents in roles the human approves, so the agent holding the plan does no part of the work and no agent checks its own.",
   "author": {
     "name": "Vikrant Jain"
   },

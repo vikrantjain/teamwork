@@ -13,8 +13,8 @@ session works a lane of another team. Stop and say so. A team formed here would
 launch its lanes with their own `TEAMWORK_LANE` and `TEAMWORK_ROOT`, and those
 replace the outer team's values. The boundary hook checks one team root, so
 those lanes could write into any outer lane's paths with nothing said. Point the
-member to fanning out inside its lane instead, as
-`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/transport.md` describes.
+member to running a crew inside its lane instead, as
+`${CLAUDE_PLUGIN_ROOT}/skills/crew/SKILL.md` describes.
 Whatever it spawns inherits its lane, so the hook keeps that work inside the
 lane's paths. A separate team is formed from a session that is on no team.
 

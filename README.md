@@ -2,7 +2,8 @@
 
 A Claude Code plugin that runs several Claude Code sessions as one team on one
 goal. It sizes the team from the work, gives each session a set of paths it
-owns, and denies a session's write to a path another session owns.
+owns, and denies a session's write to a path another session owns. Inside each
+session, on a team or not, it splits the work among a crew of agents.
 
 It is for anyone running two or more Claude Code sessions in parallel on one
 project, and the work does not have to be software. Claude Code already lets
@@ -12,6 +13,10 @@ improvise, a team fails in three ways. Two sessions edit one file, and neither
 notices until work is lost. The shared instructions grow into a diary nobody
 reads. The lead ends up holding every session's context and becomes the
 bottleneck. This plugin is the method that prevents all three.
+
+A single session has a failure of its own. Its main agent does all of the work.
+Its context fills up, and nobody but that agent checks what it did. The crew
+prevents that, so the plugin is also for a session working without a team.
 
 The plugin is pre-1.0. A minor version may change what a team root must
 contain. A team formed under an older version can then fail validation until its
@@ -28,6 +33,10 @@ lead updates it.
 - **Gives every lane disjoint paths, and enforces them.** A validator fails the
   team when two lanes' globs reach one path. A hook then denies a write to
   another lane's path and tells the session to ask that lane instead.
+- **Runs each session's work as a crew.** The agent holding the plan does no
+  part of the work, and no agent checks its own part. You approve the crew's
+  roles. They are saved in the session's directory and named again after every
+  compaction.
 - **Keeps work items in the project's own tracker**: GitHub issues, a plan file
   that tracks itself, or a file board when the project has neither.
 - **Keeps the rules small enough to reload.** A member reloads five files on
@@ -109,10 +118,11 @@ restart it. Paste each lane's start command into a terminal of its own.
 
 ## How it works
 
-The method lives in two skills. The lead's side is
+The method lives in three skills. The lead's side is
 [`skills/team-design/SKILL.md`](skills/team-design/SKILL.md), with one reference
 per step under [`skills/team-design/references/`](skills/team-design/references/).
 A member's side is [`skills/team-member/SKILL.md`](skills/team-member/SKILL.md).
+How any session splits its own work is [`skills/crew/SKILL.md`](skills/crew/SKILL.md).
 [`team-root.md`](skills/team-design/references/team-root.md) lists the files a
 team root holds. The boundary hook is described at the top of
 [`scripts/teamwork_hook.py`](scripts/teamwork_hook.py), and every validator check

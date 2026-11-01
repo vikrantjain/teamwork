@@ -71,6 +71,7 @@ def run(payload, env=None):
     full = dict(os.environ)
     full.pop("TEAMWORK_LANE", None)
     full.pop("TEAMWORK_ROOT", None)
+    full.pop("CLAUDE_PROJECT_DIR", None)
     full.update(env or {})
     p = subprocess.run([sys.executable, HOOK], input=json.dumps(payload),
                        capture_output=True, text=True, env=full)
@@ -694,6 +695,80 @@ class TestStartup(HookCase):
             self.assertEqual(out, {})
         finally:
             shutil.rmtree(plain, ignore_errors=True)
+
+
+class TestCrew(HookCase):
+    def start(self, cwd, env, source="startup"):
+        out, _ = run({"hook_event_name": "SessionStart", "source": source,
+                      "cwd": cwd}, env=env)
+        return out.get("additionalContext", "")
+
+    def test_a_lane_is_told_its_crew_file(self):
+        self.write(".claude/crew-api.md", "# api crew\n")
+        text = self.start(self.repo, {"TEAMWORK_LANE": "api",
+                                      "TEAMWORK_ROOT": self.root,
+                                      "CLAUDE_PROJECT_DIR": self.repo})
+        self.assertIn(os.path.join(self.repo, ".claude", "crew-api.md"), text)
+        self.assertIn(os.path.join("skills", "crew", "SKILL.md"), text)
+
+    def test_a_compaction_names_it_again(self):
+        self.write(".claude/crew-api.md", "# api crew\n")
+        text = self.start(self.repo, {"TEAMWORK_LANE": "api",
+                                      "TEAMWORK_ROOT": self.root,
+                                      "CLAUDE_PROJECT_DIR": self.repo},
+                          source="compact")
+        self.assertIn("crew-api.md", text)
+
+    def test_a_lane_is_never_told_another_lanes_crew(self):
+        """Under one shared tree every lane's crew file sits in one directory."""
+        self.write(".claude/crew-web.md", "# web crew\n")
+        self.write(".claude/crew.md", "# solo crew\n")
+        text = self.start(self.repo, {"TEAMWORK_LANE": "api",
+                                      "TEAMWORK_ROOT": self.root,
+                                      "CLAUDE_PROJECT_DIR": self.repo})
+        self.assertIn(self.root, text)
+        self.assertNotIn("crew", text)
+
+    def test_it_is_found_from_where_the_session_started_not_from_cwd(self):
+        """After a `cd`, the payload's cwd is the subdirectory."""
+        self.write(".claude/crew-api.md", "# api crew\n")
+        sub = os.path.join(self.repo, "services")
+        os.makedirs(sub)
+        text = self.start(sub, {"TEAMWORK_LANE": "api",
+                                "TEAMWORK_ROOT": self.root,
+                                "CLAUDE_PROJECT_DIR": self.repo})
+        self.assertIn("crew-api.md", text)
+
+    def test_a_session_on_no_team_is_told_its_crew_file(self):
+        plain = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, plain, ignore_errors=True)
+        os.makedirs(os.path.join(plain, ".claude"))
+        with open(os.path.join(plain, ".claude", "crew.md"), "w") as fh:
+            fh.write("# crew\n")
+        text = self.start(plain, {"CLAUDE_PROJECT_DIR": plain})
+        self.assertIn(os.path.join(plain, ".claude", "crew.md"), text)
+        self.assertNotIn("team root", text.lower())
+
+    def test_a_finished_team_still_names_a_solo_crew(self):
+        """Finishing keeps the team root, and the session after it is on no team."""
+        self.write(".claude/crew.md", "# crew\n")
+        text = self.start(self.repo, {"CLAUDE_PROJECT_DIR": self.repo})
+        self.assertIn("crew.md", text)
+        self.assertNotIn(self.root, text)
+
+    def test_the_lead_holding_no_lane_is_not_told_a_solo_crew(self):
+        self.write(".teamwork/roster.md", "")
+        self.write(".claude/crew.md", "# crew\n")
+        text = self.start(self.repo, {"CLAUDE_PROJECT_DIR": self.repo})
+        self.assertIn(self.root, text)
+        self.assertNotIn("crew.md", text)
+
+    def test_no_crew_file_adds_nothing(self):
+        plain = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, plain, ignore_errors=True)
+        out, _ = run({"hook_event_name": "SessionStart", "cwd": plain},
+                     env={"CLAUDE_PROJECT_DIR": plain})
+        self.assertEqual(out, {})
 
 
 if __name__ == "__main__":

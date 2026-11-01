@@ -99,22 +99,12 @@ waits on a mailbox nobody reads.
 
 ## What a lane does inside itself
 
-Anything it needs. A member may fan out to subagents, spawn teammates of its own,
-or run a workflow, and none of that is the team's business. The hook reads the
-environment and the working directory, and a member passes both to everything it
-spawns, so a lane's own agents are held to that lane's paths at no cost.
-
-A workflow is safe for that reason and one more: it starts only when the lane's
-human asks for it, so a lane cannot drift into one. What it does change is
-stopping. A workflow reports when it finishes rather than within the turn, so
-a lane that answers `PARK` with one still running has work held nowhere, and
-stopping the session takes it. That is the third park condition, and
-`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md` names it.
-
-Say this plainly in the charter when a lane is likely to want it. A member that
-thinks delegation needs permission either asks before every fan-out or stops
-fanning out, and the second one spends the context budget the team was formed to
-protect.
+It runs its work as a crew, and none of that is the team's business.
+`${CLAUDE_PLUGIN_ROOT}/skills/crew/SKILL.md` is how a lane splits its own work
+among agents. `${CLAUDE_PLUGIN_ROOT}/skills/crew/references/delegation.md` says
+what each kind of agent can do. The hook reads the environment and the working
+directory, and a member passes both to every subagent it starts, so a lane's own
+agents are held to that lane's paths at no cost.
 
 ## When a lane is unreachable anyway
 

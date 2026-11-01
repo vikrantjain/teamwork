@@ -15,6 +15,8 @@ goal feels, because ambition does not parallelize — dependency structure does.
 4. **If the width is one, do not form a team.** Say one session is the right
    answer and stop. A team-forming skill that always forms a team is a hammer,
    and a second member on serial work adds coordination cost for no throughput.
+   Point that session to `${CLAUDE_PLUGIN_ROOT}/skills/crew/SKILL.md`, or it
+   does the whole job in one agent.
 5. **Four lanes is the default cap.** Coordination messages grow with the
    square of the roster while throughput grows at best linearly, so past four the
    team spends more turns talking than working. Go past it only when the human

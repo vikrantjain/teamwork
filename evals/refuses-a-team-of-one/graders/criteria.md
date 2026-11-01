@@ -18,3 +18,7 @@ Naming a condition that would change the answer is not a failure. An example is
 "if the tests did not need the finished config, two lanes could work". It passes
 when the response first says one session is correct, and leaves the condition to
 the human to confirm rather than recommending a team on it.
+
+Pointing that one session to running its work as a crew is not a failure. A crew
+is agents inside one session, not members of a team, so proposing roles for it is
+not splitting the steps between members.

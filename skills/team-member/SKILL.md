@@ -54,7 +54,11 @@ it happen. A person is an editor as much as a session is.
    partitioned by lane before you started, so nothing you can take is contested.
 2. `CLAIM` it in the tracker first, then tell anyone whose work depends on it.
    Record before you announce: a message does not survive your restart.
-3. If nothing in your lane is workable, say so and stop. **An idle lane is
+3. **Run it with your crew**, following
+   `${CLAUDE_PLUGIN_ROOT}/skills/crew/SKILL.md`. A main agent that does the item
+   itself fills the context the team was formed to keep small, and nobody but
+   its author checks the work.
+4. If nothing in your lane is workable, say so and stop. **An idle lane is
    information the lead needs**, and inventing work outside your lane is the one
    failure this whole structure is built to prevent.
 
