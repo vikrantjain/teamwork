@@ -49,7 +49,10 @@ absolute path and a relative one naming the same file look unequal to `[T5]`,
 which then passes a real collision, so `[T2]` rejects the absolute one.
 
 Every path the lane will write must appear. A path that appears in no role
-belongs to the lead, which is a fallback, not a plan.
+belongs to the lead, which is a fallback, not a plan. The lane's crew file,
+`.claude/crew-<lane>.md`, is the one exception: the boundary hook gives it to its
+lane whatever any `Owns` says, so a glob for it only makes `[T5]` collisions out
+of every lane's.
 
 ## Never
 

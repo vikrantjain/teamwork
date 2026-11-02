@@ -33,6 +33,10 @@ type $ = EngineInterface
 let lastCheck: { root: string; signature: string; check?: BoardCheck } | undefined
 let cap: { value?: number } | undefined
 let running: Promise<Board | null> | undefined
+// The repository's common git dir for a working directory, which never changes
+// while the session runs. Asked once, so a session on no team spawns no git
+// process on every refresh, in every project the plugin is installed in.
+let commonDir: { cwd: string; value?: string } | undefined
 
 const parent = (path: string) => path.replace(/\/+[^/]*\/*$/, '') || '/'
 
@@ -53,21 +57,30 @@ async function readOr($: $, path: string): Promise<string> {
   }
 }
 
+async function gitCommonDir($: $, cwd: string): Promise<string | undefined> {
+  if (commonDir?.cwd === cwd) return commonDir.value
+  let value: string | undefined
+  try {
+    const git = await $.process.run(
+      ['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], { cwd })
+    const common = git.stdout.trim()
+    value = git.exitCode === 0 && common ? common : undefined
+  } catch {
+    // No git on this machine. The walk in findRoot still finds a root.
+  }
+  commonDir = { cwd, value }
+  return value
+}
+
 /** The team root, by the ladder the boundary hook and team-root.md use. */
 async function findRoot($: $): Promise<string | undefined> {
   const named = await $.env.get('TEAMWORK_ROOT')
   if (named && (await exists($, `${named}/charter.md`))) return named
   const cwd = await $.session.cwd()
-  try {
-    const git = await $.process.run(
-      ['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], { cwd })
-    const common = git.stdout.trim()
-    if (git.exitCode === 0 && common) {
-      const candidate = `${parent(common)}/.teamwork`
-      if (await exists($, `${candidate}/charter.md`)) return candidate
-    }
-  } catch {
-    // No git on this machine. The walk below still finds a root.
+  const common = await gitCommonDir($, cwd)
+  if (common) {
+    const candidate = `${parent(common)}/.teamwork`
+    if (await exists($, `${candidate}/charter.md`)) return candidate
   }
   for (let here = cwd; ; here = parent(here)) {
     if (await exists($, `${here}/.teamwork/charter.md`)) return `${here}/.teamwork`
@@ -249,7 +262,7 @@ export const register: Register = on => {
           <Text color="error">{fit(`! contracts failing: ${failures.length}`)}</Text>
         )}
         {lanes.map(l => (
-          <Text color={isWrong(l) ? 'error' : undefined} dimColor={l.isParked}>
+          <Text key={l.name} color={isWrong(l) ? 'error' : undefined} dimColor={l.isParked}>
             {fit(`${isWrong(l) ? '!' : ' '} ${l.name.padEnd(pad)}  ${state(l).padEnd(12)}  ${l.roster ?? ''}`)}
           </Text>
         ))}
@@ -257,7 +270,9 @@ export const register: Register = on => {
           {fit(`friction ${now.friction}${now.frictionCap ? `/${now.frictionCap}` : ''} · contracts ${
             now.contracts ? (now.contracts.isOk ? 'ok' : 'failing') : 'unchecked'}`)}
         </Text>
-        {failures.slice(0, shown).map(f => <Text color="error">{fit(`  ${f}`)}</Text>)}
+        {failures.slice(0, shown).map((f, i) => (
+          <Text key={`${i}:${f}`} color="error">{fit(`  ${f}`)}</Text>
+        ))}
         {failures.length > shown && <Text dimColor>{`  and ${failures.length - shown} more`}</Text>}
         <Text dimColor>{fit(now.root)}</Text>
       </Box>

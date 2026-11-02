@@ -6,7 +6,9 @@ see what a member writes afterwards, and a rule read at startup may be
 deprioritised twenty turns later. This hook watches the writes.
 
 Events:
-    PreToolUse    deny a write to a path another lane owns, or to the team root
+    PreToolUse    deny a write to a path another lane owns, to the team root, to
+                  another lane's crew file, or to the lane variables in a
+                  settings file
     SessionStart  tell a joining session where its team root and role are, and
                   say it again after a compaction, which starts the session
                   again with source `compact`. Name the session's crew file
@@ -21,8 +23,16 @@ Resolving the lane, first match wins:
        later start by the `env` of the lane directory's .claude/settings.local.json.
        Claude Code applies that `env` to the session, so it reaches this hook as
        an ordinary variable and nothing here reads the file.
-    2. The working directory's own name, wherever a lane has a tree of its own.
+    2. The name of the directory the session started in, wherever a lane has a
+       tree of its own.
     3. Nothing, and then it allows every write and says so once.
+
+Every directory here is the one the session started in, $CLAUDE_PROJECT_DIR,
+and the payload's `cwd` only when that is unset. The payload's `cwd` follows the
+shell's `cd`. Read from it, a lane that changed into the team root, which its
+launch command adds and which sits in the main checkout under worktrees, was
+judged as the main checkout: denied its own tree and allowed the main one. A
+`cd src` lost the lane's name for rung 2 the same way.
 
 Resolving the team root, first match wins, as team-root.md resolves it:
     1. $TEAMWORK_ROOT, set by the same launch command.
@@ -35,7 +45,8 @@ in: each lane's globs are read against its own tree, so two lanes may name the
 same directory and still write different files. That anchor alone left every
 other checkout unwatched, so a lane could write into another lane's live tree.
 A write into any checkout but the session's own is therefore denied before a
-glob is read. Under the other three the lanes
+glob is read, except one nested in it and named for no lane, which is an
+isolated agent of the lane's and is read by the same globs. Under the other three the lanes
 share one anchor and the charter declares it on its `Workspace root:` line. A
 team formed before that line existed falls back to the team root's parent, which
 is where the ladder puts it unless the user named a path of its own. Git is not
@@ -71,7 +82,17 @@ when its work is downstream of everyone, and it is the only lane allowed to
 write the team root, which protocol.md rule 5 already reserves to the lead. It
 is also the only lane allowed to write the files that identify a lane at its
 next start. The lead writes those into every lane's directory, and a lead
-denied them could not relaunch the team it leads.
+denied them could not relaunch the team it leads. Every other lane is denied a
+write that changes `TEAMWORK_LANE` or `TEAMWORK_ROOT` in any settings file, its
+own included: one that set itself to `lead` would start next time as the lane
+that may rewrite the contracts. The rest of a settings file is judged like any
+other path, so a lane still edits its own permissions.
+
+A lane's crew file, `.claude/crew-<lane>.md`, belongs to that lane whatever any
+`Owns` says, and every other lane is denied it. The crew skill tells each lane
+to write one, and under one shared tree they all sit in one `.claude/`. Without
+this, a lane owning `.claude/**` would deny every other lane its crew, and a
+lane owning nothing there could overwrite another lane's.
 
 There is no SessionEnd branch. The platform prints a SessionEnd hook's output
 only when the hook reports failure, so a warning naming a lane's uncommitted
@@ -103,6 +124,7 @@ them would be trusted for the tenth.
 
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -112,8 +134,9 @@ from validate_team import (  # noqa: E402
 # Write tools name their target in one of these. Bash is deliberately absent.
 TARGET_FIELDS = ("file_path", "notebook_path", "path")
 
-CREW_SKILL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                          "skills", "crew", "SKILL.md")
+PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CREW_SKILL = os.path.join(PLUGIN_ROOT, "skills", "crew", "SKILL.md")
+MEMBER_SKILL = os.path.join(PLUGIN_ROOT, "skills", "team-member", "SKILL.md")
 
 
 def emit(payload):
@@ -142,6 +165,14 @@ def context(event, text):
 LEAD_LANE = "lead"
 
 
+def session_dir(payload):
+    """The directory the session started in, which is the one its lane works in.
+
+    The payload's `cwd` follows the shell's `cd`, so it is the fallback only.
+    """
+    return os.environ.get("CLAUDE_PROJECT_DIR") or payload.get("cwd")
+
+
 def is_team_root(path):
     return bool(path) and os.path.exists(os.path.join(path, "charter.md"))
 
@@ -157,6 +188,60 @@ def is_launch_file(path):
     parts = path.split(os.sep)
     return (parts[-2:] == [".claude", "settings.local.json"]
             or (parts[-2:] == ["info", "exclude"] and ".git" in parts))
+
+
+# The settings files whose `env` Claude Code applies at a start, so a write to
+# one can change which lane a directory starts as.
+SETTINGS_FILES = ("settings.json", "settings.local.json")
+IDENTITY = re.compile(r'"(TEAMWORK_LANE|TEAMWORK_ROOT)"\s*:\s*"([^"]*)"')
+
+
+def is_settings_file(path):
+    parts = path.split(os.sep)
+    return len(parts) >= 2 and parts[-2] == ".claude" and parts[-1] in SETTINGS_FILES
+
+
+def text_after(path, tool_input):
+    """(the file's text now, its text once this write lands), or None if unknown."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            before = fh.read()
+    except (OSError, UnicodeDecodeError):
+        before = ""
+    if isinstance(tool_input.get("content"), str):
+        return before, tool_input["content"]
+    edits = tool_input.get("edits")
+    if not isinstance(edits, list):
+        edits = [tool_input]
+    after = before
+    for edit in edits:
+        old, new = edit.get("old_string"), edit.get("new_string")
+        if not isinstance(old, str) or not isinstance(new, str):
+            return None
+        after = (after.replace(old, new) if edit.get("replace_all")
+                 else after.replace(old, new, 1))
+    return before, after
+
+
+def changes_identity(path, tool_input):
+    """Whether this write changes the lane variables a settings file sets."""
+    texts = text_after(path, tool_input)
+    if texts is None:
+        return False
+    before, after = texts
+    return sorted(IDENTITY.findall(before)) != sorted(IDENTITY.findall(after))
+
+
+CREW_FILE = re.compile(r"^crew-([a-z0-9][a-z0-9-]*)\.md$")
+
+
+def crew_lane(path):
+    """The lane whose crew file `path` is, or None."""
+    parts = path.split(os.sep)
+    if len(parts) < 2 or parts[-2] != ".claude":
+        return None
+    m = CREW_FILE.match(parts[-1])
+    return m.group(1) if m else None
 
 
 def enclosing_repo(here):
@@ -224,21 +309,29 @@ def worktrees(common):
     return out
 
 
-def foreign_checkout(path, here):
-    """The checkout holding `path` when it is not the one `here` is in, or None.
+def foreign_checkout(path, here, lanes):
+    """(the checkout holding `path` when it is not this session's, the session's
+    checkout `path` is in). Either may be None.
 
     The nearest checkout wins, because a linked worktree may sit inside the main
-    one, as `claude --worktree` puts it.
+    one, as `claude --worktree` puts it. A checkout inside the session's own
+    and not named for a lane is the session's too: `EnterWorktree` makes one
+    under `.claude/worktrees/` for an agent the lane starts with
+    `isolation: worktree`, and that agent is the lane working.
     """
     dirs = git_dirs(here)
     if not dirs:
-        return None
+        return None, None
     own, common = dirs
+    own = os.path.realpath(own)
     holders = [t for t in worktrees(common) if inside(path, t)]
     if not holders:
-        return None
+        return None, None
     nearest = max(holders, key=len)
-    return None if nearest == os.path.realpath(own) else nearest
+    if nearest == own or (inside(nearest, own)
+                          and os.path.basename(nearest) not in lanes):
+        return None, nearest
+    return nearest, None
 
 
 def find_team_root(cwd):
@@ -318,7 +411,7 @@ def resolve_lane(root, cwd):
     if lane_has_own_directory(root) and cwd:
         base = os.path.basename(os.path.realpath(cwd))
         if base in lanes:
-            return base, "the working directory's name"
+            return base, "the name of the directory it started in"
     return None, None
 
 
@@ -377,17 +470,23 @@ def pre_tool_use(payload):
             break
     if not target:
         allow()
-    cwd = payload.get("cwd")
-    root = find_team_root(cwd)
+    home = session_dir(payload)
+    root = find_team_root(home)
     if not root:
         allow()
-    lane, _ = resolve_lane(root, cwd)
+    lane, _ = resolve_lane(root, home)
     if not lane:
         allow()
 
-    real = os.path.realpath(os.path.join(cwd or ".", target))
-    here = os.path.realpath(cwd or ".")
-    anchor = workspace_root(cwd, root)
+    # A relative target is relative to the shell, wherever it has moved to.
+    real = os.path.realpath(os.path.join(payload.get("cwd") or home or ".", target))
+    here = os.path.realpath(home or ".")
+    anchor = workspace_root(home, root)
+    lanes = lanes_of(root)
+    other = None
+    if workspace_is_worktrees(root):
+        other, tree = foreign_checkout(real, here, lanes)
+        anchor = tree or anchor
     # A lane's own copy of the team root is guarded too. It is not the team root,
     # but it is what a member reads when it forgets rule 4, so a write that lands
     # there is a contract edit whichever copy it reached. The lead writes the
@@ -413,18 +512,32 @@ def pre_tool_use(payload):
                  "and nowhere else. Send FRICTION and keep working.")
     if lane == LEAD_LANE and is_launch_file(real):
         allow()
-    if workspace_is_worktrees(root):
-        other = foreign_checkout(real, here)
-        if other:
-            name = os.path.basename(other)
-            whose = (f"the {name} lane's worktree" if name in lanes_of(root)
-                     else "the main checkout" if other == main_worktree(here)
-                     else "another lane's worktree")
-            deny("PreToolUse",
-                 f"{real} is in {whose}, {other}. Under one worktree per lane you "
-                 f"write only your own tree, {repo}. Make the change there if the "
-                 "path is yours, or ASK its owner. Two members editing one path "
-                 "lose work, and neither of them sees it happen.")
+    if (lane != LEAD_LANE and is_settings_file(real)
+            and changes_identity(real, payload.get("tool_input", {}))):
+        deny("PreToolUse",
+             f"{real} sets which lane a session starts as, and this write changes "
+             "TEAMWORK_LANE or TEAMWORK_ROOT in it. Only the lead writes those: a "
+             "lane that renamed itself would be held to another lane's paths at "
+             "its next start, or as lead be free to rewrite the contracts. Ask the "
+             "lead.")
+    if other:
+        name = os.path.basename(other)
+        whose = (f"the {name} lane's worktree" if name in lanes
+                 else "the main checkout" if other == main_worktree(here)
+                 else "another lane's worktree")
+        deny("PreToolUse",
+             f"{real} is in {whose}, {other}. Under one worktree per lane you "
+             f"write only your own tree, {repo}. Make the change there if the "
+             "path is yours, or ASK its owner. Two members editing one path "
+             "lose work, and neither of them sees it happen.")
+    crew = crew_lane(real)
+    if crew == lane:
+        allow()
+    if crew in lanes:
+        deny("PreToolUse",
+             f"{real} is the {crew} lane's crew file. A crew belongs to its lane "
+             "and that lane's human, and an edit from outside moves a boundary "
+             f"under work in progress. You are {lane}; yours is .claude/crew-{lane}.md.")
     if not inside(real, anchor):
         allow()
     rel = os.path.relpath(real, anchor)
@@ -461,8 +574,9 @@ def crew_note(path):
 
 
 def startup(payload, event):
-    root = find_team_root(payload.get("cwd"))
-    lane, how = resolve_lane(root, payload.get("cwd")) if root else (None, None)
+    home = session_dir(payload)
+    root = find_team_root(home)
+    lane, how = resolve_lane(root, home) if root else (None, None)
     named = os.environ.get("TEAMWORK_LANE")
     live = root and (lane or named or os.environ.get("TEAMWORK_ROOT")
                      or os.path.exists(os.path.join(root, "roster.md")))
@@ -495,12 +609,11 @@ def startup(payload, event):
                 "with ListAgents that it is this session's name, and rewrite the "
                 "line if it is not.")
         else:
+            # The join steps live in the member skill alone. Repeated here they
+            # were a fourth copy, re-sent after every compaction.
             lines.append(
-                f"Before you send JOIN to the name on transport.md's Lead: line, "
-                f"check with ListAgents that this session is named {lane}. If it is "
-                f"not, ask your human to run /rename {lane}. You cannot run it "
-                "yourself, and until it is done a message meant for you may reach "
-                "another lane. Tell the lead if it does not happen.")
+                "If this session has not joined yet, follow '## Starting' in "
+                f"{MEMBER_SKILL}. A compaction does not undo a join.")
         lines.append(
             "Writes to a path another lane owns are denied by a hook, so a boundary "
             "crossing fails rather than silently losing someone's work.")

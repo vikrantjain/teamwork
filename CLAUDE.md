@@ -29,6 +29,12 @@ command, an agent or a copied file. Written here, it reaches no team.
 - **`protocol.md` and `conflicts.md` are copied into a team root byte for byte.**
   Check `[T7]` diffs them. Editing either in the plugin changes the law for every
   existing team on its next validation, so change them deliberately.
+- **A lane's start is budgeted, the plugin's own files included.**
+  `MEMBER_LOAD` in `scripts/test_validate_team.py` caps every plugin file a
+  lane reads when it starts, and the README states their sum. `[T1]` budgets
+  only the team root, and left alone the plugin's member files grew past the
+  five they sit beside, while the README's lean claim covered less than half of
+  what a member read.
 - **Python 3 standard library only, no build step**, so the validator runs on a
   bare interpreter. Its module docstring is the spec, with numbered check IDs.
   The board (`hooks/board.tsx`) is the one exception: a hooks module the engine

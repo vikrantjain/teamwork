@@ -42,9 +42,9 @@ otherwise arrive hours later when the lane tries to take its name.
 
 `lead` means the lane the lead holds and nothing else. It is the one lane the
 boundary hook lets write the team root, so a member given that name is a member
-that may rewrite the contracts. It is also the one lane the hook lets write
-another lane's settings file, so that member could change which lane a directory
-starts as.
+that may rewrite the contracts. It is also the one lane the hook lets set
+`TEAMWORK_LANE` or `TEAMWORK_ROOT` in a settings file, so that member could
+change which lane a directory starts as.
 
 ## Making a lane addressable
 
@@ -88,8 +88,8 @@ There is one kind of member: a Claude Code session in a process of its own,
 started from the launch command the lead prints, on the same machine as every
 other lane. It runs in a terminal, or in the background when the command carries
 `--bg`. The two differ only in where a human sees the lane. The boundary hook
-identifies a lane from `TEAMWORK_LANE`, and failing that from the working
-directory's own name. The launch command sets the variable. A lane with a
+identifies a lane from `TEAMWORK_LANE`, and failing that from the name of the
+directory it started in. The launch command sets the variable. A lane with a
 directory of its own also has a settings file there that sets it at every later
 start. A lane spawned inside the lead's process has neither, so every write it
 makes is allowed. It also has no worktree and no branch, which is what a park

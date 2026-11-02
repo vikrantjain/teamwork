@@ -39,9 +39,11 @@ lead updates it.
   compaction.
 - **Keeps work items in the project's own tracker**: GitHub issues, a plan file
   that tracks itself, or a file board when the project has neither.
-- **Keeps the rules small enough to reload.** A member reloads five files on
-  every context load, 165 lines at most. The validator fails a contract carrying
-  a date, a checkbox or an issue id, so the rules cannot turn into a work log.
+- **Keeps the rules small enough to reload.** A member's whole start is
+  budgeted: the team's five files at 165 lines at most, and the plugin's own
+  member instructions at 300. The validator fails a contract carrying a date, a
+  checkbox or an issue id, tables included, so the rules cannot turn into a
+  work log.
 - **Improves its own rules.** Members report friction as they work. A retro turns
   each recurring cause into the smallest edit that prevents it, and removes a
   line for every line it adds.
@@ -63,7 +65,7 @@ identified. Every session runs on one machine.
 
 ## Requirements
 
-- Claude Code with cross-session messaging. It is tested against 2.1.312.
+- Claude Code with cross-session messaging. It is tested against 2.1.316.
 - Python 3, standard library only, for the validator and the hook.
 - Optional: `git`, for one worktree per lane and for finishing, and `gh`, for
   GitHub issues as the tracker.

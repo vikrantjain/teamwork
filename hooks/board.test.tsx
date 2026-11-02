@@ -50,10 +50,13 @@ type World = {
   statuses: (string | undefined)[]
   toasts: string[]
   registered: string[]
+  gitRuns: number
 }
 
 /** The engine beneath the plugin: a team root in memory, and the sessions up. */
-function world(on: On, env: Record<string, string>, files: Record<string, string>): World {
+function world(
+  on: On, env: Record<string, string>, files: Record<string, string>, cwd = '/repo',
+): World {
   const w: World = {
     files,
     agents: ['api', 'web'],
@@ -61,10 +64,11 @@ function world(on: On, env: Record<string, string>, files: Record<string, string
     statuses: [],
     toasts: [],
     registered: [],
+    gitRuns: 0,
   }
   mock.env(on, env)
   on('session.start', (_, e) => ({ cwd: e.cwd }))
-  on('session.cwd', () => ({ value: '/repo' }))
+  on('session.cwd', () => ({ value: cwd }))
   on('fs.stat', (_, e) => (e.path in w.files
     ? { value: { kind: 'file', size: 1, mtimeMs: 1, isLink: false } }
     : { deny: 'no such file' }))
@@ -83,7 +87,10 @@ function world(on: On, env: Record<string, string>, files: Record<string, string
   }))
   on('process.run', (_, e) => {
     const out = { stdout: '', stderr: '', isStdoutTruncated: false, isStderrTruncated: false }
-    if (e.argv[0] === 'git') return { value: { ...out, exitCode: 128 } }
+    if (e.argv[0] === 'git') {
+      w.gitRuns += 1
+      return { value: { ...out, exitCode: 128 } }
+    }
     if (e.argv[1] === '-c') return { value: { ...out, exitCode: 0, stdout: '25\n' } }
     return { value: { ...out, ...w.validator } }
   })
@@ -242,4 +249,14 @@ test('the pane lists what is wrong first, on every surface', async ($, on) => {
       .toBe('friction 2/25 · contracts ok')
     await ui.unmount()
   }
+})
+
+test('a session on no team asks git once, not at every refresh', async ($, on) => {
+  const w = world(on, {}, {}, '/elsewhere')
+  const clock = mock.clock(on)
+  await $.session.start({ cwd: '/elsewhere', surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  for (let i = 0; i < 5; i++) await clock.advance(20_000)
+  expect(w.gitRuns).toBe(1)
+  expect(w.statuses.at(-1)).toBeUndefined()
 })

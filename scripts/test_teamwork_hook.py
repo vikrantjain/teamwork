@@ -715,12 +715,14 @@ class TestLeadLane(HookCase):
         self.assertNotIn("Before you send JOIN", text)
         self.assertNotIn("/rename", text)
 
-    def test_a_member_is_told_where_its_join_goes(self):
+    def test_a_member_is_pointed_at_the_join_steps_not_handed_a_copy(self):
+        """The steps live in the member skill; a copy here drifted from it."""
         out, _ = run({"hook_event_name": "SessionStart", "cwd": self.repo},
                      env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root})
         text = out.get("additionalContext", "")
-        self.assertIn("Lead: line", text)
-        self.assertIn("/rename api", text)
+        self.assertIn("'## Starting'", text)
+        self.assertIn(os.path.join("skills", "team-member", "SKILL.md"), text)
+        self.assertNotIn("/rename", text)
 
 
 class TestStartup(HookCase):
@@ -844,6 +846,159 @@ class TestCrew(HookCase):
         out, _ = run({"hook_event_name": "SessionStart", "cwd": plain},
                      env={"CLAUDE_PROJECT_DIR": plain})
         self.assertEqual(out, {})
+
+
+class TestSessionDirectory(HookCase):
+    """The lane is judged from where the session started, not where its shell went."""
+
+    def write_as(self, lane, project, shell, target, extra=None):
+        return run({"hook_event_name": "PreToolUse", "cwd": shell,
+                    "tool_name": "Write", "tool_input": {"file_path": target}},
+                   env={"TEAMWORK_LANE": lane, "TEAMWORK_ROOT": self.root,
+                        "CLAUDE_PROJECT_DIR": project, **(extra or {})})[0]
+
+    def test_a_cd_into_the_team_root_keeps_the_lane_in_its_own_tree(self):
+        """The launch command adds the team root, and under worktrees it is in main."""
+        api = self.worktree("api")
+        own = self.write_as("api", api, self.root,
+                            os.path.join(api, "services/billing/x.py"))
+        self.assertEqual(own, {})
+        main = self.write_as("api", api, self.root,
+                             os.path.join(self.repo, "services/billing/x.py"))
+        self.assertEqual(main.get("permissionDecision"), "deny")
+        self.assertIn("the main checkout", main["permissionDecisionReason"])
+
+    def test_a_cd_into_another_lanes_tree_does_not_make_it_yours(self):
+        api, web = self.worktree("api"), self.worktree("web")
+        for target in ("README.md", "services/billing/x.py"):
+            with self.subTest(target=target):
+                out = self.write_as("api", api, web, os.path.join(web, target))
+                self.assertEqual(out.get("permissionDecision"), "deny")
+                self.assertIn("the web lane's worktree", out["permissionDecisionReason"])
+
+    def test_a_cd_does_not_lose_a_lane_named_by_its_directory(self):
+        """Rung 2 reads the name of the directory the session started in."""
+        api = self.worktree("api")
+        os.makedirs(os.path.join(api, "web"))
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(api, "web"), "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(api, "web/app.tsx")}},
+                     env={"CLAUDE_PROJECT_DIR": api})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("You are api", out["permissionDecisionReason"])
+
+    def test_an_isolated_agents_worktree_inside_the_lane_is_the_lanes(self):
+        """EnterWorktree puts it under the lane's .claude/worktrees/ and moves there."""
+        api = self.worktree("api")
+        agent = self.worktree("agent-1", parent=os.path.join(api, ".claude", "worktrees"))
+        own = self.write_as("api", api, agent, os.path.join(agent, "services/billing/x.py"))
+        self.assertEqual(own, {})
+        crossing = self.write_as("api", api, agent, os.path.join(agent, "web/app.tsx"))
+        self.assertEqual(crossing.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the web lane", crossing["permissionDecisionReason"])
+        copy = self.write_as("api", api, agent, os.path.join(agent, ".teamwork/charter.md"))
+        self.assertEqual(copy.get("permissionDecision"), "deny")
+
+    def test_a_lane_worktree_inside_the_leads_checkout_is_still_the_lanes(self):
+        """`claude --worktree` nests lanes in main; nesting gives the lead nothing."""
+        self.write(".teamwork/charter.md",
+                   CHARTER.format(root=self.root).replace(
+                       "- web - the dashboard",
+                       "- web - the dashboard\n- lead - integration and docs"))
+        self.write(".teamwork/roles/lead.md", ROLE_LEAD)
+        web = self.worktree("web", parent=os.path.join(self.repo, ".claude", "worktrees"))
+        out = self.write_as("lead", self.repo, self.repo, os.path.join(web, "docs/x.md"))
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("the web lane's worktree", out["permissionDecisionReason"])
+
+    def test_a_relative_target_is_still_read_from_the_shell(self):
+        api = self.worktree("api")
+        os.makedirs(os.path.join(api, "web"))
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(api, "web"), "tool_name": "Write",
+                      "tool_input": {"file_path": "app.tsx"}},
+                     env={"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": self.root,
+                          "CLAUDE_PROJECT_DIR": api})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("web/app.tsx", out["permissionDecisionReason"])
+
+
+class TestLaneIdentity(HookCase):
+    """No lane but the lead changes the variables that say which lane starts where."""
+
+    def settings_write(self, lane, tool_input, existing=None):
+        api = self.worktree("api")
+        path = os.path.join(api, ".claude", "settings.local.json")
+        if existing is not None:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(existing)
+        return run({"hook_event_name": "PreToolUse", "cwd": api, "tool_name": "Edit",
+                    "tool_input": {"file_path": path, **tool_input}},
+                   env={"TEAMWORK_LANE": lane, "TEAMWORK_ROOT": self.root,
+                        "CLAUDE_PROJECT_DIR": api})[0]
+
+    SETTINGS = ('{"env": {"TEAMWORK_LANE": "api", "TEAMWORK_ROOT": "/r"},\n'
+                ' "permissions": {"allow": []}}\n')
+
+    def test_a_lane_may_not_rename_itself_in_its_own_settings_file(self):
+        out = self.settings_write("api", {"old_string": '"TEAMWORK_LANE": "api"',
+                                          "new_string": '"TEAMWORK_LANE": "lead"'},
+                                  existing=self.SETTINGS)
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("Only the lead", out["permissionDecisionReason"])
+
+    def test_nor_drop_its_lane_by_rewriting_the_file(self):
+        out = self.settings_write("api", {"content": '{"env": {}}'},
+                                  existing=self.SETTINGS)
+        self.assertEqual(out.get("permissionDecision"), "deny")
+
+    def test_a_lane_still_edits_the_rest_of_its_settings_file(self):
+        out = self.settings_write("api", {"old_string": '"allow": []',
+                                          "new_string": '"allow": ["Bash(make:*)"]'},
+                                  existing=self.SETTINGS)
+        self.assertEqual(out, {})
+
+    def test_a_new_settings_file_naming_a_lane_is_denied(self):
+        out = self.settings_write("api", {"content": '{"env": {"TEAMWORK_LANE": "lead"}}'})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+
+
+class TestCrewFiles(HookCase):
+    """A lane's crew file is its own, whatever any Owns says."""
+
+    def setUp(self):
+        super().setUp()
+        self.write(".teamwork/charter.md",
+                   CHARTER.format(root=self.root).replace(
+                       "Workspace: one worktree per lane",
+                       f"Workspace: one shared tree\nWorkspace root: {self.repo}"))
+        self.write(".teamwork/roles/web.md",
+                   ROLE_WEB.replace("- web/**", "- web/**\n- .claude/**"))
+
+    def crew(self, lane, owner):
+        return run({"hook_event_name": "PreToolUse", "cwd": self.repo,
+                    "tool_name": "Write",
+                    "tool_input": {"file_path": os.path.join(
+                        self.repo, ".claude", f"crew-{owner}.md")}},
+                   env={"TEAMWORK_LANE": lane, "TEAMWORK_ROOT": self.root,
+                        "CLAUDE_PROJECT_DIR": self.repo})[0]
+
+    def test_a_lane_writes_its_own_crew_file_inside_another_lanes_owns(self):
+        self.assertEqual(self.crew("api", "api"), {})
+
+    def test_no_lane_writes_another_lanes_crew_file(self):
+        for lane, owner in (("web", "api"), ("api", "web")):
+            with self.subTest(lane=lane, owner=owner):
+                out = self.crew(lane, owner)
+                self.assertEqual(out.get("permissionDecision"), "deny")
+                self.assertIn(f"the {owner} lane's crew file",
+                              out["permissionDecisionReason"])
+
+    def test_a_crew_file_for_no_lane_is_an_ordinary_path(self):
+        out = self.crew("api", "ghost")
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("belongs to the web lane", out["permissionDecisionReason"])
 
 
 if __name__ == "__main__":

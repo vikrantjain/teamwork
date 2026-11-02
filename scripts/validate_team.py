@@ -105,7 +105,8 @@ ISSUE_TELL = (re.compile(
 
 # Backticked text is an illustration of a command, not a record of one. Only the
 # span is exempt: skipping the whole line would let one backtick launder a log
-# entry.
+# entry. Tables and quotations get no exemption either. A table is the shape a
+# task board most naturally takes, so exempting its rows let one in whole.
 CODE_SPAN = re.compile(r"`[^`]*`")
 
 
@@ -287,14 +288,14 @@ def check_no_log(root, rep):
         if rel != "decisions.md":
             tells.append(ISSUE_TELL)
         for i, line in enumerate(read_lines(path), 1):
-            if line.lstrip().startswith(("|", ">")):
-                continue  # tables and quotations are illustration, not record
             scanned = CODE_SPAN.sub(" ", line)
             for pattern, what in tells:
                 if pattern.search(scanned):
                     rep.fail("T3", rel, i,
                              f"{what} in a contract. Contracts are read before acting; "
-                             "records of what happened belong in the tracker.")
+                             "records of what happened belong in the tracker. If it "
+                             "is an illustration or a standard's name, such as "
+                             "ES-2022, put it in backticks: only the span is exempt.")
                     break
 
 

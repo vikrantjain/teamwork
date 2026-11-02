@@ -19,6 +19,15 @@ import validate_team  # noqa: E402
 # Lines a verbatim file must leave unspent, so the constitution can still grow.
 VERBATIM_HEADROOM = 3
 
+# What a lane reads from the plugin itself at every start, beside the team root's
+# five files. The README states the sum, so a change here changes it there.
+MEMBER_LOAD = {
+    "agents/member.md": 30,
+    "commands/join.md": 35,
+    "skills/team-member/SKILL.md": 140,
+    "skills/crew/SKILL.md": 95,
+}
+
 
 PROTOCOL = "# Team protocol\n\nThis file is copied, never edited.\n"
 CONFLICTS = "# When a conflict happens\n\nRead this when one actually does.\n"
@@ -305,6 +314,42 @@ class TestT3NoLog(TeamRootCase):
         code, out = self.run_validator()
         self.assertEqual(code, 1)
         self.assertIn("a status field", out)
+
+    def test_a_table_cannot_carry_a_task_board(self):
+        """The shape a board most naturally takes is the one exempted before."""
+        for row, what in (("| auth | api | 2026-10-30 |", "a date"),
+                          ("| PROJ-12 | api | open |", "an issue id"),
+                          ("| login | web | ✅ |", "a status marker")):
+            with self.subTest(row=row):
+                write(self.root, "charter.md", charter(self.root))
+                append(self.root, "charter.md",
+                       f"\n| item | lane | state |\n|---|---|---|\n{row}\n")
+                code, out = self.run_validator()
+                self.assertEqual(code, 1, out)
+                self.assertIn(what, out)
+
+    def test_nor_can_a_quotation(self):
+        append(self.root, "charter.md", "\n> web finished login on 2026-11-01.\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("a date", out)
+
+    def test_a_table_of_rules_still_passes(self):
+        append(self.root, "charter.md",
+               "\n| Path | Owner |\n|---|---|\n| `db/schema.sql` | api |\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
+
+    def test_the_failure_says_how_to_exempt_a_standard(self):
+        """The tell list is short on purpose, so its misses need a one-step fix."""
+        append(self.root, "charter.md", "\n- Compile to ES-2022.\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("backticks", out)
+        write(self.root, "charter.md", charter(self.root))
+        append(self.root, "charter.md", "\n- Compile to `ES-2022`.\n")
+        code, out = self.run_validator()
+        self.assertEqual(code, 0, out)
 
 
 class TestT4RosterClosure(TeamRootCase):
@@ -1079,6 +1124,23 @@ class TestPluginPaths(unittest.TestCase):
                 n, budget - VERBATIM_HEADROOM,
                 f"{name} is {n} lines against a budget of {budget}. Raise the "
                 "budget or cut the file: a team that inherits it cannot do either.")
+
+    def test_the_plugins_own_member_load_stays_within_its_budget(self):
+        """[T1] budgets the team's five files. These are the rest of a lane's start.
+
+        A lane started from its launch command reads all four, and the crew
+        skill again for every item. Unbudgeted, they grew to more than the five
+        files they sit beside, and the README's lean claim held for less than
+        half of what a member reads.
+        """
+        for rel, budget in MEMBER_LOAD.items():
+            with open(os.path.join(PLUGIN_ROOT, rel), encoding="utf-8") as fh:
+                n = len(fh.read().splitlines())
+            with self.subTest(file=rel):
+                self.assertLessEqual(
+                    n, budget,
+                    f"{rel} is {n} lines against a budget of {budget}. Every lane "
+                    "reads it at every start, so to add a line, remove one.")
 
 
 if __name__ == "__main__":
