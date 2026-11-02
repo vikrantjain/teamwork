@@ -41,7 +41,9 @@ marketplace that member never added fails with nothing to try next.
    team root by
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md`, whose
    ladder keys on that answer. Sessions in different folders is the normal case
-   here, not the exception.
+   here, not the exception. Under separate repositories or separate
+   directories, this session works from outside every lane's directory, for the
+   reason `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` gives.
 5. **Draft the team root at minimum size** — `protocol.md` and `conflicts.md`
    copied verbatim, a charter, one role per session, `tracker.md`, `transport.md`,
    then `decisions.md`, an empty `friction.md` and an empty `roster.md` as forming

@@ -24,7 +24,8 @@ Resolving the lane, first match wins:
        Claude Code applies that `env` to the session, so it reaches this hook as
        an ordinary variable and nothing here reads the file.
     2. The name of the directory the session started in, wherever a lane has a
-       tree of its own.
+       tree of its own. Under worktrees, never the checkout holding the team
+       root, which is the lead's.
     3. Nothing, and then it allows every write and says so once.
 
 Every directory here is the one the session started in, $CLAUDE_PROJECT_DIR,
@@ -66,13 +67,15 @@ the lead, stop a session that is not on a team at all, and make the plugin
 unusable the first time the ladder missed. The cost is that a lane it cannot
 identify is a lane it cannot protect, which is why rung 1 is worth setting.
 
-A member's own agents inherit its lane. Resolution reads the environment and the
-working directory, and a session passes both to everything it spawns, so a lane
-can fan out as widely as its work needs and each agent is held to that lane's
-paths. That is why nothing here governs what happens inside a lane. It could
-tell a lane's agents apart, because a subagent's tool call carries `agent_id`
-and `agent_type`. It deliberately does not. How a crew keeps its roles apart is
-the lane's own choice, and a hook that enforced one way would take it away.
+A member's own subagents inherit its lane. Resolution reads the environment and
+the working directory, and a session passes both to every subagent it starts, so
+a lane can fan out as widely as its work needs and each subagent is held to that
+lane's paths. That is why nothing here governs what happens inside a lane. It
+could tell a lane's agents apart, because a subagent's tool call carries
+`agent_id` and `agent_type`. It deliberately does not. How a crew keeps its
+roles apart is the lane's own choice, and a hook that enforced one way would
+take it away. Whether a teammate inherits the lane is not verified, as
+skills/crew/references/delegation.md records.
 
 The lead must never set $TEAMWORK_LANE to a member's lane. Anything spawned in
 the lead's own process inherits its environment, so that lane's name would be
@@ -402,17 +405,39 @@ def lane_has_own_directory(root):
     return any(word in line for word in ("worktree", "repositor", "director"))
 
 
+BY_DIRECTORY = "the name of the directory it started in"
+
+
 def resolve_lane(root, cwd):
-    """The lane this session is, and how it was decided."""
+    """The lane this session is, and how it was decided.
+
+    Rung 2 reads the lead's directory as readily as a member's. Under worktrees
+    it skips the checkout holding the team root, which is the main one: the lead
+    works there and no lane does. Without that, a main checkout named for a lane
+    read the lead as that lane once the charter existed. The lead was then
+    denied the rest of the team root it was writing. Under the other two
+    workspaces a lane's directory and the lead's cannot be told apart, so
+    sizing.md keeps the lead out of every lane's directory.
+    """
     lanes = lanes_of(root)
     named = os.environ.get("TEAMWORK_LANE")
     if named in lanes:
         return named, "$TEAMWORK_LANE"
     if lane_has_own_directory(root) and cwd:
-        base = os.path.basename(os.path.realpath(cwd))
-        if base in lanes:
-            return base, "the name of the directory it started in"
+        here = os.path.realpath(cwd)
+        base = os.path.basename(here)
+        leads = (workspace_is_worktrees(root)
+                 and enclosing_repo(here) == os.path.dirname(root))
+        if base in lanes and not leads:
+            return base, BY_DIRECTORY
     return None, None
+
+
+def read_by_directory(lane):
+    """What a lead held to a lane by its directory's name needs to be told."""
+    return (f"This session was read as {lane} from {BY_DIRECTORY}. If it is the "
+            f"lead, it is working in {lane}'s directory: start it again from "
+            "outside every lane's directory.")
 
 
 def inside(path, directory):
@@ -474,7 +499,7 @@ def pre_tool_use(payload):
     root = find_team_root(home)
     if not root:
         allow()
-    lane, _ = resolve_lane(root, home)
+    lane, how = resolve_lane(root, home)
     if not lane:
         allow()
 
@@ -509,7 +534,8 @@ def pre_tool_use(payload):
                  f"{os.path.relpath(real, guarded)} is in the team root. "
                  "protocol.md rule 5: write only the paths your role owns, and "
                  "only the lead writes the team root. Contracts change at a retro "
-                 "and nowhere else. Send FRICTION and keep working.")
+                 "and nowhere else. Send FRICTION and keep working."
+                 + (" " + read_by_directory(lane) if how == BY_DIRECTORY else ""))
     if lane == LEAD_LANE and is_launch_file(real):
         allow()
     if (lane != LEAD_LANE and is_settings_file(real)
@@ -614,6 +640,8 @@ def startup(payload, event):
             lines.append(
                 "If this session has not joined yet, follow '## Starting' in "
                 f"{MEMBER_SKILL}. A compaction does not undo a join.")
+            if how == BY_DIRECTORY:
+                lines.append(read_by_directory(lane))
         lines.append(
             "Writes to a path another lane owns are denied by a hook, so a boundary "
             "crossing fails rather than silently losing someone's work.")

@@ -221,6 +221,46 @@ class TestLaneResolution(HookCase):
         self.assertEqual(out.get("permissionDecision"), "deny")
         self.assertIn("You are web", out["permissionDecisionReason"])
 
+    def test_the_main_checkout_is_never_read_as_a_lane(self):
+        """It is the lead's under worktrees, whatever it happens to be called.
+
+        A main checkout named for a lane read the lead as that lane once the
+        charter existed, and denied it the rest of the team root mid-form.
+        """
+        main = os.path.join(tempfile.mkdtemp(), "web")
+        self.addCleanup(shutil.rmtree, os.path.dirname(main), ignore_errors=True)
+        shutil.copytree(self.repo, main, symlinks=True)
+        main = os.path.realpath(main)
+        root = os.path.join(main, ".teamwork")
+        with open(os.path.join(root, "charter.md"), "w", encoding="utf-8") as fh:
+            fh.write(CHARTER.format(root=root))
+        for event in ("PreToolUse", "SessionStart"):
+            with self.subTest(event=event):
+                out, _ = run({"hook_event_name": event, "cwd": main,
+                              "tool_name": "Write",
+                              "tool_input": {"file_path": os.path.join(
+                                  root, "roles", "lead.md")}},
+                             env={"CLAUDE_PROJECT_DIR": main})
+                self.assertNotEqual(out.get("permissionDecision"), "deny")
+                self.assertNotIn("Your lane is web", out.get("additionalContext", ""))
+
+    def test_a_lead_read_as_a_lane_by_its_directory_is_told_why(self):
+        """Under separate directories the two cannot be told apart, so say it."""
+        base = os.path.realpath(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, base, ignore_errors=True)
+        root = os.path.join(base, ".teamwork")
+        os.makedirs(os.path.join(root, "roles"))
+        os.makedirs(os.path.join(base, "api"))
+        with open(os.path.join(root, "charter.md"), "w", encoding="utf-8") as fh:
+            fh.write(CHARTER.format(root=root).replace(
+                "one worktree per lane", "separate directories"))
+        out, _ = run({"hook_event_name": "PreToolUse",
+                      "cwd": os.path.join(base, "api"), "tool_name": "Write",
+                      "tool_input": {"file_path": os.path.join(root, "roles/api.md")}},
+                     env={"CLAUDE_PROJECT_DIR": os.path.join(base, "api")})
+        self.assertEqual(out.get("permissionDecision"), "deny")
+        self.assertIn("If it is the lead", out["permissionDecisionReason"])
+
     def test_a_shared_tree_does_not_resolve_by_directory(self):
         self.write(".teamwork/charter.md",
                    CHARTER.format(root=self.root).replace(

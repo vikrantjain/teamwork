@@ -77,9 +77,9 @@ one that happened.
 a message to another session, and it goes out under the lane's name. The answer
 comes back to the main agent, which never asked the question.
 
-Every agent the lane starts inherits its environment, so the boundary hook holds
-each of them to the lane's `Owns`. The crew divides those paths among its roles,
-and nothing outside the lane enforces that division.
+Every subagent the lane starts inherits its environment, so the boundary hook
+holds each of them to the lane's `Owns`. The crew divides those paths among its
+roles, and nothing outside the lane enforces that division.
 
 ## Further detail
 

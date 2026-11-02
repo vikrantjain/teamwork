@@ -29,7 +29,7 @@ quickly by a tired member.
 Path globs, one per line, and nothing else. No prose, no topics, no
 responsibilities — the validator reads this section to prove no two lanes own the
 same path, and a sentence here defeats that check. `[T2]` fails a bullet carrying
-anything after its glob.
+anything after its glob, and a line here that is not a `- ` bullet.
 
 A glob is read up to its first space, so put one containing a space in
 backticks: `` `Drafts/Chapter One/**` ``. Unquoted, it is read as

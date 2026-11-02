@@ -104,6 +104,13 @@ Neither works under one shared tree, where every lane's directory is the same
 one and would answer for all of them. A shared-tree lane is identified only
 while it is started from its printed command.
 
+The backstop reads the lead's directory too. Under separate repositories or
+separate directories, a lead working inside a lane's directory is held to that
+lane. It is then denied the team root it has to write. The lead therefore works
+from outside every lane's directory. When this session is inside one, say so,
+and have the human restart it from the workspace root before anything is
+written. Under worktrees the hook never reads the main checkout this way.
+
 So choose worktrees for the reasons above and for the branch each lane needs at
 the end, not to buy a boundary you already have. Choose one shared tree knowing
 that a lane restarted any other way is a lane the hook does not watch.

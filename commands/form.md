@@ -15,7 +15,7 @@ replace the outer team's values. The boundary hook checks one team root, so
 those lanes could write into any outer lane's paths with nothing said. Point the
 member to running a crew inside its lane instead, as
 `${CLAUDE_PLUGIN_ROOT}/skills/crew/SKILL.md` describes.
-Whatever it spawns inherits its lane, so the hook keeps that work inside the
+A subagent it starts inherits its lane, so the hook keeps that work inside the
 lane's paths. A separate team is formed from a session that is on no team.
 
 Run the `team-design` skill's procedure on it, without shortcuts. Read it if it

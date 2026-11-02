@@ -37,9 +37,18 @@ one file covers every worktree of the repository and is never committed. A
 committed copy would merge into the base branch at the finish, and every later
 session in the main checkout would then be that lane.
 
-A lane whose directory does not exist yet gets its file when its `JOIN` arrives,
-which names the directory. Its launch command identifies its first start until
-then.
+A lane's directory has to exist before its command runs. The command opens with
+`cd`, and the `cd` fails in a directory that is not there. Nothing starts. So
+create each lane's directory before printing its command, and then write its
+settings file. Under worktrees that is `git worktree add -b <branch>
+"<directory>"`. Put the branch on the charter's convention, because a resume and
+a finish find the lane's worktree by it. Name the directory for the lane, as the
+charter asks.
+
+A directory only the human can create, such as a repository not yet cloned,
+gets its settings file when its `JOIN` arrives. Its launch command identifies
+its first start until then. Name those directories, and say that each must exist
+before its command is pasted.
 
 ## The launch command
 

@@ -17,8 +17,8 @@ Exit codes:
 Checks:
     [T1] budgets          every contract file is within its line budget
     [T2] role-shape       each role file has the four headings, no empty section
-                          under any of them, and Owns globs inside the workspace
-                          that the hook can read
+                          under any of them, and one bulleted glob per Owns line,
+                          inside the workspace, that the hook can read
     [T3] no-log           no date, checkbox, issue id or status marker in a contract
     [T4] roster-closure   lanes named in the charter and role files on disk agree
     [T5] lane-disjoint    no path is owned by two roles, whether one role's glob
@@ -244,6 +244,13 @@ def check_role_shape(root, rep):
                      "'## Owns' is empty. A lane claiming no path is a lane [T5] can "
                      "prove nothing about, so nothing stops it writing where another "
                      "lane works.")
+        for line in owns_strays(lines):
+            rep.fail("T2", rel, 0,
+                     f"'## Owns' line {line!r} is not a '- <glob>' bullet. Only "
+                     "bullets are read as globs. The lane therefore does not own "
+                     "this path: [T5] cannot see it, and the boundary hook lets "
+                     "every lane write it. Make it a bullet, or move it to "
+                     "another section.")
         for entry, rest in owns_bullets(lines):
             if rest.strip():
                 rep.fail("T2", rel, 0,
@@ -674,6 +681,12 @@ def owns_bullets(lines):
         if m:
             out.append(((m.group(1) or m.group(2)).strip("`"), m.group(3)))
     return out
+
+
+def owns_strays(lines):
+    """Each non-blank line under `## Owns` that is not a bullet `owns_bullets` reads."""
+    return [line.strip() for line in section(lines, "## Owns")
+            if line.strip() and not OWNS_BULLET.match(line)]
 
 
 def owns_entries(lines):

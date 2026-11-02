@@ -785,6 +785,21 @@ class TestT2Owns(TeamRootCase):
         self.assertEqual(code, 1)
         self.assertIn("is absolute", out)
 
+    def test_a_line_that_is_not_a_bullet_fails(self):
+        """Only bullets are read as globs, so an unbulleted path is owned by nobody.
+
+        The rest of the section still parses, so nothing else fails, and the
+        hook then lets every lane write the path this lane meant to own.
+        """
+        for line in ("migrations/**", "1. migrations/**", "+ migrations/**"):
+            with self.subTest(line=line):
+                write(self.root, "roles/api.md",
+                      ROLE_API.replace("- migrations/**", line))
+                code, out = self.run_validator()
+                self.assertEqual(code, 1, out)
+                self.assertIn("[T2]", out)
+                self.assertIn("is not a '- <glob>' bullet", out)
+
 
 class TestBracketClasses(TeamRootCase):
     """A bracket is a class, as in any glob, and some classes are no regex."""
