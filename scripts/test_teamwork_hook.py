@@ -137,6 +137,11 @@ class TestBoundary(HookCase):
         self.assertIn("belongs to the web lane", out["permissionDecisionReason"])
         self.assertIn("ASK web", out["permissionDecisionReason"])
 
+    def test_a_denied_write_is_routed_to_the_retro(self):
+        """A denial is the evidence that a boundary is wrong, and only FRICTION keeps it."""
+        out, _ = self.edit("web/dashboard.tsx", lane="api")
+        self.assertIn("send FRICTION", out["permissionDecisionReason"])
+
     def test_the_other_direction_too(self):
         out, _ = self.edit("db/migrations/003.sql", lane="web")
         self.assertEqual(out.get("permissionDecision"), "deny")
@@ -998,6 +1003,13 @@ class TestLaneIdentity(HookCase):
                                           "new_string": '"allow": ["Bash(make:*)"]'},
                                   existing=self.SETTINGS)
         self.assertEqual(out, {})
+
+    def test_replacing_every_occurrence_is_read_as_the_tool_applies_it(self):
+        twice = self.SETTINGS + '{"TEAMWORK_LANE": "api"}\n'
+        out = self.settings_write("api", {"old_string": '"TEAMWORK_LANE": "api"',
+                                          "new_string": '"TEAMWORK_LANE": "lead"',
+                                          "replace_all": True}, existing=twice)
+        self.assertEqual(out.get("permissionDecision"), "deny")
 
     def test_a_new_settings_file_naming_a_lane_is_denied(self):
         out = self.settings_write("api", {"content": '{"env": {"TEAMWORK_LANE": "lead"}}'})

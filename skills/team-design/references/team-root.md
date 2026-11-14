@@ -139,3 +139,10 @@ Every member resolves the same path on the same machine. That is what lets
 it, and a stale copy read as law is the failure this whole file exists to
 prevent. A team whose members cannot share a path is not a team this plugin
 forms.
+
+A reviewer's clone and a CI run are not members, and neither has the team's
+paths on its disk. They run the validator with `--review`. `[T9]` and `[T14]`
+then check that `Team root:` and `Workspace root:` are there and absolute,
+without comparing either with the disk. Without the flag both fail a sound team
+there, and the committed contracts could be read in a pull request but never
+checked. Never pass it where the team runs.

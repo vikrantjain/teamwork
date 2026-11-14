@@ -14,9 +14,9 @@ claude plugin validate .                                 # both manifests and th
 The first ends in `OK`, the second in `0 fail`, and the third in
 `Validation passed with warnings`.
 
-Leave `--strict` off the validate command. It turns two expected warnings into
-failures. One is `CLAUDE.md` at the repository root, which is not plugin
-context and is not meant to be. The other is the missing icon.
+Leave `--strict` off the validate command. It turns one expected warning into a
+failure: `CLAUDE.md` at the repository root, which is not plugin context and is
+not meant to be.
 
 The behaviour that is prose rather than code has an eval suite under
 [`evals/`](evals/). Each case is read-only and runs three times against a

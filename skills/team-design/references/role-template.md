@@ -66,6 +66,10 @@ a package manager, a migration tool, a build — and the boundary hook does not 
 a write made through `Bash`, so this line is the only thing standing between two
 lanes and one regenerated lockfile.
 
+The hook does not see a write made through an MCP server's tool either. A lane
+that has one able to write files gets a line here for each neighbouring lane's
+paths, because nothing else denies that write.
+
 ## Hands off to
 
 The lane, and the condition that triggers the handoff. If a lane hands off to

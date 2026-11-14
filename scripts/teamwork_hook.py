@@ -120,9 +120,12 @@ other session is. On a live run, only a resolved lane is told, and of its own
 file. A session with no lane there is the lead holding the map or a member the
 hook cannot identify, and neither has a crew.
 
-What it cannot see: a write made through Bash. Parsing a shell command to find
-the file it truncates is a losing game, and a hook that catches nine tenths of
-them would be trusted for the tenth.
+What it cannot see: a write made through Bash, or through a tool an MCP server
+provides. Parsing a shell command to find the file it truncates is a losing
+game, and a hook that catches nine tenths of them would be trusted for the
+tenth. An MCP tool's input names a path and does not say whether the tool reads
+it or writes it. A hook matching those tools would deny a lane a read of
+another lane's file, and the boundary is on writes alone.
 """
 
 import json
@@ -213,17 +216,12 @@ def text_after(path, tool_input):
         before = ""
     if isinstance(tool_input.get("content"), str):
         return before, tool_input["content"]
-    edits = tool_input.get("edits")
-    if not isinstance(edits, list):
-        edits = [tool_input]
-    after = before
-    for edit in edits:
-        old, new = edit.get("old_string"), edit.get("new_string")
-        if not isinstance(old, str) or not isinstance(new, str):
-            return None
-        after = (after.replace(old, new) if edit.get("replace_all")
-                 else after.replace(old, new, 1))
-    return before, after
+    old, new = tool_input.get("old_string"), tool_input.get("new_string")
+    if not isinstance(old, str) or not isinstance(new, str):
+        return None
+    if tool_input.get("replace_all"):
+        return before, before.replace(old, new)
+    return before, before.replace(old, new, 1)
 
 
 def changes_identity(path, tool_input):
@@ -575,7 +573,9 @@ def pre_tool_use(payload):
          f"{rel} belongs to the {owner} lane, which owns {pattern!r}. You are {lane}. "
          f"Reach across a boundary with a message, never with an edit: ASK {owner} and "
          "let it make the change. Two members editing one path lose work, and neither "
-         "of them sees it happen.")
+         "of them sees it happen. Then send FRICTION, as conflicts.md says. A path "
+         "a lane needs and does not own is a boundary the retro may have to move, "
+         "and the retro sees only what was sent.")
 
 
 def crew_file(lane):

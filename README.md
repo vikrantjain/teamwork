@@ -57,11 +57,12 @@ lead updates it.
 It works with one repository, with a repository per component, or with no
 version control at all.
 
-It has three limits. The hook cannot see a write made through `Bash`, such as a
-regenerated lockfile, so the contracts give each such path one owner and every
-other lane a rule against it. A session the hook cannot identify as a lane is
-allowed every write; a lane started from its printed command is always
-identified. Every session runs on one machine.
+It has three limits. The hook watches Claude Code's own write tools and nothing
+else. It cannot see a write made through `Bash`, such as a regenerated lockfile,
+or through a tool an MCP server provides. The contracts therefore give each such
+path one owner and every other lane a rule against it. A session the hook cannot
+identify as a lane is allowed every write; a lane started from its printed
+command is always identified. Every session runs on one machine.
 
 ## Requirements
 

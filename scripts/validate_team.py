@@ -7,7 +7,14 @@ rule is the contract-auditor agent's job, and whether the work is right is nobod
 job here.
 
 Usage:
-    python3 validate_team.py <team-root> [--refs <dir>] [--quiet]
+    python3 validate_team.py <team-root> [--refs <dir>] [--quiet] [--review]
+
+`--review` is for a machine the team does not run on: a reviewer's clone, or CI
+on a pull request. [T9] and [T14] each compare a charter line with this
+machine's disk, so there they fail a sound team over its paths alone. Under
+`--review` both still require the line and an absolute path, and neither looks
+at the disk. Never pass it where the team runs. [T9]'s comparison is what
+catches a member reading a stale copy of the team root.
 
 Exit codes:
     0  every check passed (warnings may still be printed)
@@ -900,7 +907,7 @@ def check_friction_cap(root, rep):
                  f"{len(lines)} notes, cap {FRICTION_CAP}. A retro is due.")
 
 
-def check_team_root(root, rep):
+def check_team_root(root, rep, review=False):
     charter = os.path.join(root, "charter.md")
     if not os.path.exists(charter):
         return
@@ -916,11 +923,13 @@ def check_team_root(root, rep):
                  f"team root {declared!r} is relative. A relative path resolves "
                  "differently in every worktree, so a member reads a stale charter.")
         return
-    if os.path.realpath(declared) != os.path.realpath(root):
+    if not review and os.path.realpath(declared) != os.path.realpath(root):
         rep.fail("T9", "charter.md", 0,
                  f"team root is {declared!r} but this is {root!r}. Either you are "
                  "editing a copy, and the team root is the one named here, or this "
-                 "team root moved and the line was not rewritten with it.")
+                 "team root moved and the line was not rewritten with it. On a "
+                 "machine the team does not run on, such as a reviewer's clone, "
+                 "pass --review.")
 
 
 # The four workspaces, each recognised by the one word that tells it from the
@@ -1000,7 +1009,7 @@ WORKSPACE_ROOT_HELP = (
     "'## Owns' globs are relative to.")
 
 
-def check_workspace_root(root, rep):
+def check_workspace_root(root, rep, review=False):
     """The anchor for `Owns` globs is declared, never derived.
 
     Without the line the hook falls back to the team root's parent. That is
@@ -1041,11 +1050,13 @@ def check_workspace_root(root, rep):
                  f"workspace root {declared!r} is relative. It resolves differently in "
                  "every lane's working directory, so each lane would read its globs "
                  "against a different tree. " + WORKSPACE_ROOT_HELP)
-    elif not os.path.isdir(declared):
+    elif not review and not os.path.isdir(declared):
         rep.fail("T14", "charter.md", 0,
                  f"workspace root {declared!r} is not a directory on this machine. The "
                  "hook resolves every lane's paths under it, and a path that is not "
-                 "there reaches nothing, so no write is ever attributed to a lane.")
+                 "there reaches nothing, so no write is ever attributed to a lane. "
+                 "On a machine the team does not run on, such as a reviewer's "
+                 "clone, pass --review.")
 
 
 # The charter sections a member and the finish procedure both act on. `## Lanes`
@@ -1084,6 +1095,9 @@ def main(argv=None):
     ap.add_argument("root", help="the team root directory")
     ap.add_argument("--refs", help="the plugin's skills/team-member/references dir")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--review", action="store_true",
+                    help="validate on a machine the team does not run on: [T9] "
+                         "and [T14] do not compare their paths with this disk")
     args = ap.parse_args(argv)
 
     root = os.path.abspath(args.root)
@@ -1111,11 +1125,11 @@ def main(argv=None):
     check_transport_named(root, rep)
     check_verbatim(root, rep, refs_dir)
     check_friction_cap(root, rep)
-    check_team_root(root, rep)
+    check_team_root(root, rep, args.review)
     check_shared_paths(root, rep)
     check_lane_names(root, rep)
     check_workspace_named(root, rep)
-    check_workspace_root(root, rep)
+    check_workspace_root(root, rep, args.review)
     check_charter_shape(root, rep)
     return rep.emit()
 

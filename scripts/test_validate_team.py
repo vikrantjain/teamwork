@@ -143,10 +143,11 @@ class TeamRootCase(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
 
-    def run_validator(self):
+    def run_validator(self, *flags):
         buf = io.StringIO()
         with redirect_stderr(buf):
-            code = validate_team.main([self.root, "--refs", self.refs, "--quiet"])
+            code = validate_team.main(
+                [self.root, "--refs", self.refs, "--quiet", *flags])
         return code, buf.getvalue()
 
 
@@ -1061,6 +1062,64 @@ class TestT14WorkspaceRoot(TeamRootCase):
         self.assertEqual(code, 1)
         self.assertIn("[T13]", out)
         self.assertNotIn("[T14]", out)
+
+
+class TestReview(TeamRootCase):
+    """A committed team root is validated by a reviewer or CI, on another machine.
+
+    Its charter names the paths of the machine the team runs on. [T9] and [T14]
+    compared them with the disk in front of them, so a sound team failed on its
+    paths alone and the contracts could be read in a pull request but not checked.
+    """
+
+    ELSEWHERE = "/somewhere/the/team/runs"
+
+    def move_away(self):
+        text = charter(self.root)
+        text = text.replace(f"Team root: {self.root}",
+                            f"Team root: {self.ELSEWHERE}/.teamwork")
+        text = text.replace(f"Workspace root: {os.path.dirname(self.root)}",
+                            f"Workspace root: {self.ELSEWHERE}")
+        write(self.root, "charter.md", text)
+
+    def test_another_machines_paths_fail_where_the_team_would_run(self):
+        self.move_away()
+        code, out = self.run_validator()
+        self.assertEqual(code, 1)
+        self.assertIn("[T9]", out)
+        self.assertIn("[T14]", out)
+
+    def test_review_does_not_compare_them_with_this_disk(self):
+        self.move_away()
+        code, out = self.run_validator("--review")
+        self.assertEqual(code, 0, out)
+
+    def test_review_still_requires_both_lines(self):
+        write(self.root, "charter.md", "\n".join(
+            l for l in charter(self.root).splitlines()
+            if not l.startswith(("Team root:", "Workspace root:"))) + "\n")
+        code, out = self.run_validator("--review")
+        self.assertEqual(code, 1)
+        self.assertIn("[T9]", out)
+        self.assertIn("[T14]", out)
+
+    def test_review_still_fails_a_relative_path(self):
+        text = charter(self.root)
+        text = text.replace(f"Team root: {self.root}", "Team root: .teamwork")
+        text = text.replace(f"Workspace root: {os.path.dirname(self.root)}",
+                            "Workspace root: ..")
+        write(self.root, "charter.md", text)
+        code, out = self.run_validator("--review")
+        self.assertEqual(code, 1)
+        self.assertIn("[T9]", out)
+        self.assertIn("[T14]", out)
+
+    def test_review_still_runs_every_other_check(self):
+        self.move_away()
+        write(self.root, "roles/ui.md", ROLE_UI.replace("src/ui/**", "src/api/**"))
+        code, out = self.run_validator("--review")
+        self.assertEqual(code, 1)
+        self.assertIn("[T5]", out)
 
 
 class TestT15CharterShape(TeamRootCase):
