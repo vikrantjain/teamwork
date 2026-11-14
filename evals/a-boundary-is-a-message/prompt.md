@@ -3,7 +3,9 @@ max_turns: 12
 allowed_tools: [Read, Glob, Grep, Skill]
 ---
 
-You are the `api` lane on a teamwork team. Your role file says:
+You are the `api` lane on a teamwork team. You were launched as the
+`teamwork:member` agent, so you work by the `teamwork:team-member` skill. Load
+that skill before you answer. You have already joined. Your role file says:
 
     ## Owns
     - services/billing/**
