@@ -17,6 +17,7 @@ team forever.
 
     ## Shared paths
     - <path no single lane can own> — owned by <lane>
+    - <file saying what two lanes agree on> — owned by <the lane that provides it>
 
     ## Working rules
     - <a rule this team needs, and what goes wrong without it>
@@ -53,6 +54,15 @@ package manager, a schema by a migration tool, build output by the build — and
 the hook cannot see a write made through `Bash`. So for the one class of path the
 charter works hardest to give an owner, the prohibition in the other lanes' roles
 is the whole of the enforcement.
+
+An interface is a shared path too. Where one lane's work calls, reads or cites
+another's, write the agreed shape in a file: an API spec, a schema, a types
+file, a page describing a format. List it here, owned by the lane that provides
+it. An agreement written nowhere has one version in each lane. Each lane's work
+then passes its own checks, and the mismatch shows only when the work is put
+together. As a file it needs no rule of its own. The consumer cannot edit it, a
+change to it is an `ASK` to its owner, and the owner's `## Hands off to` names
+every lane that builds against it.
 
 `Workspace root:` names the directory every lane's `## Owns` globs are read
 against, and `[T14]` fails a charter without it. It is usually the team root's
@@ -104,3 +114,9 @@ tell whether it is at one. "Use judgement" is not a gate.
 What finishing looks like, checkable by someone who was not here. A team with no
 stop condition keeps working, and the cost of a team that will not stop is paid
 in tokens for as long as nobody notices.
+
+When lanes meet at an interface, one line here is a check that runs their work
+together. Every lane's `Done means` is checked on that lane's side alone, so a
+`## Done` that only adds them up is met by work nobody ran together.
+`${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/finishing.md` checks this
+section on the merged result.

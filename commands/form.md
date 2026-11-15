@@ -31,7 +31,7 @@ Four steps get skipped under time pressure, and each one changes the result.
 **Get the breakdown before sizing anything.** Team size is the width of the
 dependency graph, not a feeling about the goal. Use the plan the project already
 has, under whatever name it carries, and ask whatever it leaves unanswered from
-the five questions in
+the six questions in
 `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md`, in one
 message. A plan lists the pieces. It does not say what two people must never
 touch at once, or what has to stop and ask you, so finding one shortens the

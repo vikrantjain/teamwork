@@ -76,8 +76,16 @@ The lane, and the condition that triggers the handoff. If a lane hands off to
 nobody, say so — it means the lane is a leaf, and a reader should not have to
 infer that from silence.
 
+A lane that owns an interface file hands off to every lane that builds against
+it, when that file changes. A consumer that is not told keeps building to the
+old shape.
+
 ## Done means
 
 A condition someone else could check: a command that passes, a file that exists,
 an endpoint that answers. Not "the API is finished". A `Done means` that cannot
 be checked turns every `DONE` message into a claim nobody can verify.
+
+A lane that builds against another lane's interface file names a check against
+that file. Its own tests pass against its own idea of the shape, so without the
+check a mismatch waits for the finish.

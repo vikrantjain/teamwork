@@ -33,6 +33,9 @@ lead updates it.
 - **Gives every lane disjoint paths, and enforces them.** A validator fails the
   team when two lanes' globs reach one path. A hook then denies a write to
   another lane's path and tells the session to ask that lane instead.
+- **Asks where lanes have to agree, and gives that agreement a file and one
+  owner.** An interface written nowhere has one version in each lane, and the
+  mismatch shows only when the work is put together.
 - **Runs each session's work as a crew.** The agent holding the plan does no
   part of the work, and no agent checks its own part. You approve the crew's
   roles. They are saved in the session's directory and named again after every
@@ -49,8 +52,9 @@ lead updates it.
   line for every line it adds.
 - **Parks and resumes.** A park stops every lane at a point the tracker fully
   describes, so a fresh set of sessions resumes from the files alone.
-- **Hands the merge to you.** Finishing tests every lane's merge and prints the
-  commands. It never merges and never removes a worktree.
+- **Hands the merge to you.** Finishing tests every lane's merge, checks the
+  stop condition on the merged result, and prints the commands. It never merges
+  and never removes a worktree.
 - **Gives the lead a status line.** It names a lane that dropped out, a retro
   that is due, or contracts that fail validation.
 

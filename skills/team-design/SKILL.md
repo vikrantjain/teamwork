@@ -91,7 +91,8 @@ unearned rule is a tax charged forever.
 4. **Every lane's `Never` is filled in.** A role with no prohibition has no
    boundary, and a boundary nobody wrote down is one nobody will respect.
 5. **Name an owner for every shared path, and put the path in that lane's
-   `Owns`** — lockfiles, schemas, CI config, build output. An unowned shared path
+   `Owns`** — lockfiles, schemas, CI config, build output, and the file that
+   says what two lanes agree on. An unowned shared path
    is where two lanes collide first, and the boundary hook reads role files only,
    so a path named in the charter alone is one every lane may still write.
 6. **Budgets are hard.** To add a line at a retro you must remove one. Without
@@ -156,7 +157,7 @@ flight invalidate that work.
 
 ## Further detail
 
-- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md` — finding the work, and the five questions when there is no plan.
+- `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/discovery.md` — finding the work, and the six questions when there is no plan.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/sizing.md` — how many members, which workspace, and when the answer is none.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/team-root.md` — where the shared files live, and when to ask.
 - `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md` — choosing one work-item backend.

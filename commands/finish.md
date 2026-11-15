@@ -35,8 +35,11 @@ way the disk looks. Under one worktree per lane or separate repositories, test
 every merge without performing it: `git merge-tree --write-tree <base> <lane
 branch>` reports conflicts and writes nothing. Run it for every lane before
 proposing an order, because the first merge changes what the second conflicts
-with. Under one shared tree or separate directories there is nothing to merge;
-report what is uncommitted or unsaved and where each lane's work sits.
+with. Then check the charter's `## Done` on the tree those merges produce, by
+the trial merge the reference shows. Each lane passed on its own branch, and a
+clean merge is not a working one. Under one shared tree or separate directories
+there is nothing to merge; report what is uncommitted or unsaved and where each
+lane's work sits.
 
 **Ask before clearing any lane's settings file.** Name each lane directory whose
 `.claude/settings.local.json` still carries `TEAMWORK_LANE` and `TEAMWORK_ROOT`,

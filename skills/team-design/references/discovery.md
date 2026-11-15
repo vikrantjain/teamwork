@@ -9,7 +9,7 @@ maintains. What is needed is a list of pieces and the paths each one writes.
 
 ## 1. Find the plan the project already has
 
-A plan answers one of the five questions below, which is the one about the
+A plan answers one of the six questions below, which is the one about the
 pieces. Look for what this project actually keeps, in this order, first match
 wins:
 
@@ -19,7 +19,7 @@ wins:
 2. **The project's issue tracker**, when its open items already describe the
    work. `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/trackers.md` finds
    it, and the same store then becomes the team's tracker.
-3. **Nothing.** Then question 2 is asked like the other four.
+3. **Nothing.** Then question 2 is asked like the other five.
 
 A plan that exists wins over anything you would derive. Deriving a second
 breakdown beside an existing one gives two answers to "what are the pieces", and
@@ -27,8 +27,8 @@ the lanes get drawn from whichever one you happened to read.
 
 ## 2. Ask whatever the plan did not answer
 
-Five questions. Ask every one the plan has not already answered, **in one
-message**, because one turn answers all five and five turns answer them no
+Six questions. Ask every one the plan has not already answered, **in one
+message**, because one turn answers all six and six turns answer them no
 better.
 
 **Finding a plan does not end this step.** A plan lists the pieces. It was not
@@ -44,10 +44,16 @@ a charter reaches `## Human gates` and `## Done` with nothing under them, and
 3. **What must never be touched by two people at once?** Shared paths, and who
    should own each. This is the question whose absence costs the most: an unowned
    shared path is where two lanes collide first.
-4. **Where do work items and bugs already get recorded?** The tracker. Naming an
+4. **Where do two pieces have to agree, and where is that written down?** The
+   interfaces: an API one piece serves and another calls, a schema, a file
+   format, the terms a set of documents shares. Each becomes a file with one
+   owner. An agreement written nowhere has one version in each lane. Both lanes
+   then report `DONE`, and the mismatch shows only when the work is put
+   together.
+5. **Where do work items and bugs already get recorded?** The tracker. Naming an
    existing store beats inventing one, because items filed where nobody looks are
    lost items.
-5. **What should stop and ask you, every time?** The human gates. Publishing,
+6. **What should stop and ask you, every time?** The human gates. Publishing,
    deleting, production, money, scope.
 
 Take the answers as given. A member will discover the breakdown is wrong soon

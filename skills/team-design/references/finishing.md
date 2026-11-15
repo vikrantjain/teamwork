@@ -16,7 +16,10 @@ this procedure reports and hands over.
    checkable by someone who was not here. If it is not met, say which part and
    stop: a run that finishes early leaves lanes holding claims nobody takes.
    This is the team's stop condition, not a lane's `Done means`. Never verify
-   those yourself, for the same reason a park does not.
+   those yourself, for the same reason a park does not. Under worktrees or
+   separate repositories, a clause about the lanes' work together cannot be
+   checked yet. It is checked in step 4 on the merged result, once the lanes
+   have parked and their branches have stopped moving.
 2. **Park every lane first.** Follow the drain in
    `${CLAUDE_PLUGIN_ROOT}/skills/team-design/references/parking.md`. A lane that
    has not parked still holds a claim, and landing around it integrates work
@@ -59,10 +62,31 @@ propose an order, dependencies first: a lane that others handed work to lands
 before the lanes that waited on it. Print the merges, then `git worktree remove`
 for each lane, then the branch deletions.
 
+**A clean merge is not a working one.** Each lane passed its checks on its own
+branch, against its own side of every interface. So check the charter's
+`## Done` on the tree the merges would produce, before you print them. Verified
+against git 2.43, none of this moves a branch or touches a worktree:
+
+- `git merge-tree --write-tree <base> <lane branch>` prints the merged tree's id
+  when the merge is clean.
+- `git commit-tree <tree> -p <base> -p <lane branch> -m trial` wraps that tree in
+  a commit no branch points at. Test the next lane's merge against that commit
+  in place of the base, in the order you propose.
+- `git archive <last tree> | tar -x -C "<scratch directory>"` writes the final
+  tree out, to a directory outside the project. Run the `## Done` check there.
+
+A failure leads the report, above any conflict. The lanes are parked, not
+disbanded, so the human may resume the team, and the fix is an item for the lane
+that owns the path. Say so when the check could not be run there, as when it
+needs a service the scratch directory does not have. A `## Done` reported as met
+on the branches alone is a claim about work nobody ran together.
+
 **Separate repositories.** The same as worktrees, once per repository, each
 against its own base branch. Say which repositories land in which order when one
 depends on another, and say when they are independent, because a reader cannot
-tell those apart from a list of commands.
+tell those apart from a list of commands. No one tree holds every repository,
+so build each repository's merged tree as above, write them out side by side
+under one scratch directory, and check `## Done` against them together.
 
 **Separate directories.** There is nothing to merge and nothing to remove: the
 work is already where it belongs. Report where each lane's output is and what
@@ -81,8 +105,9 @@ remains unsaved, then stop.
 
 ## What to report
 
-Lead with **what will not land cleanly**: a merge with conflicts, a lane whose
-branch you could not find, a tree with uncommitted work in it. That is the cost
+Lead with **what will not land cleanly**: a merged tree that fails `## Done`, a
+merge with conflicts, a lane whose branch you could not find, a tree with
+uncommitted work in it. That is the cost
 of the workspace the team chose, and it is the only part of finishing the human
 cannot see from the tracker.
 
