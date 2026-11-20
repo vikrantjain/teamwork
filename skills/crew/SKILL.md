@@ -51,7 +51,8 @@ outside the session depends on them, so nothing outside it needs to see them.
 3. **Commit it wherever the work is committed.** The human approved it, so it is
    a contract, and a contract outside version control cannot be reviewed.
 4. **Change it only with the human.** A role that changes while work is under
-   way moves a boundary under that work.
+   way moves a boundary under that work. Roles come from a spec, so a new spec
+   can need new ones.
 
 What the file holds beyond that is the session's choice. It names each role,
 what the role may touch and which role checks it, because those are what a
