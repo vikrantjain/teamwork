@@ -1,6 +1,6 @@
 {
   "name": "teamwork",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Run several Claude Code sessions as one team: each member owns a lane whose boundary a hook enforces, the team is sized from the work's dependency graph, runs park and resume cleanly, and no team forms when one session is enough. An interface between lanes is a file with one owner, and the finished work is checked together. Inside each session, the work runs as a crew of agents in roles the human approves.",
   "author": {
     "name": "Vikrant Jain"
