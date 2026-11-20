@@ -66,6 +66,8 @@ cost more than they earn.
 
 - **Never restructure the breakdown.** Re-planning is a planning activity. If the
   work is wrong, stop and say so rather than fixing it mid-flight.
+  Lanes are never re-cut in place: a lane's name is bound into its settings
+  file, its branch, its session and its items, and missing one fails quietly.
 - **Never reassign in-flight items.** Change the boundary; let the current item
   finish under the old one.
 - **Never add a rule without a failure mode.** If you cannot say what goes wrong
